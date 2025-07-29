@@ -3,7 +3,7 @@
     <div>{{ searchResults.total_results }} results for "{{ route.query.q }}"</div>
     <hr class="compact-hr" />
     <div v-for="hit in searchResults.hits" :key="hit.id">
-      <a class="hit-title" :href="hit.url">{{ hit.title }}</a>
+      <a class="hit-title" :href="hit.url">{{ fallbackTitle(hit.title) }}</a>
       <br />
       <a class="hit-url" :href="hit.url">
         {{ formatUrlForWayfinder(hit.url) }}
@@ -28,12 +28,6 @@
   font-size: x-small;
   margin-top: 0;
   text-decoration: none;
-}
-.hit-url:link {
-  color: blue;
-}
-.hit-url:visited {
-  color: purple;
 }
 .hit-body {
   margin-top: 0.25em;
