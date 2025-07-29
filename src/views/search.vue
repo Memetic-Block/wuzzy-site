@@ -50,6 +50,10 @@ function formatUrlForWayfinder(url: string) {
     .replace('.arweave.net', '')
 }
 
+function fallbackTitle(title: string) {
+  return title || formatUrlForWayfinder(title)
+}
+
 async function search(query: LocationQueryValue | LocationQueryValue[]) {
   if (Array.isArray(query)) {
     console.warn('Search query should not be an array')
