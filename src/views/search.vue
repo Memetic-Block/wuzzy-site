@@ -59,7 +59,7 @@ async function search(query: LocationQueryValue | LocationQueryValue[]) {
   if (query) {
     try {
       const response = await fetch(
-        `${process.env.SEARCH_API_URL}/search?q=${encodeURIComponent(query)}`
+        `${import.meta.env.VITE_SEARCH_API_URL}/search?q=${encodeURIComponent(query)}`
       )
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`)
