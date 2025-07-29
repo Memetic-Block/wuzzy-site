@@ -40,6 +40,7 @@ job "wuzzy-site-nginx-stage" {
       env {
         PHASE="stage"
         VERSION="[[ .commit_sha ]]"
+        SEARCH_API_URL="https://wuzzy-search-api-stage.hel.memeticblock.net"
       }
 
       template {

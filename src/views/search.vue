@@ -59,7 +59,7 @@ async function search(query: LocationQueryValue | LocationQueryValue[]) {
   if (query) {
     try {
       const response = await fetch(
-        `http://localhost:3000/search?q=${encodeURIComponent(query)}`
+        `${process.env.SEARCH_API_URL}/search?q=${encodeURIComponent(query)}`
       )
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`)
