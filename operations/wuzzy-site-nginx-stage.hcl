@@ -29,6 +29,12 @@ job "wuzzy-site-nginx-stage" {
 
       config {
         image = "${CONTAINER_REGISTRY_ADDR}/memetic-block/wuzzy-site:${VERSION}"
+        mount {
+          type = "bind"
+          source = "local/nginx.conf"
+          target = "/etc/nginx/conf.d/default.conf"
+          readonly = true
+        }
       }
       
       env {
