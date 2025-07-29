@@ -3,7 +3,7 @@
     <div>{{ searchResults.total_results }} results for "{{ route.query.q }}"</div>
     <hr class="compact-hr" />
     <div v-for="hit in searchResults.hits" :key="hit.id">
-      <a class="hit-title" :href="hit.url">{{ fallbackTitle(hit.title) }}</a>
+      <a class="hit-title" :href="hit.url">{{ fallbackTitle(hit) }}</a>
       <br />
       <a class="hit-url" :href="hit.url">
         {{ formatUrlForWayfinder(hit.url) }}
@@ -56,8 +56,8 @@ function formatUrlForWayfinder(url: string) {
     .replace('.arweave.net', '')
 }
 
-function fallbackTitle(title: string) {
-  return title || formatUrlForWayfinder(title)
+function fallbackTitle(hit: { title: string, url: string }) {
+  return hit.title || formatUrlForWayfinder(hit.url)
 }
 
 async function search(query: LocationQueryValue | LocationQueryValue[]) {
