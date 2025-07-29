@@ -37,6 +37,7 @@ import { ref, watch } from 'vue'
 import { useRoute, type LocationQueryValue } from 'vue-router'
 import type { SearchResults } from '../types/search-types'
 
+const searchApiUrl = import.meta.env.VITE_SEARCH_API_URL
 const route = useRoute()
 const searchResults = ref<SearchResults | null>(null)
 
@@ -55,11 +56,12 @@ async function search(query: LocationQueryValue | LocationQueryValue[]) {
     console.warn('Search query should be a string')
     return
   }
+  console.log(`Using Search API URL [${searchApiUrl}]`)
   query = query.trim()
   if (query) {
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_SEARCH_API_URL}/search?q=${encodeURIComponent(query)}`
+        `${searchApiUrl}/search?q=${encodeURIComponent(query)}`
       )
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`)
