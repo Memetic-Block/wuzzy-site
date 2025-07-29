@@ -44,7 +44,10 @@ const searchResults = ref<SearchResults | null>(null)
 watch(() => route.query.q, search, { immediate: true })
 
 function formatUrlForWayfinder(url: string) {
-  return url.replace('https://', 'arns://').replace('.arweave.net', '')
+  return url
+    .substring(0, url.length - 1)
+    .replace('https://', 'arns://')
+    .replace('.arweave.net', '')
 }
 
 async function search(query: LocationQueryValue | LocationQueryValue[]) {
