@@ -18,10 +18,22 @@
   text-decoration: none;
   font-size: larger;
 }
+.hit-title:link {
+  color: blue;
+}
+.hit-title:visited {
+  color: purple;
+}
 .hit-url {
   font-size: x-small;
   margin-top: 0;
   text-decoration: none;
+}
+.hit-url:link {
+  color: blue;
+}
+.hit-url:visited {
+  color: purple;
 }
 .hit-body {
   margin-top: 0.25em;
