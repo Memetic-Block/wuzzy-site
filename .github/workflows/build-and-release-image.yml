@@ -26,7 +26,7 @@ jobs:
 
       - name: Push image
         run: |
-          IMAGE_ID=ghcr.io/${{ github.repository_owner }}/$IMAGE_NAME
+          IMAGE_ID=$CONTAINER_REGISTRY_ADDR/${{ github.repository_owner }}/$IMAGE_NAME
 
           # Change all uppercase to lowercase
           IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
@@ -49,13 +49,10 @@ jobs:
       
       - name: Deploy new version
         run: |
-          curl -L https://releases.hashicorp.com/nomad/1.10.2/nomad_1.10.2_linux_amd64.zip -o nomad.zip
-          unzip nomad.zip
-
           if grep -q "stage" deploy-vars.json; then
             sed -i "s/\[\[ .commit_sha \]\]/${GITHUB_SHA}/g" operations/wuzzy-site-ssr-stage.hcl
-            ./nomad job run operations/wuzzy-site-ssr-stage.hcl
+            nomad job run operations/wuzzy-site-ssr-stage.hcl
           else
             sed -i "s/\[\[ .commit_sha \]\]/${GITHUB_SHA}/g" operations/wuzzy-site-ssr-live.hcl
-            ./nomad job run operations/wuzzy-site-ssr-live.hcl
+            nomad job run operations/wuzzy-site-ssr-live.hcl
           fi
