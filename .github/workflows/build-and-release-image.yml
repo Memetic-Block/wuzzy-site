@@ -22,6 +22,8 @@ jobs:
         env:
           VITE_SEARCH_API_URL: "https://wuzzy-search-api.hel.memeticblock.net"
         run: |
+          VERSION=$(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,')
+          [[ "${{ github.ref }}" == "refs/tags/"* ]] && VERSION=$(echo $VERSION | sed -e 's/^v//')
           [ "$VERSION" == "master" ] && VITE_SEARCH_API_URL="https://wuzzy-search-api-stage.hel.memeticblock.net"
           docker build . \
             --file Dockerfile \
