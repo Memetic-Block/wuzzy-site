@@ -1,4 +1,4 @@
-job "wuzzy-site-ssr-stage" {
+job "wuzzy-site-nginx-stage" {
   datacenters = ["mb-hel"]
   type = "service"
 
@@ -6,7 +6,7 @@ job "wuzzy-site-ssr-stage" {
     attempts = 0
   }
 
-  group "wuzzy-site-ssr-stage-group" {
+  group "wuzzy-site-nginx-stage-group" {
     count = 1
 
     update {
@@ -19,13 +19,12 @@ job "wuzzy-site-ssr-stage" {
 
     network {
       mode = "bridge"
-      port "ssr" {
-        to           = 3000
+      port "http" {
         host_network = "wireguard"
       }
     }
 
-    task "wuzzy-site-ssr-stage-task" {
+    task "wuzzy-site-nginx-stage-task" {
       driver = "docker"
 
       config {
@@ -47,6 +46,20 @@ job "wuzzy-site-ssr-stage" {
         destination = "local/env"
       }
 
+      template {
+        data = <<-EOF
+        server { 
+          listen {{ env "NOMAD_PORT_http" }};
+          server_name {{ env "NOMAD_IP_http" }};
+          location / {
+            root /usr/share/nginx/html;
+            try_files $uri /index.html;
+          }
+        }
+        EOF
+        destination = "local/nginx.conf"
+      }
+
       restart {
         attempts = 0
         mode     = "fail"
@@ -58,12 +71,11 @@ job "wuzzy-site-ssr-stage" {
       }
 
       service {
-        name = "wuzzy-site-ssr-stage"
-        port = "ssr"
+        name = "wuzzy-site-nginx-stage"
+        port = "http"
 
         check {
           type     = "http"
-          port     = "ssr"
           path     = "/"
           interval = "10s"
           timeout  = "5s"
@@ -71,10 +83,10 @@ job "wuzzy-site-ssr-stage" {
 
         tags = [
           "traefik.enable=true",
-          "traefik.http.routers.wuzzy-site-ssr-stage.entrypoints=https",
-          "traefik.http.routers.wuzzy-site-ssr-stage.tls=true",
-          "traefik.http.routers.wuzzy-site-ssr-stage.tls.certresolver=memetic-block",
-          "traefik.http.routers.wuzzy-site-ssr-stage.rule=Host(`wuzzy-stage.hel.memeticblock.net`)"
+          "traefik.http.routers.wuzzy-site-nginx-stage.entrypoints=https",
+          "traefik.http.routers.wuzzy-site-nginx-stage.tls=true",
+          "traefik.http.routers.wuzzy-site-nginx-stage.tls.certresolver=memetic-block",
+          "traefik.http.routers.wuzzy-site-nginx-stage.rule=Host(`wuzzy-stage.hel.memeticblock.net`)"
         ]
       }
     }

@@ -6,4 +6,6 @@ COPY . .
 RUN apk add --no-cache python3 py3-pip make g++ curl unzip rclone
 RUN npm install
 RUN npm run build
-CMD [ "node", "/usr/src/app/.output/server/index.mjs" ]
+
+FROM nginx:1.29.0-alpine
+COPY --from=build /usr/src/app/dist /usr/share/nginx/html

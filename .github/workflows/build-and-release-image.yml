@@ -50,9 +50,9 @@ jobs:
       - name: Deploy new version
         run: |
           if grep -q "stage" deploy-vars.json; then
-            sed -i "s/\[\[ .commit_sha \]\]/${GITHUB_SHA}/g" operations/wuzzy-site-ssr-stage.hcl
-            nomad job run operations/wuzzy-site-ssr-stage.hcl
+            sed -i "s/\[\[ .commit_sha \]\]/${GITHUB_SHA}/g" operations/wuzzy-site-nginx-stage.hcl
+            nomad job run operations/wuzzy-site-nginx-stage.hcl
           else
-            sed -i "s/\[\[ .commit_sha \]\]/${GITHUB_SHA}/g" operations/wuzzy-site-ssr-live.hcl
-            nomad job run operations/wuzzy-site-ssr-live.hcl
+            sed -i "s/\[\[ .commit_sha \]\]/${GITHUB_SHA}/g" operations/wuzzy-site-nginx-live.hcl
+            nomad job run operations/wuzzy-site-nginx-live.hcl
           fi
