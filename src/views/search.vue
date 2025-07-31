@@ -10,6 +10,23 @@
       </a>
       <p class="hit-body">{{ hit.body }}</p>
     </div>
+    <br />
+    <div>
+      <template v-for="page in pages()" :key="page">
+        <a
+          v-if="
+            searchResults &&
+              searchResults.hits.length > 0 &&
+              currentPage() !== page
+          "
+          :href="`?q=${route.query.q}&from=${(page - 1) * pageSize}`"
+          class="page-link"
+        >
+          {{ page }}
+        </a>
+        <span class="page-link" v-else>{{ page }}</span>
+      </template>
+    </div>
   </div>
 </template>
 
@@ -36,18 +53,34 @@
 .compact-hr {
   margin: 0.5em 0;
 }
+.page-link {
+  margin-right: 0.5em;
+}
+.page-link:link {
+  color: blue;
+}
+.page-link:visited {
+  color: purple;
+}
 </style>
 
 <script setup lang="ts">
 import { ref, watch } from 'vue'
-import { useRoute, type LocationQueryValue } from 'vue-router'
+import {
+  useRoute,
+  type LocationQuery
+} from 'vue-router'
 import type { SearchResults } from '../types/search-types'
 
 const searchApiUrl = import.meta.env.VITE_SEARCH_API_URL
 const route = useRoute()
 const searchResults = ref<SearchResults | null>(null)
+const isSearchPending = ref(false)
+const hasSearchError = ref(false)
+const hasMoreResults = ref(false)
+const pageSize = 100
 
-watch(() => route.query.q, search, { immediate: true })
+watch(() => route.query, search, { immediate: true })
 
 function formatUrlForWayfinder(url: string) {
   return url
@@ -60,32 +93,61 @@ function fallbackTitle(hit: { title: string, url: string }) {
   return hit.title || formatUrlForWayfinder(hit.url)
 }
 
-async function search(query: LocationQueryValue | LocationQueryValue[]) {
-  if (Array.isArray(query)) {
+function pages() {
+  if (!searchResults.value) return []
+  const totalResults = searchResults.value.total_results
+  const totalPages = Math.ceil(totalResults / pageSize)
+  return Array.from({ length: totalPages }, (_, i) => i + 1)
+}
+
+function currentPage() {
+  const from = parseInt(route.query.from as string) || 0
+  return Math.floor(from / pageSize) + 1
+}
+
+async function search(query: LocationQuery) {
+  isSearchPending.value = true
+  hasSearchError.value = false
+  searchResults.value = null
+
+  if (Array.isArray(query.q)) {
     console.warn('Search query should not be an array')
     return
   }
-  if (typeof query !== 'string') {
+  if (typeof query.q !== 'string') {
     console.warn('Search query should be a string')
     return
   }
-  console.log(`Using Search API URL [${searchApiUrl}]`)
-  query = query.trim()
-  if (query) {
+
+  let q = encodeURIComponent(query.q.trim())
+  const from = parseInt(query.from as string) || 0
+  if (!isNaN(from) && from >= 0) {
+    q += `&from=${from}`
+  }
+
+  console.log(`Search query: "${q}", from: ${from}`)
+  if (q) {
     try {
-      const response = await fetch(
-        `${searchApiUrl}/search?q=${encodeURIComponent(query)}`
-      )
+      const response = await fetch(`${searchApiUrl}/search?q=${q}`)
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`)
       }
       searchResults.value = await response.json() as SearchResults
+      if (searchResults.value.hits.length > 0) {
+        hasMoreResults.value =
+          searchResults.value.hits.length < searchResults.value.total_results
+      } else {
+        console.warn('No search results found')
+      }
       console.log('Search results:', searchResults.value)
     } catch (error) {
+      hasSearchError.value = true
       console.error('Error fetching search results:', error)
     }
   } else {
     console.warn('Search query is empty')
   }
+
+  isSearchPending.value = false
 }
 </script>
