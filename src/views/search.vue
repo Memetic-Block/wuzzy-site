@@ -8,7 +8,7 @@
       <a class="hit-url" :href="hit.url">
         {{ formatUrlForWayfinder(hit.url) }}
       </a>
-      <p class="hit-body">{{ hit.body }}</p>
+      <p v-if="hit.body" class="hit-body" v-html="hit.body"></p>
     </div>
     <br />
     <div>
@@ -78,7 +78,7 @@ const searchResults = ref<SearchResults | null>(null)
 const isSearchPending = ref(false)
 const hasSearchError = ref(false)
 const hasMoreResults = ref(false)
-const pageSize = 100
+const pageSize = 20
 
 watch(() => route.query, search, { immediate: true })
 
