@@ -1,16 +1,21 @@
 <template>
-  <h1><a class="wuzzy-search-logo" href="/">Wuzzy Search</a></h1>
+  <h1><a class="wuzzy-search-logo" href="/">Wuzzy Permaweb Search</a></h1>
   <input
     type="text"
     v-model="searchQuery"
-    placeholder="Search..."
+    placeholder="Search the Permaweb..."
     @keyup.enter="onSearchClicked"
   />
   <br />
   <button @click="onSearchClicked">Search</button>
-  <main>
+  <main class="main-router-view-container">
     <RouterView />
   </main>
+  <footer>
+    Built &amp; Operated by <a href="https://memeticblock.com" target="_blank">
+      Memetic Block
+    </a>
+  </footer>
 </template>
 
 <style scoped>
@@ -18,6 +23,9 @@
   text-decoration: none;
   color: var(--text-color);
   font-weight: var(--font-weight-bold);
+}
+.main-router-view-container {
+  padding-bottom: 2rem;
 }
 </style>
 
