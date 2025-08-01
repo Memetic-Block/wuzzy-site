@@ -11,22 +11,23 @@
       <p v-if="hit.body" class="hit-body" v-html="hit.body"></p>
     </div>
     <br />
-    <div>
-      <template v-for="page in pages()" :key="page">
-        <a
-          v-if="
-            searchResults &&
-              searchResults.hits.length > 0 &&
-              currentPage() !== page
-          "
-          :href="`?q=${route.query.q}&from=${(page - 1) * pageSize}`"
-          class="page-link"
-        >
-          {{ page }}
-        </a>
-        <span class="page-link" v-else>{{ page }}</span>
-      </template>
-    </div>
+    <template v-for="page in pages()" :key="page">
+      <a
+        v-if="
+          searchResults.hits.length > 0 &&
+            currentPage() !== page
+        "
+        :href="`?q=${route.query.q}&from=${(page - 1) * pageSize}`"
+        class="page-link"
+      >
+        {{ page }}
+      </a>
+      <span class="page-link" v-else>{{ page }}</span>
+    </template>
+  </div>
+  <div v-if="hasSearchError">
+    <p>There was an error fetching search results. Please try again later.</p>
+    <img src="/wuzzy-red.png" alt="Wuzzy" />
   </div>
 </template>
 

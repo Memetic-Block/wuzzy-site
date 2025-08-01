@@ -13,7 +13,7 @@ const routes = [
 
 const router = createRouter({
   history: createWebHistory(),
-  routes,
+  routes
 })
 
 createApp(App).use(router).mount('#app')
