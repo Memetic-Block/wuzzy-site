@@ -40,7 +40,8 @@ job "wuzzy-site-nginx-stage" {
       env {
         PHASE="stage"
         VERSION="[[ .commit_sha ]]"
-        VITE_SEARCH_API_URL="https://wuzzy-search-api-stage.hel.memeticblock.net"
+        VITE_PRIMARY_NEST_ID="LoBfGG_qja-sh2wnu5N6fKPRj76HwtkJUwx-WC3Khvc"
+        VITE_HYPERBEAM_ENDPOINT="https://wuzzy-hyperbeam.hel.memeticblock.net"
       }
 
       template {

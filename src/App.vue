@@ -1,14 +1,14 @@
 <template>
   <h1><a class="wuzzy-search-logo" href="/">Wuzzy Permaweb Search</a></h1>
-  <input
-    type="text"
-    name="search"
-    v-model="searchQuery"
-    placeholder="Search the Permaweb..."
-    @keyup.enter="onSearchClicked"
-  />
-  <br />
-  <button @click="onSearchClicked">Search</button>
+
+  <!-- <template v-if="address">
+    Connected as {{ address }}
+  </template>
+  
+  <template v-else>
+    <button @click="onConnectClicked">Connect Wallet</button>
+  </template> -->
+
   <main class="main-router-view-container">
     <RouterView />
   </main>
@@ -43,22 +43,19 @@
 </style>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-import { useRouter } from 'vue-router'
+// import { onMounted } from 'vue'
+// import { useWallet } from './composables/wallet'
 
-const router = useRouter()
-const searchQuery = ref(
-  new URL(window.location.href).searchParams.get('q') || ''
-)
+// const {
+//   address,
+//   connect,
+//   checkWalletOnLoad
+// } = useWallet()
 
-const onSearchClicked = () => {
-  if (searchQuery.value.trim()) {
-    router.push({
-      path: `/search`,
-      query: { q: searchQuery.value }
-    })
-  } else {
-    console.warn('Search query is empty')
-  }
-}
+// const onConnectClicked = async () => {
+//   await connect()
+//   console.log('got address', address.value)
+// }
+
+// onMounted(checkWalletOnLoad)
 </script>

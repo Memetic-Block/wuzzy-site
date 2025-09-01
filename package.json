@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "VITE_SEARCH_API_URL=http://localhost:3000 vite",
+    "dev": "vite",
     "build": "vue-tsc -b && vite build",
     "preview": "vite preview"
   },
@@ -13,10 +13,13 @@
     "vue-router": "^4.5.1"
   },
   "devDependencies": {
+    "@ar.io/sdk": "^3.18.3",
+    "@ardrive/turbo-sdk": "^1.30.0",
     "@vitejs/plugin-vue": "^6.0.0",
     "@vue/tsconfig": "^0.7.0",
     "typescript": "~5.8.3",
     "vite": "^7.0.4",
-    "vue-tsc": "^2.2.12"
+    "vue-tsc": "^2.2.12",
+    "winston": "^3.17.0"
   }
 }
