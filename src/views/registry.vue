@@ -30,7 +30,7 @@ import { onMounted, ref } from 'vue'
 import type { WuzzyNestRegistryInfo } from '../types/wuzzy-nest-registry'
 
 const hyperbeamEndpoint = import.meta.env.VITE_HYPERBEAM_ENDPOINT
-const registryProcessId = 'amlFEK0NzCRzUPri4QuxZ54_Zyq2UnQuggYGvuY5McE'
+const registryProcessId = import.meta.env.VITE_REGISTRY_PROCESS_ID
 const registryViewModuleId = '64J-FBSrijo_KuF4LAaKoHFgkJM6RSJZoyCBmUUSzPI'
 const info = ref<WuzzyNestRegistryInfo | null>(null)
 const nests = ref<Array<any>>([])
