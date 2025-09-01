@@ -20,16 +20,20 @@ jobs:
 
       - name: Build image
         env:
-          VITE_SEARCH_API_URL: "https://wuzzy-search-api.hel.memeticblock.net"
+          VITE_REGISTRY_PROCESS_ID: "PJVif9KTSNZ2pYrt18Wn976SJjCLuvs3dj7r5Oh2xXQ"
+          VITE_PRIMARY_NEST_ID: "1X_nt5ctoJTw6Dc3M6x34_lFTWGTl-jhW8MY7Vff4fA"
+          VITE_HYPERBEAM_ENDPOINT: "https://wuzzy-hyperbeam.hel.memeticblock.net"
+
         run: |
           VERSION=$(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,')
           [[ "${{ github.ref }}" == "refs/tags/"* ]] && VERSION=$(echo $VERSION | sed -e 's/^v//')
-          [ "$VERSION" == "master" ] && VITE_SEARCH_API_URL="https://wuzzy-search-api-stage.hel.memeticblock.net"
           docker build . \
             --file Dockerfile \
             --tag $IMAGE_NAME \
             --label "runnumber=${GITHUB_RUN_ID}" \
-            --build-arg VITE_SEARCH_API_URL=$VITE_SEARCH_API_URL
+            --build-arg VITE_REGISTRY_PROCESS_ID=$VITE_REGISTRY_PROCESS_ID
+            --build-arg VITE_PRIMARY_NEST_ID=$VITE_PRIMARY_NEST_ID
+            --build-arg VITE_HYPERBEAM_ENDPOINT=$VITE_HYPERBEAM_ENDPOINT
 
       - name: Log in to registry
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u $ --password-stdin
