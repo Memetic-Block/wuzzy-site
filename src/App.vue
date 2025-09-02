@@ -18,6 +18,9 @@
       Built &amp; Operated by
       <a href="https://memeticblock.com" target="_blank">Memetic Block</a>
     </p>
+    <p class="footer-credits">
+      <a href="https://docs_wuzzy.arweave.net" target="_blank">Docs</a>
+    </p>
   </footer>
 </template>
 

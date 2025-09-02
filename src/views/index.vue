@@ -9,6 +9,7 @@
   <br />
   <button @click="onSearchClicked">Search</button>
   <br />
+  <br />
   <a href="/registry">Wuzzy Nest Registry</a>
   <!-- <em>
     Indexing 3,667 <a href="https://arns.app" target="_blank">ARNS</a> Records

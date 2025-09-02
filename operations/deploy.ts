@@ -5,8 +5,7 @@ import { readFileSync } from 'fs'
 import { logger } from './logger'
 
 const DEPLOY_FOLDER = `${process.cwd()}/dist`
-const gatewayUrl = process.env.GATEWAY || 'https://ar.anyone.tech'
-const url = process.env.BUNDLER || 'https://ar.anyone.tech/bundler'
+const gatewayUrl = process.env.GATEWAY || 'https://arweave.net'
 const processId = process.env.ANT_PROCESS_ID || ''
 // if (!processId) {
 //   throw new Error('No ANT_PROCESS_ID provided!')
