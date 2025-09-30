@@ -84,8 +84,8 @@ import {
   type WuzzyNestSearchHit,
   type WuzzyNestSearchResults
 } from '../../types/wuzzy-nest'
+import config from '../../app-config'
 
-const hyperbeamEndpoint = import.meta.env.VITE_HYPERBEAM_ENDPOINT
 const nestViewModuleId = 'NWtLbRjMo6JHX1dH04PsnhbaDq8NmNT9L1HAPo_mtvc'
 const route = useRoute()
 const searchQuery = ref(
@@ -118,7 +118,7 @@ const onSearchClicked = async () => {
 
   try {
     const response = await fetch(
-      `${hyperbeamEndpoint}/${route.params.nestId}/now/~lua@5.3a&module=${nestViewModuleId}/search_bm25/serialize~json@1.0?query=${query}`
+      `${config.hyperbeamEndpoint}/${route.params.nestId}/now/~lua@5.3a&module=${nestViewModuleId}/search_bm25/serialize~json@1.0?query=${query}`
     )
     searchResults.value = await response.json()
     console.log('got search results', searchResults.value)

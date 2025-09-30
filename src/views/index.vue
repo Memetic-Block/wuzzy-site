@@ -19,17 +19,17 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import config from '../app-config'
 
 const router = useRouter()
 const searchQuery = ref(
   new URL(window.location.href).searchParams.get('q') || ''
 )
-const primaryNestId = import.meta.env.VITE_PRIMARY_NEST_ID
 
 const onSearchClicked = () => {
   if (searchQuery.value.trim()) {
     router.push({
-      path: `/nest/${primaryNestId}/search`,
+      path: `/nest/${config.primaryNestId}/search`,
       query: { q: searchQuery.value }
     })
   } else {

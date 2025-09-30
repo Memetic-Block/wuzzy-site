@@ -111,10 +111,10 @@ tbody {
 import { onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import type { WuzzyNestInfo } from '../types/wuzzy-nest'
+import config from '../app-config'
 // import { useWallet } from '../composables/wallet'
 
 const nestViewModuleId = 'NWtLbRjMo6JHX1dH04PsnhbaDq8NmNT9L1HAPo_mtvc'
-const hyperbeamEndpoint = import.meta.env.VITE_HYPERBEAM_ENDPOINT
 const route = useRoute()
 // const { checkWalletOnLoad } = useWallet()
 
@@ -124,7 +124,7 @@ const documents = ref<Array<any>>([])
 onMounted(async () => {
   try {
     const response = await fetch(
-      `${hyperbeamEndpoint}/${route.params.nestId}/now/~lua@5.3a&module=${nestViewModuleId}/nest_info/serialize~json@1.0`
+      `${config.hyperbeamEndpoint}/${route.params.nestId}/now/~lua@5.3a&module=${nestViewModuleId}/nest_info/serialize~json@1.0`
     )
     info.value = await response.json() as WuzzyNestInfo
     console.log('Got Nest Info:', info.value)

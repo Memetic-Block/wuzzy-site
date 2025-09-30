@@ -28,9 +28,8 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
 import type { WuzzyNestRegistryInfo } from '../types/wuzzy-nest-registry'
+import config from '../app-config'
 
-const hyperbeamEndpoint = import.meta.env.VITE_HYPERBEAM_ENDPOINT
-const registryProcessId = import.meta.env.VITE_REGISTRY_PROCESS_ID
 const registryViewModuleId = '64J-FBSrijo_KuF4LAaKoHFgkJM6RSJZoyCBmUUSzPI'
 const info = ref<WuzzyNestRegistryInfo | null>(null)
 const nests = ref<Array<any>>([])
@@ -40,7 +39,7 @@ onMounted(async () => {
   try {
     const tryFetch = async (tries: number): Promise<Response> => {
       const response = await fetch(
-        `${hyperbeamEndpoint}/${registryProcessId}/now/~lua@5.3a&module=${registryViewModuleId}/registry_info/serialize~json@1.0`
+        `${config.hyperbeamEndpoint}/${config.registryProcessId}/now/~lua@5.3a&module=${registryViewModuleId}/registry_info/serialize~json@1.0`
       )
       if (!response.ok) {
         if (tries > 1) {

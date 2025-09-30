@@ -110,8 +110,8 @@ tbody {
 import { onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import type { WuzzyCrawlerInfo } from '../types/wuzzy-crawler'
+import config from '../app-config'
 
-const hyperbeamEndpoint = import.meta.env.VITE_HYPERBEAM_ENDPOINT
 const crawlerViewModuleId = 'ZK1AXFffVJ2XNNIt5-s6NsI7r_nrsatoRdHyqSKs6xk'
 const route = useRoute()
 const info = ref<WuzzyCrawlerInfo | null>(null)
@@ -124,7 +124,7 @@ onMounted(async () => {
   try {
     const tryFetch = async (tries: number): Promise<Response> => {
       const response = await fetch(
-        `${hyperbeamEndpoint}/${route.params.crawlerId}/now/~lua@5.3a&module=${crawlerViewModuleId}/crawler_info/serialize~json@1.0`
+        `${config.hyperbeamEndpoint}/${route.params.crawlerId}/now/~lua@5.3a&module=${crawlerViewModuleId}/crawler_info/serialize~json@1.0`
       )
       if (!response.ok) {
         if (tries > 1) {

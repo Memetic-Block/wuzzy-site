@@ -72,8 +72,8 @@ import {
   type LocationQuery
 } from 'vue-router'
 import type { SearchResults } from '../types/search-types'
+import config from '../app-config'
 
-const searchApiUrl = import.meta.env.VITE_SEARCH_API_URL
 const route = useRoute()
 const searchResults = ref<SearchResults | null>(null)
 const isSearchPending = ref(false)
@@ -129,7 +129,7 @@ async function search(query: LocationQuery) {
   console.log(`Search query: "${q}", from: ${from}`)
   if (q) {
     try {
-      const response = await fetch(`${searchApiUrl}/search?q=${q}`)
+      const response = await fetch(`${config.searchApiUrl}/search?q=${q}`)
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`)
       }
