@@ -1,5 +1,10 @@
 <template>
-  <h1><a class="wuzzy-search-logo" href="/">Wuzzy Permaweb Search</a></h1>
+  <h1>
+    <a class="wuzzy-search-logo-text" href="/">
+      <img class="wuzzy-search-logo" src="/wuzzy.png" alt="Wuzzy Logo" />
+      Wuzzy Permaweb Search
+    </a>
+  </h1>
 
   <!-- <template v-if="address">
     Connected as {{ address }}
@@ -26,6 +31,12 @@
 
 <style scoped>
 .wuzzy-search-logo {
+  display: inline-block;
+  margin-bottom: -6px;
+  width: 32px;
+  height: 32px;
+}
+.wuzzy-search-logo-text {
   text-decoration: none;
   color: var(--text-color);
   font-weight: var(--font-weight-bold);
