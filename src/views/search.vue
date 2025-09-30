@@ -1,4 +1,12 @@
 <template>
+  <input
+    type="text"
+    name="search"
+    v-model="searchQuery"
+    :placeholder="`Search Nest ${route.params.nestId}...`"
+    @keyup.enter="onSearchClicked"
+  />
+  <button @click="onSearchClicked">Search</button>
   <div v-if="searchResults">
     <div>{{ searchResults.total_results }} results for "{{ route.query.q }}"</div>
     <hr class="compact-hr" />
@@ -98,12 +106,45 @@ function pages() {
   if (!searchResults.value) return []
   const totalResults = searchResults.value.total_results
   const totalPages = Math.ceil(totalResults / pageSize)
-  return Array.from({ length: totalPages }, (_, i) => i + 1)
+  const maxDisplayPages = 10
+  const displayPages = Math.min(totalPages, maxDisplayPages)
+
+  let startPage = 1
+  const current = currentPage()
+
+  if (totalPages <= maxDisplayPages) {
+    // If total pages is 10 or less, show all pages
+    startPage = 1
+  } else {
+    // Calculate sliding window
+    const halfWindow = Math.floor(maxDisplayPages / 2)
+    startPage = Math.max(1, current - halfWindow)
+
+    // Ensure we don't go past the end
+    if (startPage + maxDisplayPages - 1 > totalPages) {
+      startPage = totalPages - maxDisplayPages + 1
+    }
+  }
+
+  return Array.from({ length: displayPages }, (_, i) => i + startPage)
 }
 
 function currentPage() {
   const from = parseInt(route.query.from as string) || 0
   return Math.floor(from / pageSize) + 1
+}
+
+const searchQuery = ref(
+  new URL(window.location.href).searchParams.get('q') || ''
+)
+
+const onSearchClicked = async () => {
+  if (searchQuery.value.trim()) {
+    const query: LocationQuery = { q: searchQuery.value }
+    search(query)
+  } else {
+    console.warn('Search query is empty')
+  }
 }
 
 async function search(query: LocationQuery) {

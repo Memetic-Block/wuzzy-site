@@ -155,7 +155,27 @@ function pages() {
   if (!searchResults.value) return []
   const totalResults = searchResults.value.total_hits
   const totalPages = Math.ceil(totalResults / pageSize.value)
-  return Array.from({ length: totalPages }, (_, i) => i + 1)
+  const maxDisplayPages = 10
+  const displayPages = Math.min(totalPages, maxDisplayPages)
+
+  let startPage = 1
+  const current = currentPage()
+
+  if (totalPages <= maxDisplayPages) {
+    // If total pages is 10 or less, show all pages
+    startPage = 1
+  } else {
+    // Calculate sliding window
+    const halfWindow = Math.floor(maxDisplayPages / 2)
+    startPage = Math.max(1, current - halfWindow)
+
+    // Ensure we don't go past the end
+    if (startPage + maxDisplayPages - 1 > totalPages) {
+      startPage = totalPages - maxDisplayPages + 1
+    }
+  }
+
+  return Array.from({ length: displayPages }, (_, i) => i + startPage)
 }
 
 function currentPage() {
