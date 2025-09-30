@@ -11,7 +11,7 @@
   <div v-if="searchResults">
     <div>
       {{ searchResults.total_hits }} results
-      for "{{ searchQuery }}"
+      for "{{ currentResultsSearchQuery }}"
       in Nest <a :href="`/nest/${route.params.nestId}`">{{ route.params.nestId }}</a>
     </div>
     <hr class="compact-hr" />
@@ -91,6 +91,7 @@ const route = useRoute()
 const searchQuery = ref(
   new URL(window.location.href).searchParams.get('q') || ''
 )
+const currentResultsSearchQuery = ref('')
 const pageSize = ref(10)
 const searchResults = ref<WuzzyNestSearchResults | null>(null)
 const hits = ref<Array<WuzzyNestSearchHit>>([])
@@ -137,6 +138,7 @@ const onSearchClicked = async () => {
           score: searchResults.value[`${i}_score`]
         })
       }
+      currentResultsSearchQuery.value = searchQuery.value
     }
   } catch (e) {
     console.error('Error fetching search results:', e)
