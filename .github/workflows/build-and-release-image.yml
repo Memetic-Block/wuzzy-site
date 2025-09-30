@@ -33,7 +33,9 @@ jobs:
             --label "runnumber=${GITHUB_RUN_ID}" \
             --build-arg VITE_REGISTRY_PROCESS_ID=$VITE_REGISTRY_PROCESS_ID \
             --build-arg VITE_PRIMARY_NEST_ID=$VITE_PRIMARY_NEST_ID \
-            --build-arg VITE_HYPERBEAM_ENDPOINT=$VITE_HYPERBEAM_ENDPOINT
+            --build-arg VITE_HYPERBEAM_ENDPOINT=$VITE_HYPERBEAM_ENDPOINT \
+            --build-arg VITE_SEARCH_API_URL=$VITE_SEARCH_API_URL \
+            --build-arg VITE_WUZZY_SITE_VERSION=${{ github.sha }}
 
       - name: Log in to registry
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u $ --password-stdin
