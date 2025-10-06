@@ -6,6 +6,16 @@ job "wuzzy-site-nginx-stage" {
     attempts = 0
   }
 
+  constraint {
+    attribute = "${meta.env}"
+    value     = "worker"
+  }
+
+  constraint {
+    attribute = "${meta.region}"
+    value     = "useast"
+  }
+
   group "wuzzy-site-nginx-stage-group" {
     count = 1
 
