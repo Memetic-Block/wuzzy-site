@@ -1,7 +1,8 @@
 import { createApp } from 'vue'
 import { createWebHistory, createRouter } from 'vue-router'
-import './assets/styles/reset.css'
+// import "./assets/styles/reset.css";
 import './assets/styles/monospace-web.css'
+import './assets/styles/global.css'
 import App from './App.vue'
 import IndexView from './views/index.vue'
 import SearchView from './views/search.vue'

@@ -2,10 +2,9 @@
 
 :root {
   /* --font-family: "JetBrains Mono", monospace; */
-  --font-family: "Berkeley Mono", monospace;
-  --line-height: 1.20rem;
+  --font-family: 'Berkeley Mono', monospace;
+  --line-height: 1.2rem;
   --border-thickness: 2px;
-
 
   --text-color: #000;
   --text-color-alt: #666;
@@ -41,10 +40,9 @@
   box-sizing: border-box;
 }
 
-
-* + * {
+/* * + * {
   margin-top: var(--line-height);
-}
+} */
 
 html {
   display: flex;
@@ -61,7 +59,7 @@ body {
   position: relative;
   width: 100%;
   margin: 0;
-  padding: var(--line-height) 2ch;
+  /* padding: var(--line-height) 2ch; */
   /* max-width: calc(min(80ch, round(down, 100%, 1ch))); */
   max-width: calc(min(120ch, round(down, 100%, 1ch)));
   line-height: var(--line-height);
@@ -72,12 +70,17 @@ body {
   :root {
     font-size: 14px;
   }
-  body {
+  /* body {
     padding: var(--line-height) 1ch;
-  }
+  } */
 }
 
-h1, h2, h3, h4, h5, h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
   font-weight: var(--font-weight-bold);
   margin: calc(var(--line-height) * 2) 0 var(--line-height);
   line-height: var(--line-height);
@@ -104,7 +107,7 @@ hr {
 }
 hr:after {
   display: block;
-  content: "";
+  content: '';
   position: absolute;
   top: calc(var(--line-height) / 2 - var(--border-thickness));
   left: 0;
@@ -117,7 +120,8 @@ a {
   text-decoration-thickness: var(--border-thickness);
 }
 
-a:link, a:visited {
+a:link,
+a:visited {
   color: var(--text-color);
 }
 
@@ -139,7 +143,7 @@ sub {
   vertical-align: sub;
   line-height: 0;
   width: calc(1ch / 0.75);
-  font-size: .75rem;
+  font-size: 0.75rem;
 }
 
 table {
@@ -150,13 +154,12 @@ table {
   margin: 0 0 calc(var(--line-height) * 2);
 }
 
-th, td {
+th,
+td {
   border: var(--border-thickness) solid var(--text-color);
-  padding: 
-    calc((var(--line-height) / 2))
+  padding: calc((var(--line-height) / 2))
     calc(1ch - var(--border-thickness) / 2)
-    calc((var(--line-height) / 2) - (var(--border-thickness)))
-  ;
+    calc((var(--line-height) / 2) - (var(--border-thickness)));
   line-height: var(--line-height);
   vertical-align: top;
   text-align: left;
@@ -164,7 +167,6 @@ th, td {
 table tbody tr:first-child > * {
   padding-top: calc((var(--line-height) / 2) - var(--border-thickness));
 }
-
 
 th {
   font-weight: 700;
@@ -192,7 +194,8 @@ p {
   hyphens: auto;
 }
 
-img, video {
+img,
+video {
   display: block;
   width: 100%;
   object-fit: contain;
@@ -240,7 +243,8 @@ figure pre {
   margin: 0;
 }
 
-pre, code {
+pre,
+code {
   font-family: var(--font-family);
 }
 
@@ -260,7 +264,8 @@ figcaption {
   margin-top: var(--line-height);
 }
 
-ul, ol {
+ul,
+ol {
   padding: 0;
   margin: 0 0 var(--line-height);
 }
@@ -281,8 +286,8 @@ ul ul {
   padding: 0 0 0 3ch;
   margin: 0;
 }
-ol li:before { 
-  content: counters(item, ".") ". ";
+ol li:before {
+  content: counters(item, '.') '. ';
   counter-increment: item;
   font-weight: var(--font-weight-medium);
 }
@@ -300,7 +305,7 @@ li::marker {
     height: var(--line-height);
 } */
 
-input, button, textarea {
+/* input, button, textarea {
   border: var(--border-thickness) solid var(--text-color);
   padding: 
     calc(var(--line-height) / 2 - var(--border-thickness))
@@ -371,7 +376,7 @@ button:hover {
 }
 button:active {
   transform: translate(2px, 2px);
-}
+} */
 
 label {
   display: block;
@@ -386,7 +391,8 @@ label input {
   width: 100%;
 }
 
-.tree, .tree ul {
+.tree,
+.tree ul {
   position: relative;
   padding-left: 0;
   list-style-type: none;
@@ -406,7 +412,7 @@ label input {
   display: block;
   top: calc(var(--line-height) / 2);
   left: 0;
-  content: "";
+  content: '';
   width: 1ch;
   border-bottom: var(--border-thickness) solid var(--text-color);
 }
@@ -418,7 +424,7 @@ label input {
   display: block;
   top: 0;
   left: 0;
-  content: "";
+  content: '';
   height: calc(var(--line-height) / 2);
   border-left: var(--border-thickness) solid var(--text-color);
 }
@@ -427,36 +433,69 @@ label input {
   --grid-cells: 0;
   display: flex;
   gap: 1ch;
-  width: calc(round(down, 100%, (1ch * var(--grid-cells)) - (1ch * var(--grid-cells) - 1)));
+  width: calc(
+    round(down, 100%, (1ch * var(--grid-cells)) - (1ch * var(--grid-cells) - 1))
+  );
   margin-bottom: var(--line-height);
 }
 
 .grid > *,
 .grid > input {
-  flex: 0 0 calc(round(down, (100% - (1ch * (var(--grid-cells) - 1))) / var(--grid-cells), 1ch));
+  flex: 0 0
+    calc(
+      round(
+        down,
+        (100% - (1ch * (var(--grid-cells) - 1))) / var(--grid-cells),
+        1ch
+      )
+    );
 }
-.grid:has(> :last-child:nth-child(1)) { --grid-cells: 1; }
-.grid:has(> :last-child:nth-child(2)) { --grid-cells: 2; }
-.grid:has(> :last-child:nth-child(3)) { --grid-cells: 3; }
-.grid:has(> :last-child:nth-child(4)) { --grid-cells: 4; }
-.grid:has(> :last-child:nth-child(5)) { --grid-cells: 5; }
-.grid:has(> :last-child:nth-child(6)) { --grid-cells: 6; }
-.grid:has(> :last-child:nth-child(7)) { --grid-cells: 7; }
-.grid:has(> :last-child:nth-child(8)) { --grid-cells: 8; }
-.grid:has(> :last-child:nth-child(9)) { --grid-cells: 9; }
+.grid:has(> :last-child:nth-child(1)) {
+  --grid-cells: 1;
+}
+.grid:has(> :last-child:nth-child(2)) {
+  --grid-cells: 2;
+}
+.grid:has(> :last-child:nth-child(3)) {
+  --grid-cells: 3;
+}
+.grid:has(> :last-child:nth-child(4)) {
+  --grid-cells: 4;
+}
+.grid:has(> :last-child:nth-child(5)) {
+  --grid-cells: 5;
+}
+.grid:has(> :last-child:nth-child(6)) {
+  --grid-cells: 6;
+}
+.grid:has(> :last-child:nth-child(7)) {
+  --grid-cells: 7;
+}
+.grid:has(> :last-child:nth-child(8)) {
+  --grid-cells: 8;
+}
+.grid:has(> :last-child:nth-child(9)) {
+  --grid-cells: 9;
+}
 
 /* DEBUG UTILITIES */
 
 .debug .debug-grid {
-  --color: color-mix(in srgb, var(--text-color) 10%, var(--background-color) 90%);
+  --color: color-mix(
+    in srgb,
+    var(--text-color) 10%,
+    var(--background-color) 90%
+  );
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
   z-index: -1;
-  background-image:
-    repeating-linear-gradient(var(--color) 0 1px, transparent 1px 100%),
+  background-image: repeating-linear-gradient(
+      var(--color) 0 1px,
+      transparent 1px 100%
+    ),
     repeating-linear-gradient(90deg, var(--color) 0 1px, transparent 1px 100%);
   background-size: 1ch var(--line-height);
   margin: 0;
