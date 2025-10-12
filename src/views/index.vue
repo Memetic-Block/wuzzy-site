@@ -1,49 +1,47 @@
 <template>
-  <input
-    type="text"
-    name="search"
-    v-model="searchQuery"
-    placeholder="Search the Permaweb..."
-    @keyup.enter="onSearchClicked"
-  />
+  <div class="flex items-center justify-center gap-2 mb-2">
+    <Switch
+      :value="searchType"
+      :class="searchType === 'off-chain' ? 'bg-neutral-400!' : 'bg-green-400!'"
+      @update:modelValue="
+        onSearchTypeClicked(
+          searchType === 'off-chain' ? 'on-chain' : 'off-chain'
+        )
+      "
+    />
+    <span class="inline-block">Hyperbeam Search (Experimental)</span>
+  </div>
   <br />
-  <button class="search-type-radio-container" @click="onSearchTypeClicked('off-chain')">
-    <input type="radio" name="off-chain-search" v-model="searchType" value="off-chain" />
-    Off-Chain Search
-  </button>
-  <button class="search-type-radio-container" @click="onSearchTypeClicked('on-chain')">
-    <input type="radio" v-model="searchType" value="on-chain" />
-    Hyperbeam Search (Experimental)
-  </button>
-  <button class="search-button" @click="onSearchClicked">Search</button>
+  <div
+    class="bg-neutral-100 mt-3 py-1 px-2 rounded-md flex gap-2 items-center border-input border focus-within:shadow-xs focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
+  >
+    <Input
+      class="shadow-none focus-visible:ring-[0px] ml-2 border-0 p-0"
+      type="text"
+      name="search"
+      v-model="searchQuery"
+      placeholder="Search the Permaweb..."
+      @keyup.enter="onSearchClicked"
+    />
+    <Button
+      :disabled="!searchQuery.trim()"
+      size="icon-sm"
+      @click="onSearchClicked"
+      class="bg-green-300 hover:bg-green-400 active:bg-green-500 text-black transition-colors duration-200"
+    >
+      ->
+    </Button>
+  </div>
   <br />
-  <br />
-  <a href="/registry">Wuzzy Nest Registry</a>
+  <a class="text-sm pl-1" href="/registry">Wuzzy Nest Registry</a>
   <!-- <em>
     Indexing 3,667 <a href="https://arns.app" target="_blank">ARNS</a> Records
   </em> -->
 </template>
 
 <style scoped>
-.search-type-radio-container {
-  display: inline-block;
-  border: var(--border-thickness) solid var(--text-color);
-  padding: calc(var(--line-height) / 2 - var(--border-thickness)) calc(1ch - var(--border-thickness));
-  margin: 0;
-  font: inherit;
-  font-weight: inherit;
-  height: calc(var(--line-height) * 2);
-  width: auto;
-  overflow: visible;
-  background: var(--background-color);
-  color: var(--text-color);
-  line-height: normal;
-  -webkit-font-smoothing: inherit;
-  -moz-osx-font-smoothing: inherit;
-  -webkit-appearance: none;
-}
-
 .search-button {
+  margin-top: 20px;
   float: right;
 }
 </style>
@@ -52,6 +50,9 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import config from '../app-config'
+import Input from '../components/ui/input/Input.vue'
+import Button from '../components/ui/button/Button.vue'
+import { Switch } from '../components/ui/switch'
 
 const router = useRouter()
 const searchQuery = ref(
@@ -64,9 +65,10 @@ const onSearchTypeClicked = (type: string) => {
 const onSearchClicked = () => {
   if (searchQuery.value.trim()) {
     router.push({
-      path: searchType.value === 'on-chain'
-        ? `/nest/${config.primaryNestId}/search`
-        : '/search',
+      path:
+        searchType.value === 'on-chain'
+          ? `/nest/${config.primaryNestId}/search`
+          : '/search',
       query: { q: searchQuery.value }
     })
   } else {
