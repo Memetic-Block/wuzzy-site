@@ -1,14 +1,30 @@
 <template>
-  <input
-    type="text"
-    name="search"
-    v-model="searchQuery"
-    :placeholder="`Search Nest ${route.params.nestId}...`"
-    @keyup.enter="onSearchClicked"
-  />
-  <button @click="onSearchClicked">Search</button>
+  <div
+    class="mb-3 bg-neutral-100 mt-3 py-1 px-2 rounded-md flex gap-2 items-center border-input border focus-within:shadow-xs focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
+  >
+    <Input
+      class="shadow-none focus-visible:ring-[0px] ml-2 border-0 p-0"
+      type="text"
+      name="search"
+      v-model="searchQuery"
+      :placeholder="`Search Nest ${route.params.nestId}...`"
+      @keyup.enter="onSearchClicked"
+    />
+    <Button
+      :disabled="!searchQuery.trim()"
+      size="icon-sm"
+      @click="onSearchClicked"
+      class="bg-green-300 hover:bg-green-400 active:bg-green-500 text-black transition-colors duration-200"
+    >
+      ->
+    </Button>
+  </div>
   <div v-if="searchResults">
-    <div>{{ searchResults.total_results }} results for "{{ route.query.q }}"</div>
+    <div>
+      {{ searchResults.total_results }} results for "{{
+        newSearchQuery || route.query.q
+      }}"
+    </div>
     <hr class="compact-hr" />
     <div v-for="hit in searchResults.hits" :key="hit.id">
       <a class="hit-title" :href="hit.url">{{ fallbackTitle(hit) }}</a>
@@ -21,10 +37,7 @@
     <br />
     <template v-for="page in pages()" :key="page">
       <a
-        v-if="
-          searchResults.hits.length > 0 &&
-            currentPage() !== page
-        "
+        v-if="searchResults.hits.length > 0 && currentPage() !== page"
         :href="`?q=${route.query.q}&from=${(page - 1) * pageSize}`"
         class="page-link"
       >
@@ -33,9 +46,15 @@
       <span class="page-link" v-else>{{ page }}</span>
     </template>
   </div>
-  <div v-if="hasSearchError">
+  <div v-if="hasSearchError" class="h-full">
     <p>There was an error fetching search results. Please try again later.</p>
-    <img src="/wuzzy-red.png" alt="Wuzzy" />
+    <div>
+      <img
+        class="w-full h-full max-h-[500px] object-contain"
+        src="/wuzzy-red.png"
+        alt="Wuzzy"
+      />
+    </div>
   </div>
 </template>
 
@@ -75,12 +94,11 @@
 
 <script setup lang="ts">
 import { ref, watch } from 'vue'
-import {
-  useRoute,
-  type LocationQuery
-} from 'vue-router'
+import { useRoute, type LocationQuery } from 'vue-router'
 import type { SearchResults } from '../types/search-types'
 import config from '../app-config'
+import Input from '../components/ui/input/Input.vue'
+import Button from '../components/ui/button/Button.vue'
 
 const route = useRoute()
 const searchResults = ref<SearchResults | null>(null)
@@ -91,6 +109,8 @@ const pageSize = 20
 
 watch(() => route.query, search, { immediate: true })
 
+const newSearchQuery = ref('')
+
 function formatUrlForWayfinder(url: string) {
   return url
     .substring(0, url.length - 1)
@@ -98,7 +118,7 @@ function formatUrlForWayfinder(url: string) {
     .replace('.arweave.net', '')
 }
 
-function fallbackTitle(hit: { title: string, url: string }) {
+function fallbackTitle(hit: { title: string; url: string }) {
   return hit.title || formatUrlForWayfinder(hit.url)
 }
 
@@ -140,6 +160,7 @@ const searchQuery = ref(
 
 const onSearchClicked = async () => {
   if (searchQuery.value.trim()) {
+    newSearchQuery.value = searchQuery.value
     const query: LocationQuery = { q: searchQuery.value }
     search(query)
   } else {
@@ -174,7 +195,7 @@ async function search(query: LocationQuery) {
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`)
       }
-      searchResults.value = await response.json() as SearchResults
+      searchResults.value = (await response.json()) as SearchResults
       if (searchResults.value.hits.length > 0) {
         hasMoreResults.value =
           searchResults.value.hits.length < searchResults.value.total_results
