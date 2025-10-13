@@ -48,7 +48,7 @@
   font-weight: var(--font-weight-bold);
 }
 .main-router-view-container {
-  padding-bottom: 2rem;
+  flex: 1;
 }
 .footer-wuzzy-logo {
   width: 32px;
