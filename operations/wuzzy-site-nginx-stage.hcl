@@ -85,8 +85,8 @@ job "wuzzy-site-nginx-stage" {
       }
 
       resources {
-        cpu    = 4096
-        memory = 4096
+        cpu    = 1024
+        memory = 1024
       }
 
       service {
