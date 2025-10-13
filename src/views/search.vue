@@ -46,11 +46,11 @@
       <span class="page-link" v-else>{{ page }}</span>
     </template>
   </div>
-  <div v-if="hasSearchError" class="h-full">
+  <div v-if="hasSearchError">
     <p>There was an error fetching search results. Please try again later.</p>
-    <div>
+    <div class="mt-40">
       <img
-        class="w-full h-full max-h-[500px] object-contain"
+        class="w-full h-full max-h-12 object-contain"
         src="/wuzzy-red.png"
         alt="Wuzzy"
       />
