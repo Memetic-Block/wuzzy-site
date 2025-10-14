@@ -1,5 +1,5 @@
 <template>
-  <div class="flex items-center justify-center gap-2 mb-2">
+  <div class="flex items-center justify-center gap-2 my-7">
     <Switch
       :value="searchType"
       :class="searchType === 'off-chain' ? 'bg-neutral-400!' : 'bg-green-400!'"
@@ -11,9 +11,8 @@
     />
     <span class="inline-block">Hyperbeam Search (Experimental)</span>
   </div>
-  <br />
   <div
-    class="bg-neutral-100 mt-3 py-1 px-2 rounded-md flex gap-2 items-center border-input border focus-within:shadow-xs focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
+    class="bg-neutral-100 py-1 px-2 rounded-md flex gap-2 items-center border-input border focus-within:shadow-xs focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
   >
     <Input
       class="shadow-none focus-visible:ring-[0px] ml-2 border-0 p-0"
