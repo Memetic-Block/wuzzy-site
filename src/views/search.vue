@@ -61,6 +61,9 @@
 </template>
 
 <style scoped>
+.hit-link-group {
+  width: max-content;
+}
 .hit-link-group:hover .hit-title {
   text-decoration: underline;
 }
