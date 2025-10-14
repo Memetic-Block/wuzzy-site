@@ -7,7 +7,7 @@
       type="text"
       name="search"
       v-model="searchQuery"
-      :placeholder="`Search Nest ${route.params.nestId}...`"
+      placeholder="Search the Permaweb..."
       @keyup.enter="onSearchClicked"
     />
     <Button
@@ -84,6 +84,10 @@
   margin-top: 0.25em;
   margin-bottom: 0;
   font-size: smaller;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 .compact-hr {
   margin: 0.5em 0;
