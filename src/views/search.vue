@@ -27,11 +27,13 @@
     </div>
     <hr class="compact-hr" />
     <div v-for="hit in searchResults.hits" :key="hit.id" class="my-6">
-      <a class="hit-title" :href="hit.url">{{ fallbackTitle(hit) }}</a>
-      <br />
-      <a class="hit-url" :href="hit.url">
-        {{ formatUrlForWayfinder(hit.url) }}
-      </a>
+      <div class="hit-link-group">
+        <a class="hit-title" :href="hit.url">{{ fallbackTitle(hit) }}</a>
+        <br />
+        <a class="hit-url" :href="hit.url">
+          {{ formatUrlForWayfinder(hit.url) }}
+        </a>
+      </div>
       <p v-if="hit.body" class="hit-body" v-html="hit.body"></p>
     </div>
     <br />
@@ -59,6 +61,10 @@
 </template>
 
 <style scoped>
+.hit-link-group:hover .hit-title {
+  text-decoration: underline;
+}
+
 .hit-title {
   text-decoration: none;
   font-size: larger;
@@ -68,9 +74,6 @@
 }
 .hit-title:visited {
   color: purple;
-}
-.hit-title:hover {
-  text-decoration: underline;
 }
 .hit-url {
   font-size: x-small;
