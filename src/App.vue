@@ -2,7 +2,7 @@
   <div class="flex flex-col min-h-screen px-4">
     <div class="flex flex-col items-center gap-3 pt-10">
       <img class="size-32!" src="/wuzzy-logo.png" alt="Wuzzy Logo" />
-      <h1 class="text-xl! font-normal! mt-0! mb-5!">
+      <h1 class="text-xl! font-normal! mt-0! mb-0!">
         <a href="/"> Wuzzy Permaweb Search </a>
       </h1>
     </div>
@@ -21,15 +21,25 @@
     <footer class="mt-auto pb-2">
       <img class="footer-wuzzy-logo" src="/wuzzy.png" alt="Wuzzy Logo" />
       <p class="footer-credits">
-        <a href="https://docs_wuzzy.arweave.net" target="_blank">Docs</a>
+        <a
+          class="underline"
+          href="https://docs_wuzzy.arweave.net"
+          target="_blank"
+          >Docs</a
+        >
         &nbsp;
-        <a href="https://github.com/memetic-block/wuzzy" target="_blank"
+        <a
+          class="underline"
+          href="https://github.com/memetic-block/wuzzy"
+          target="_blank"
           >GitHub</a
         >
       </p>
       <p class="footer-credits">
         Built &amp; Operated by
-        <a href="https://memeticblock.com" target="_blank">Memetic Block</a>
+        <a class="underline" href="https://memeticblock.com" target="_blank"
+          >Memetic Block</a
+        >
       </p>
     </footer>
   </div>
