@@ -1,6 +1,6 @@
 <template>
   <div
-    class="mb-3 bg-neutral-100 mt-3 py-1 px-2 rounded-md flex gap-2 items-center border-input border focus-within:shadow-xs focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
+    class="mb-4 bg-neutral-100 mt-3 py-1 px-2 rounded-md flex gap-2 items-center border-input border focus-within:shadow-xs focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
   >
     <Input
       class="shadow-none focus-visible:ring-[0px] ml-2 border-0 p-0"
@@ -26,7 +26,7 @@
       }}"
     </div>
     <hr class="compact-hr" />
-    <div v-for="hit in searchResults.hits" :key="hit.id">
+    <div v-for="hit in searchResults.hits" :key="hit.id" class="my-6">
       <a class="hit-title" :href="hit.url">{{ fallbackTitle(hit) }}</a>
       <br />
       <a class="hit-url" :href="hit.url">
@@ -69,6 +69,9 @@
 .hit-title:visited {
   color: purple;
 }
+.hit-title:hover {
+  text-decoration: underline;
+}
 .hit-url {
   font-size: x-small;
   margin-top: 0;
@@ -76,6 +79,7 @@
 }
 .hit-body {
   margin-top: 0.25em;
+  margin-bottom: 0;
   font-size: smaller;
 }
 .compact-hr {
