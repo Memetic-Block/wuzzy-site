@@ -7,7 +7,7 @@
       type="text"
       name="search"
       v-model="searchQuery"
-      :placeholder="`Search Nest ${route.params.nestId}...`"
+      placeholder="Search the Permaweb..."
       @keyup.enter="onSearchClicked"
     />
     <Button
