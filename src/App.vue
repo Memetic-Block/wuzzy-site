@@ -21,15 +21,25 @@
     <footer class="mt-auto pb-2">
       <img class="footer-wuzzy-logo" src="/wuzzy.png" alt="Wuzzy Logo" />
       <p class="footer-credits">
-        <a href="https://docs_wuzzy.arweave.net" target="_blank">Docs</a>
+        <a
+          class="underline"
+          href="https://docs_wuzzy.arweave.net"
+          target="_blank"
+          >Docs</a
+        >
         &nbsp;
-        <a href="https://github.com/memetic-block/wuzzy" target="_blank"
+        <a
+          class="underline"
+          href="https://github.com/memetic-block/wuzzy"
+          target="_blank"
           >GitHub</a
         >
       </p>
       <p class="footer-credits">
         Built &amp; Operated by
-        <a href="https://memeticblock.com" target="_blank">Memetic Block</a>
+        <a class="underline" href="https://memeticblock.com" target="_blank"
+          >Memetic Block</a
+        >
       </p>
     </footer>
   </div>
