@@ -41,7 +41,7 @@
       <a
         v-if="searchResults.hits.length > 0 && currentPage() !== page"
         :href="`?q=${route.query.q}&from=${(page - 1) * pageSize}`"
-        class="page-link"
+        class="underline page-link"
       >
         {{ page }}
       </a>

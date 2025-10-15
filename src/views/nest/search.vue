@@ -42,7 +42,7 @@
       <a
         v-if="searchResults.total_hits > 0 && currentPage() !== page"
         :href="`?q=${searchQuery}&from=${(page - 1) * pageSize}`"
-        class="page-link"
+        class="underline page-link"
       >
         {{ page }}
       </a>
