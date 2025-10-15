@@ -1,17 +1,16 @@
 <template>
-  <h1>Wuzzy Nest Registry</h1>
-
   <template v-if="info">
     <table>
       <thead>
+        <tr><th colspan="2">Wuzzy Nest Registry</th></tr>
         <tr>
-          <td>Nest ID</td>
-          <td>Owner</td>
+          <th>Nest ID</th>
+          <th>Owner</th>
         </tr>
       </thead>
       <tbody>
         <tr v-for="nest in nests" :key="nest.id">
-          <td><a :href="`/nest/${nest.id}`">{{ nest.id }}</a></td>
+          <td><a class="underline" :href="`/nest/${nest.id}`">{{ nest.id }}</a></td>
           <td>{{ nest.owner }}</td>
         </tr>
       </tbody>

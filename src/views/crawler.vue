@@ -29,7 +29,9 @@
         </tr>
         <tr>
           <td colspan="2">
-            <a :href="`/nest/${info.nest_id}/search`">Search this Crawler's Nest</a>
+            <a class="underline" :href="`/nest/${info.nest_id}/search`">
+              Search this Crawler's Nest
+            </a>
           </td>
         </tr>
       </tbody>

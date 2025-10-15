@@ -31,7 +31,9 @@
       <tfoot>
         <tr>
           <td colspan="2">
-            <a :href="`/nest/${route.params.nestId}/search`">Search this Nest</a>
+            <a class="underline" :href="`/nest/${route.params.nestId}/search`">
+              Search this Nest
+            </a>
           </td>
         </tr>
       </tfoot>
@@ -52,7 +54,11 @@
       </thead>
       <tbody>
         <tr v-for="crawler in crawlers" :key="crawler.id">
-          <td><a :href="`/crawler/${crawler.id}`">{{ crawler.id }}</a></td>
+          <td>
+            <a class="underline" :href="`/crawler/${crawler.id}`">
+              {{ crawler.id }}
+            </a>
+          </td>
           <td>{{ crawler.name }}</td>
           <td>{{ crawler.owner }}</td>
         </tr>
@@ -79,9 +85,15 @@
       </thead>
       <tbody>
         <tr v-for="document in documents" :key="document.id">
-          <td><a :href="`/nest/${route.params.nestId}/document/${document.idx}`">{{ document.idx }}</a></td>
           <td>
-            <a :href="document.url" target="_blank">{{ document.url }}</a>
+            <!-- <a class="underline" :href="`/nest/${route.params.nestId}/document/${document.idx}`"> -->
+              {{ document.idx }}
+            <!-- </a> -->
+          </td>
+          <td>
+            <a class="underline" :href="document.url" target="_blank">
+              {{ document.url }}
+            </a>
           </td>
           <td>{{ document.title }}</td>
           <td>{{ document.description }}</td>

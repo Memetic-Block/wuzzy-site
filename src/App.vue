@@ -1,7 +1,9 @@
 <template>
   <div class="flex flex-col min-h-screen px-4">
     <div class="flex flex-col items-center gap-3 pt-10">
-      <img class="size-32!" src="/wuzzy-logo.png" alt="Wuzzy Logo" />
+      <a href="/">
+        <img class="size-32!" src="/wuzzy-logo.png" alt="Wuzzy Logo" />
+      </a>
       <h1 class="text-xl! font-normal! mt-0! mb-0!">
         <a href="/"> Wuzzy Permaweb Search </a>
       </h1>
