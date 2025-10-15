@@ -1,8 +1,10 @@
+import 'dotenv/config'
 import { ANT, ArweaveSigner } from '@ar.io/sdk'
 import { TurboFactory } from '@ardrive/turbo-sdk'
 import { readFileSync } from 'fs'
 
-import { logger } from './logger'
+// import { logger } from './logger'
+const logger = console
 
 const DEPLOY_FOLDER = `${process.cwd()}/dist`
 const gatewayUrl = process.env.GATEWAY || 'https://arweave.net'
