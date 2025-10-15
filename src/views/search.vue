@@ -127,9 +127,10 @@ const newSearchQuery = ref('')
 
 function formatUrlForWayfinder(url: string) {
   return url
-    .substring(0, url.length - 1)
+    .substring(0, url.length)
     .replace('https://', 'arns://')
     .replace('.arweave.net', '')
+    .replace(/\/+$/, '')
 }
 
 function fallbackTitle(hit: { title: string; url: string }) {
