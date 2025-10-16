@@ -19,6 +19,11 @@
       ->
     </Button>
   </div>
+  <div v-if="isSearchPending">
+    <Skeleton class="h-5 w-full rounded-xs" />
+    <Skeleton class="h-5 my-2 w-full rounded-xs" />
+    <Skeleton v-for="n in 10" :key="n" class="h-20 w-full rounded-sm my-6" />
+  </div>
   <div v-if="searchResults">
     <div>
       {{ searchResults.total_results }} results for "{{
@@ -113,6 +118,7 @@ import type { SearchResults } from '../types/search-types'
 import config from '../app-config'
 import Input from '../components/ui/input/Input.vue'
 import Button from '../components/ui/button/Button.vue'
+import Skeleton from '@/components/ui/skeleton/Skeleton.vue'
 
 const route = useRoute()
 const searchResults = ref<SearchResults | null>(null)
