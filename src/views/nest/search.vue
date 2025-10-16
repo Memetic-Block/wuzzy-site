@@ -19,6 +19,11 @@
       ->
     </Button>
   </div>
+  <div v-if="isSearchPending">
+    <Skeleton class="h-5 w-full rounded-xs" />
+    <Skeleton class="h-5 my-2 w-full rounded-xs" />
+    <Skeleton v-for="n in 10" :key="n" class="h-20 w-full rounded-sm my-6" />
+  </div>
   <div v-if="searchResults">
     <div>
       {{ searchResults.total_hits }} results for "{{
@@ -117,6 +122,7 @@ import {
 import config from '../../app-config'
 import Input from '../../components/ui/input/Input.vue'
 import Button from '../../components/ui/button/Button.vue'
+import Skeleton from '@/components/ui/skeleton/Skeleton.vue'
 
 const nestViewModuleId = 'NWtLbRjMo6JHX1dH04PsnhbaDq8NmNT9L1HAPo_mtvc'
 const route = useRoute()
@@ -128,6 +134,7 @@ const pageSize = ref(10)
 const searchResults = ref<WuzzyNestSearchResults | null>(null)
 const hits = ref<Array<WuzzyNestSearchHit>>([])
 const hasSearchError = ref(false)
+const isSearchPending = ref(false)
 
 function formatUrlForWayfinder(url: string) {
   return url
@@ -149,6 +156,8 @@ const onSearchClicked = async () => {
     console.log('No search query provided')
     return
   }
+
+  isSearchPending.value = true
 
   const from = parseInt(route.query.from as string) || 0
   if (!isNaN(from) && from >= 0) {
@@ -185,6 +194,8 @@ const onSearchClicked = async () => {
     hasSearchError.value = true
     console.error('Error fetching search results:', e)
   }
+
+  isSearchPending.value = false
 }
 
 onMounted(async () => {
