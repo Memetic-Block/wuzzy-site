@@ -139,7 +139,7 @@ const isSearchPending = ref(false)
 function formatUrlForWayfinder(url: string) {
   return url
     .substring(0, url.length)
-    .replace('https://', 'arns://')
+    .replace('https://', 'ar://')
     .replace('.arweave.net', '')
     .replace(/\/+$/, '')
 }
