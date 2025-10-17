@@ -2,6 +2,12 @@ job "wuzzy-site-static-stage" {
   datacenters = ["mb-hel"]
   type = "batch"
 
+  constraint {
+    attribute = "${meta.env}"
+    operator  = "equals"
+    value     = "edge-worker"
+  }
+
   reschedule {
     attempts = 0
   }
