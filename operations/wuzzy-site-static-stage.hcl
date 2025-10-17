@@ -31,6 +31,7 @@ job "wuzzy-site-static-stage" {
       
       env {
         PHASE="stage"
+        PROJECT_NAME="wuzzy-site-stage"
         VITE_VERSION_SHA="[[ .commit_sha ]]"
         VITE_VERSION_TIMESTAMP="[[ .commit_timestamp ]]"
         VITE_REGISTRY_PROCESS_ID="PJVif9KTSNZ2pYrt18Wn976SJjCLuvs3dj7r5Oh2xXQ"
@@ -55,16 +56,13 @@ job "wuzzy-site-static-stage" {
 
       template {
         data = <<-EOF
-        {{- with secret "kv/memeticblock/cloudflare-deployer" }}[r2]
-        type = s3
-        provider = Cloudflare
-        region = auto
-        endpoint = {{ .Data.data.ENDPOINT }}
-        access_key_id = {{ .Data.data.ACCESS_KEY_ID }}
-        secret_access_key = {{ .Data.data.SECRET_ACCESS_KEY }}
+        {{- with secret "kv/memeticblock/cloudflare-deployer" }}
+        CLOUDFLARE_ACCOUNT_ID={{ .Data.data.CLOUDFLARE_ACCOUNT_ID }}
+        CLOUDFLARE_API_TOKEN={{ .Data.data.CLOUDFLARE_API_TOKEN }}
         {{- end }}
         EOF
-        destination = "secrets/rclone.conf"
+        destination = "secrets/cloudflare.env"
+        env = true
       }
 
       template {
@@ -74,8 +72,7 @@ job "wuzzy-site-static-stage" {
         echo "Generating static files"
         npm run build
 
-        echo "Syncing static files to cloudflare r2: wuzzy-site-stage"
-        rclone sync /usr/src/app/dist r2:wuzzy-site-stage/
+        npx wrangler pages deploy /usr/src/app/dist --project-name=${PROJECT_NAME}
 
         echo "Static site deployment complete"
         EOF
