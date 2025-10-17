@@ -21,12 +21,6 @@ job "wuzzy-site-static-stage" {
           target = "/workdir/entrypoint.sh"
           readonly = true
         }
-        mount {
-          type = "bind"
-          source = "secrets/rclone.conf"
-          target = "/root/.config/rclone/rclone.conf"
-          readonly = true
-        }
       }
       
       env {
