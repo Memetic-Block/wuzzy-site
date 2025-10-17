@@ -75,7 +75,7 @@ job "wuzzy-site-static-stage" {
         npm run build
 
         echo "Syncing static files to cloudflare r2: wuzzy-site-stage"
-        rclone sync .output/public r2:wuzzy-site-stage/
+        rclone sync /usr/src/app/dist r2:wuzzy-site-stage/
 
         echo "Static site deployment complete"
         EOF
