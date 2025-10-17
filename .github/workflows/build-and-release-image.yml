@@ -1,4 +1,4 @@
-name: Build & Publish Wuzzy Site SSR Image
+name: Build & Publish Wuzzy Site Static Stage Image
 
 on:
   push:
@@ -30,12 +30,7 @@ jobs:
           docker build . \
             --file Dockerfile \
             --tag $IMAGE_NAME \
-            --label "runnumber=${GITHUB_RUN_ID}" \
-            --build-arg VITE_REGISTRY_PROCESS_ID=$VITE_REGISTRY_PROCESS_ID \
-            --build-arg VITE_PRIMARY_NEST_ID=$VITE_PRIMARY_NEST_ID \
-            --build-arg VITE_HYPERBEAM_ENDPOINT=$VITE_HYPERBEAM_ENDPOINT \
-            --build-arg VITE_SEARCH_API_URL=$VITE_SEARCH_API_URL \
-            --build-arg VITE_WUZZY_SITE_VERSION=${{ github.sha }}
+            --label "runnumber=${GITHUB_RUN_ID}"
 
       - name: Log in to registry
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u $ --password-stdin
@@ -43,9 +38,11 @@ jobs:
       - name: Push image
         run: |
           IMAGE_ID=$CONTAINER_REGISTRY_ADDR/${{ github.repository_owner }}/$IMAGE_NAME
+          GHCR_IMAGE_ID=ghcr.io/${{ github.repository_owner }}/$IMAGE_NAME
 
           # Change all uppercase to lowercase
           IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
+          GHCR_IMAGE_ID=$(echo $GHCR_IMAGE_ID | tr '[A-Z]' '[a-z]')
 
           # Strip git ref prefix from version
           VERSION=$(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,')
@@ -56,19 +53,17 @@ jobs:
           # Use Docker `latest` tag convention
           [ "$VERSION" == "master" ] && VERSION=stage
           echo IMAGE_ID=$IMAGE_ID
+          echo GHCR_IMAGE_ID=$GHCR_IMAGE_ID
           echo VERSION=$VERSION
 
-          echo -e "{\"deploy\":\"$VERSION\",\"commit_sha\":\"${GITHUB_SHA}\"}" > deploy-vars.json
-
           docker tag $IMAGE_NAME $IMAGE_ID:${GITHUB_SHA}
+          docker tag $IMAGE_NAME $GHCR_IMAGE_ID:${GITHUB_SHA}
           docker push $IMAGE_ID:${GITHUB_SHA}
+          docker push $GHCR_IMAGE_ID:${GITHUB_SHA}
       
       - name: Deploy new version
-        run: |
-          if grep -q "stage" deploy-vars.json; then
-            sed -i "s/\[\[ .commit_sha \]\]/${GITHUB_SHA}/g" operations/wuzzy-site-nginx-stage.hcl
-            nomad job run operations/wuzzy-site-nginx-stage.hcl
-          else
-            sed -i "s/\[\[ .commit_sha \]\]/${GITHUB_SHA}/g" operations/wuzzy-site-nginx-live.hcl
-            nomad job run operations/wuzzy-site-nginx-live.hcl
-          fi
+        run: |         
+          sed -i "s/\[\[ .commit_timestamp \]\]/${{ github.event.head_commit.timestamp }}/g" operations/wuzzy-site-static-stage.hcl
+          sed -i "s/\[\[ .commit_sha \]\]/${{ github.sha }}/g" operations/wuzzy-site-static-stage.hcl
+          
+          nomad job run operations/wuzzy-site-static-stage.hcl

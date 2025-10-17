@@ -43,6 +43,15 @@
           >Memetic Block</a
         >
       </p>
+      <p class="footer-credits">
+        Version:
+          <a
+            class="underline"
+            target="_blank"
+            :href="`https://github.com/Memetic-Block/wuzzy-site/commit/${AppConfig.versionSha}`"
+          >{{ AppConfig.versionSha }}</a>
+          @ {{ AppConfig.versionTimestamp }}
+      </p>
     </footer>
   </div>
 </template>
@@ -75,6 +84,7 @@
 </style>
 
 <script setup lang="ts">
+import AppConfig from './app-config'
 // import { onMounted } from 'vue'
 // import { useWallet } from './composables/wallet'
 
