@@ -4,7 +4,6 @@ job "wuzzy-site-static-stage" {
 
   constraint {
     attribute = "${meta.env}"
-    operator  = "equals"
     value     = "edge-worker"
   }
 
