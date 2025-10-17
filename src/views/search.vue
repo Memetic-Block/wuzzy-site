@@ -33,10 +33,10 @@
     <hr class="compact-hr" />
     <div v-for="hit in searchResults.hits" :key="hit.id" class="my-6">
       <div class="hit-link-group">
-        <a class="hit-title" :href="hit.url">{{ fallbackTitle(hit) }}</a>
+        <a class="hit-title" :href="hit.resolvedUrl">{{ fallbackTitle(hit) }}</a>
         <br />
-        <a class="hit-url" :href="hit.url">
-          {{ formatUrlForWayfinder(hit.url) }}
+        <a class="hit-url" :href="hit.resolvedUrl">
+          {{ hit.wayfinderUrl }}
         </a>
       </div>
       <p v-if="hit.body" class="hit-body" v-html="hit.body"></p>
@@ -119,6 +119,7 @@ import config from '../app-config'
 import Input from '../components/ui/input/Input.vue'
 import Button from '../components/ui/button/Button.vue'
 import Skeleton from '@/components/ui/skeleton/Skeleton.vue'
+import { formatUrlForWayfinder, resolveUrlWithWayfinder } from '../lib/utils'
 
 const route = useRoute()
 const searchResults = ref<SearchResults | null>(null)
@@ -131,16 +132,8 @@ watch(() => route.query, search, { immediate: true })
 
 const newSearchQuery = ref('')
 
-function formatUrlForWayfinder(url: string) {
-  return url
-    .substring(0, url.length)
-    .replace('https://', 'ar://')
-    .replace('.arweave.net', '')
-    .replace(/\/+$/, '')
-}
-
-function fallbackTitle(hit: { title: string; url: string }) {
-  return hit.title || formatUrlForWayfinder(hit.url)
+function fallbackTitle(hit: { title: string; wayfinderUrl: string }) {
+  return hit.title || hit.wayfinderUrl
 }
 
 function pages() {
@@ -216,7 +209,12 @@ async function search(query: LocationQuery) {
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`)
       }
-      searchResults.value = (await response.json()) as SearchResults
+      const _searchResults = (await response.json()) as SearchResults
+      for (const hit of _searchResults.hits) {
+        hit.wayfinderUrl = formatUrlForWayfinder(hit.url)
+        hit.resolvedUrl = await resolveUrlWithWayfinder(hit.wayfinderUrl)
+      }
+      searchResults.value = _searchResults
       if (searchResults.value.hits.length > 0) {
         hasMoreResults.value =
           searchResults.value.hits.length < searchResults.value.total_results

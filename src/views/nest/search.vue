@@ -34,10 +34,10 @@
     <hr class="compact-hr" />
     <div v-for="hit in hits" :key="hit.id" class="my-6">
       <div class="hit-link-group">
-        <a class="hit-title" :href="hit.url">{{ fallbackTitle(hit) }}</a>
+        <a class="hit-title" :href="hit.resolvedUrl">{{ fallbackTitle(hit) }}</a>
         <br />
-        <a class="hit-url" :href="hit.url">
-          {{ formatUrlForWayfinder(hit.url) }}
+        <a class="hit-url" :href="hit.resolvedUrl">
+          {{ hit.wayfinderUrl }}
         </a>
       </div>
       <p v-if="hit.content" class="hit-body" v-html="hit.content"></p>
@@ -123,6 +123,7 @@ import config from '../../app-config'
 import Input from '../../components/ui/input/Input.vue'
 import Button from '../../components/ui/button/Button.vue'
 import Skeleton from '@/components/ui/skeleton/Skeleton.vue'
+import { formatUrlForWayfinder, resolveUrlWithWayfinder } from '@/lib/utils'
 
 const nestViewModuleId = 'NWtLbRjMo6JHX1dH04PsnhbaDq8NmNT9L1HAPo_mtvc'
 const route = useRoute()
@@ -136,16 +137,8 @@ const hits = ref<Array<WuzzyNestSearchHit>>([])
 const hasSearchError = ref(false)
 const isSearchPending = ref(false)
 
-function formatUrlForWayfinder(url: string) {
-  return url
-    .substring(0, url.length)
-    .replace('https://', 'ar://')
-    .replace('.arweave.net', '')
-    .replace(/\/+$/, '')
-}
-
 function fallbackTitle(hit: WuzzyNestSearchHit) {
-  return hit.title || formatUrlForWayfinder(hit.id)
+  return hit.title || hit.wayfinderUrl
 }
 
 const onSearchClicked = async () => {
@@ -176,19 +169,26 @@ const onSearchClicked = async () => {
     console.log('got search results', searchResults.value)
 
     if (searchResults.value) {
-      hits.value = []
+      const _hits = []
       const total = searchResults.value.result_count
       for (let i = 1; i <= total; i++) {
-        hits.value.push({
+        _hits.push({
           id: searchResults.value[`${i}_docid`],
           url: searchResults.value[`${i}_docid`],
           title: searchResults.value[`${i}_title`],
           description: searchResults.value[`${i}_description`],
           content: searchResults.value[`${i}_content`],
           count: searchResults.value[`${i}_count`],
-          score: searchResults.value[`${i}_score`]
+          score: searchResults.value[`${i}_score`],
+          wayfinderUrl: formatUrlForWayfinder(
+            searchResults.value[`${i}_docid`]
+          ),
+          resolvedUrl: await resolveUrlWithWayfinder(
+            formatUrlForWayfinder(searchResults.value[`${i}_docid`])
+          )
         })
       }
+      hits.value = _hits
       currentResultsSearchQuery.value = searchQuery.value
     }
   } catch (e) {
