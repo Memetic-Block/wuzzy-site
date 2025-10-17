@@ -49,6 +49,10 @@ job "wuzzy-site-static-stage" {
         destination = "local/env"
       }
 
+      vault {
+        policies = ["memeticblock-io-cloudflare-deployer"]
+      }
+
       template {
         data = <<-EOF
         {{- with secret "kv/memeticblock/cloudflare-deployer" }}[r2]
