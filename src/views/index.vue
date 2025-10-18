@@ -21,6 +21,7 @@
       v-model="searchQuery"
       placeholder="Search the Permaweb..."
       @keyup.enter="onSearchClicked"
+      autofocus
     />
     <Button
       :disabled="!searchQuery.trim()"
