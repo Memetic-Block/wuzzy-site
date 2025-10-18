@@ -1,13 +1,7 @@
 import { ref } from 'vue'
+import type { PermissionType } from 'arconnect'
 
-declare global {
-  interface Window {
-    arweaveWallet: any;
-    process: any;
-  }
-}
-
-const PERMISSIONS = ['ACCESS_ADDRESS', 'SIGN_TRANSACTION', 'ACCESS_PUBLIC_KEY', 'SIGNATURE']
+const PERMISSIONS: PermissionType[] = ['ACCESS_ADDRESS', 'SIGN_TRANSACTION', 'ACCESS_PUBLIC_KEY', 'SIGNATURE']
 
 export function useWallet() {
   const address = ref<string | null>(null)

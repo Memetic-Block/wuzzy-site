@@ -119,7 +119,7 @@ import config from '../app-config'
 import Input from '../components/ui/input/Input.vue'
 import Button from '../components/ui/button/Button.vue'
 import Skeleton from '@/components/ui/skeleton/Skeleton.vue'
-import { formatUrlForWayfinder, resolveUrlWithWayfinder } from '../lib/utils'
+import { convertToWayfinderUrl, convertToHttpsUrl } from '../lib/utils'
 
 const route = useRoute()
 const searchResults = ref<SearchResults | null>(null)
@@ -211,8 +211,8 @@ async function search(query: LocationQuery) {
       }
       const _searchResults = (await response.json()) as SearchResults
       for (const hit of _searchResults.hits) {
-        hit.wayfinderUrl = formatUrlForWayfinder(hit.url)
-        hit.resolvedUrl = await resolveUrlWithWayfinder(hit.wayfinderUrl)
+        hit.wayfinderUrl = convertToWayfinderUrl(hit.url)
+        hit.resolvedUrl = await convertToHttpsUrl(hit.wayfinderUrl)
       }
       searchResults.value = _searchResults
       if (searchResults.value.hits.length > 0) {

@@ -123,7 +123,7 @@ import config from '../../app-config'
 import Input from '../../components/ui/input/Input.vue'
 import Button from '../../components/ui/button/Button.vue'
 import Skeleton from '@/components/ui/skeleton/Skeleton.vue'
-import { formatUrlForWayfinder, resolveUrlWithWayfinder } from '@/lib/utils'
+import { convertToWayfinderUrl, convertToHttpsUrl } from '@/lib/utils'
 
 const nestViewModuleId = 'NWtLbRjMo6JHX1dH04PsnhbaDq8NmNT9L1HAPo_mtvc'
 const route = useRoute()
@@ -180,11 +180,11 @@ const onSearchClicked = async () => {
           content: searchResults.value[`${i}_content`],
           count: searchResults.value[`${i}_count`],
           score: searchResults.value[`${i}_score`],
-          wayfinderUrl: formatUrlForWayfinder(
+          wayfinderUrl: convertToWayfinderUrl(
             searchResults.value[`${i}_docid`]
           ),
-          resolvedUrl: await resolveUrlWithWayfinder(
-            formatUrlForWayfinder(searchResults.value[`${i}_docid`])
+          resolvedUrl: await convertToHttpsUrl(
+            convertToWayfinderUrl(searchResults.value[`${i}_docid`])
           )
         })
       }

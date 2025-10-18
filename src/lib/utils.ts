@@ -1,10 +1,6 @@
 import type { ClassValue } from "clsx"
 import { clsx } from "clsx"
 import { twMerge } from "tailwind-merge"
-import {
-  createWayfinderClient,
-  StaticGatewaysProvider
-} from '@ar.io/wayfinder-core'
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -17,20 +13,32 @@ const wuzzyOffChainDomains = [
   'stage.wuzzy.io',
   'www.stage.wuzzy.io',
 ]
-const gatewayFromWindowLocationHost = wuzzyOffChainDomains
-  .includes(window.location.hostname)
-  ? 'https://arweave.net'
-  : window.location.host
-const wayfinder = createWayfinderClient({
-  gatewaysProvider: new StaticGatewaysProvider({
-    gateways: [ gatewayFromWindowLocationHost ],
-  })
-})
-export const resolveUrlWithWayfinder = async (wayfinderUrl: `ar://${string}`) => {
-  const url = await wayfinder.resolveUrl({ wayfinderUrl })
+
+/**
+ * Converts a Wayfinder-compatible ar:// URL to https:// URL using the current
+ * gateway
+ * @param wayfinderUrl Wayfinder-compatible ar:// URL
+ * @returns standard URL
+ */
+export const convertToHttpsUrl = async (
+  wayfinderUrl: `ar://${string}`
+) => {
+  const url = new URL(wayfinderUrl)
+  url.protocol = 'https:'
+  url.host = wuzzyOffChainDomains
+    .includes(window.location.hostname)
+    ? 'arweave.net'
+    : window.location.host
+
   return url.toString()
 }
-export const formatUrlForWayfinder = (url: string): `ar://${string}` => {
+
+/**
+ * Converts https:// URL to a Wayfinder-compatible ar:// URL
+ * @param url standard URL
+ * @returns wayfinder-compatible URL
+ */
+export const convertToWayfinderUrl = (url: string): `ar://${string}` => {
   return url
     .substring(0, url.length)
     .replace('https://', 'ar://')
