@@ -11,6 +11,7 @@ import NestView from './views/nest.vue'
 import NestSearchView from './views/nest/search.vue'
 import CrawlerView from './views/crawler.vue'
 import RegistryView from './views/registry.vue'
+import AboutView from './views/about.vue'
 
 const routes = [
   { path: '/', component: IndexView },
@@ -18,7 +19,8 @@ const routes = [
   { path: '/nest/:nestId', component: NestView },
   { path: '/nest/:nestId/search', component: NestSearchView },
   { path: '/crawler/:crawlerId', component: CrawlerView },
-  { path: '/registry', component: RegistryView }
+  { path: '/registry', component: RegistryView },
+  { path: '/about', component: AboutView },
 ]
 
 export const createApp = ViteSSG(

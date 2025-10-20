@@ -40,6 +40,12 @@
       <p class="footer-credits">
         <a
           class="underline"
+          href="/about"
+          >About</a
+        >
+        &nbsp;
+        <a
+          class="underline"
           href="https://docs_wuzzy.arweave.net"
           target="_blank"
           >Docs</a
@@ -50,6 +56,13 @@
           href="https://github.com/memetic-block/wuzzy"
           target="_blank"
           >GitHub</a
+        >
+        &nbsp;
+        <a
+          class="underline"
+          href="https://x.com/wuzzysearch"
+          target="_blank"
+          >x.com/wuzzysearch</a
         >
       </p>
       <p class="footer-credits">
