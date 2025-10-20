@@ -1,21 +1,36 @@
 <template>
   <div class="flex flex-col min-h-screen px-4">
-    <div class="flex flex-col items-center gap-3 pt-10">
-      <a href="/">
-        <img class="size-32!" src="/wuzzy-logo.png" alt="Wuzzy Logo" />
-      </a>
-      <h1 class="text-xl! font-normal! mt-0! mb-0!">
-        <a href="/"> Wuzzy Permaweb Search </a>
-      </h1>
-    </div>
-
-    <!-- <template v-if="address">
-    Connected as {{ address }}
-  </template>
-  
-  <template v-else>
-    <button @click="onConnectClicked">Connect Wallet</button>
-  </template> -->
+    <header class="flex flex-col">
+      <div class="self-end py-5">
+        <DropdownMenu v-if="isConnected">
+          <DropdownMenuTrigger as-child>
+            <Button size="sm">
+              {{ address?.slice(0, 4) + '...' + address?.slice(-4) }}
+              <ChevronDownIcon />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent>
+            <DropdownMenuItem @select="disconnect">
+              Disconnect
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+        <Button variant="outline" size="sm" v-else-if="isConnecting" disabled>
+          Connecting...
+        </Button>
+        <Button variant="outline" size="sm" v-else @click="connect">
+          Connect Wallet
+        </Button>
+      </div>
+      <div class="flex flex-col items-center gap-3 pt-5">
+        <a href="/">
+          <img class="size-32!" src="/wuzzy-logo.png" alt="Wuzzy Logo" />
+        </a>
+        <h1 class="text-xl! font-normal! mt-0! mb-0!">
+          <a href="/"> Wuzzy Permaweb Search </a>
+        </h1>
+      </div>
+    </header>
 
     <main class="main-router-view-container">
       <RouterView />
@@ -45,12 +60,13 @@
       </p>
       <p class="footer-credits">
         Version:
-          <a
-            class="underline"
-            target="_blank"
-            :href="`https://github.com/Memetic-Block/wuzzy-site/commit/${AppConfig.versionSha}`"
-          >{{ AppConfig.versionSha }}</a>
-          @ {{ AppConfig.versionTimestamp }}
+        <a
+          class="underline"
+          target="_blank"
+          :href="`https://github.com/Memetic-Block/wuzzy-site/commit/${AppConfig.versionSha}`"
+          >{{ AppConfig.versionSha }}</a
+        >
+        @ {{ AppConfig.versionTimestamp }}
       </p>
     </footer>
   </div>
@@ -84,20 +100,14 @@
 </style>
 
 <script setup lang="ts">
+import { ChevronDownIcon } from 'lucide-vue-next'
+import Button from './components/ui/button/Button.vue'
+import DropdownMenu from './components/ui/dropdown-menu/DropdownMenu.vue'
+import DropdownMenuTrigger from './components/ui/dropdown-menu/DropdownMenuTrigger.vue'
+import { useWallet } from './composables/wallet'
+import DropdownMenuContent from './components/ui/dropdown-menu/DropdownMenuContent.vue'
+import DropdownMenuItem from './components/ui/dropdown-menu/DropdownMenuItem.vue'
 import AppConfig from './app-config'
-// import { onMounted } from 'vue'
-// import { useWallet } from './composables/wallet'
 
-// const {
-//   address,
-//   connect,
-//   checkWalletOnLoad
-// } = useWallet()
-
-// const onConnectClicked = async () => {
-//   await connect()
-//   console.log('got address', address.value)
-// }
-
-// onMounted(checkWalletOnLoad)
+const { address, connect, disconnect, isConnected, isConnecting } = useWallet()
 </script>

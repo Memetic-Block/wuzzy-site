@@ -1,11 +1,18 @@
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import type { PermissionType } from 'arconnect'
 
-const PERMISSIONS: PermissionType[] = ['ACCESS_ADDRESS', 'SIGN_TRANSACTION', 'ACCESS_PUBLIC_KEY', 'SIGNATURE']
+const PERMISSIONS: PermissionType[] = [
+  'ACCESS_ADDRESS',
+  'SIGN_TRANSACTION',
+  'ACCESS_PUBLIC_KEY',
+  'SIGNATURE'
+]
 
 export function useWallet() {
   const address = ref<string | null>(null)
   const walletWasCheckedOnLoad = ref(false)
+  const isConnected = computed(() => !!address.value)
+  const isConnecting = ref<boolean>(false)
 
   async function connect() {
     if (!window.arweaveWallet) {
@@ -13,35 +20,75 @@ export function useWallet() {
       return
     }
 
-    try {  
-      // const { permissions = [] } = event.detail || {}
-      // if (permissions.length === 0) {
-      //   // Your app is not connected to the wallet yet, so
-      //   // you first need to call `connect()`:
-        await window.arweaveWallet.connect(PERMISSIONS)
-      // }
+    isConnecting.value = true
+
+    try {
+      await window.arweaveWallet.connect(PERMISSIONS)
       address.value = await window.arweaveWallet.getActiveAddress()
-      console.log('address set to', address.value)
+      isConnecting.value = false
+      // console.log('address set to', address.value)
     } catch (err: any) {
-      console.error(`Arweave Wallet Error: ${ err.message }`, err)
+      console.error(`Arweave Wallet Error: ${err.message}`, err)
+      isConnecting.value = true
     }
   }
 
-  async function checkWalletOnLoad() {
-    if (!walletWasCheckedOnLoad.value) {
-      try {
-        console.log('checking if already connected', address.value)
-        address.value = await window.arweaveWallet.getActiveAddress()
-        console.log('already connected with', address.value)
-      } catch (error: any) {
-        console.log('No wallet connected')
-      }
-    }
+  async function disconnect() {
+    await window.arweaveWallet.disconnect()
+    address.value = ''
   }
 
   function getAddress() {
     return address.value
   }
 
-  return { address, connect, checkWalletOnLoad, walletWasCheckedOnLoad, getAddress }
+  async function setAddress(newAddress?: string) {
+    if (newAddress) {
+      address.value = newAddress
+      return
+    }
+
+    try {
+      address.value = await window.arweaveWallet.getActiveAddress()
+    } catch (error: any) {
+      console.error('No wallet connected')
+    }
+  }
+
+  interface WalletLoadedEvent extends CustomEvent {
+    detail: {
+      permissions: PermissionType
+    }
+  }
+
+  window.addEventListener('arweaveWalletLoaded', ((e: WalletLoadedEvent) => {
+    const { permissions } = e.detail
+
+    if (!permissions.length) {
+      console.warn('App has no permissions')
+    } else {
+      setAddress()
+    }
+  }) as EventListener)
+
+  interface WalletSwitchEvent extends CustomEvent {
+    detail: {
+      address: string
+    }
+  }
+
+  window.addEventListener('walletSwitch', ((e: WalletSwitchEvent) => {
+    const { address } = e.detail
+    setAddress(address)
+  }) as EventListener)
+
+  return {
+    address,
+    isConnected,
+    isConnecting,
+    connect,
+    disconnect,
+    walletWasCheckedOnLoad,
+    getAddress
+  }
 }
