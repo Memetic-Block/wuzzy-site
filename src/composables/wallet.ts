@@ -48,7 +48,12 @@ export function useWallet() {
     return address.value
   }
 
-  async function setAddress() {
+  async function setAddress(newAddress?: string) {
+    if (newAddress) {
+      address.value = newAddress
+      return
+    }
+
     try {
       address.value = await window.arweaveWallet.getActiveAddress()
     } catch (error: any) {
@@ -70,6 +75,17 @@ export function useWallet() {
     } else {
       setAddress()
     }
+  }) as EventListener)
+
+  interface WalletSwitchEvent extends CustomEvent {
+    detail: {
+      address: string
+    }
+  }
+
+  window.addEventListener('walletSwitch', ((e: WalletSwitchEvent) => {
+    const { address } = e.detail
+    setAddress(address)
   }) as EventListener)
 
   return {
