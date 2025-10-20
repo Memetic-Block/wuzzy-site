@@ -1,5 +1,5 @@
-import { createApp } from 'vue'
-import { createWebHistory, createRouter } from 'vue-router'
+import { ViteSSG } from 'vite-ssg'
+
 // import "./assets/styles/reset.css";
 import './assets/styles/fonts.css'
 import './assets/styles/monospace-web.css'
@@ -21,9 +21,9 @@ const routes = [
   { path: '/registry', component: RegistryView }
 ]
 
-const router = createRouter({
-  history: createWebHistory(),
-  routes
-})
+export const createApp = ViteSSG(
+  App,
 
-createApp(App).use(router).mount('#app')
+  // vue-router options
+  { routes }
+)

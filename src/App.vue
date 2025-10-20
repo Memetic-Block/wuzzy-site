@@ -58,6 +58,16 @@
           >Memetic Block</a
         >
       </p>
+      <p class="footer-credits">
+        Version:
+        <a
+          class="underline"
+          target="_blank"
+          :href="`https://github.com/Memetic-Block/wuzzy-site/commit/${AppConfig.versionSha}`"
+          >{{ AppConfig.versionSha }}</a
+        >
+        @ {{ AppConfig.versionTimestamp }}
+      </p>
     </footer>
   </div>
 </template>
@@ -97,6 +107,7 @@ import DropdownMenuTrigger from './components/ui/dropdown-menu/DropdownMenuTrigg
 import { useWallet } from './composables/wallet'
 import DropdownMenuContent from './components/ui/dropdown-menu/DropdownMenuContent.vue'
 import DropdownMenuItem from './components/ui/dropdown-menu/DropdownMenuItem.vue'
+import AppConfig from './app-config'
 
 const { address, connect, disconnect, isConnected, isConnecting } = useWallet()
 </script>

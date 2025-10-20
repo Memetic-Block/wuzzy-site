@@ -1,13 +1,7 @@
-import { computed, ref, watch } from 'vue'
+import { computed, ref } from 'vue'
+import type { PermissionType } from 'arconnect'
 
-declare global {
-  interface Window {
-    arweaveWallet: any
-    process: any
-  }
-}
-
-const PERMISSIONS = [
+const PERMISSIONS: PermissionType[] = [
   'ACCESS_ADDRESS',
   'SIGN_TRANSACTION',
   'ACCESS_PUBLIC_KEY',
@@ -63,7 +57,7 @@ export function useWallet() {
 
   interface WalletLoadedEvent extends CustomEvent {
     detail: {
-      permissions: typeof PERMISSIONS
+      permissions: PermissionType
     }
   }
 

@@ -52,6 +52,8 @@ export interface WuzzyNestSearchHit {
   content: string
   count: number
   score: number
+  wayfinderUrl: `ar://${string}`
+  resolvedUrl: string
 }
 
 export const MOCK_SEARCH_RESULTS = {

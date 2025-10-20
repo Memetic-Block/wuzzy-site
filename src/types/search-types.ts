@@ -13,6 +13,9 @@ export interface IndexedDocument {
   url_path: string
   url_path_dir1: string
   url_path_dir2: string
+
+  wayfinderUrl: `ar://${string}`
+  resolvedUrl: string
 }
 
 export interface SearchResults {

@@ -1,4 +1,4 @@
-job "wuzzy-site-static-stage" {
+job "wuzzy-site-static-live" {
   datacenters = ["mb-hel"]
   type = "batch"
 
@@ -11,10 +11,10 @@ job "wuzzy-site-static-stage" {
     attempts = 0
   }
 
-  group "wuzzy-site-static-stage-group" {
+  group "wuzzy-site-static-live-group" {
     count = 1
 
-    task "wuzzy-site-static-stage-task" {
+    task "wuzzy-site-static-live-task" {
       driver = "docker"
 
       config {
@@ -29,8 +29,8 @@ job "wuzzy-site-static-stage" {
       }
       
       env {
-        PHASE="stage"
-        PROJECT_NAME="wuzzy-site-stage"
+        PHASE="live"
+        PROJECT_NAME="wuzzy-site-live"
         VITE_VERSION_SHA="[[ .commit_sha ]]"
         VITE_VERSION_TIMESTAMP="[[ .commit_timestamp ]]"
         VITE_REGISTRY_PROCESS_ID="PJVif9KTSNZ2pYrt18Wn976SJjCLuvs3dj7r5Oh2xXQ"

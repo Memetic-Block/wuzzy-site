@@ -21,12 +21,13 @@
       v-model="searchQuery"
       placeholder="Search the Permaweb..."
       @keyup.enter="onSearchClicked"
+      autofocus
     />
     <Button
       :disabled="!searchQuery.trim()"
       size="icon-sm"
       @click="onSearchClicked"
-      class="bg-green-300 hover:bg-green-400 active:bg-green-500 text-black transition-colors duration-200"
+      class="bg-green-300 hover:bg-green-400 active:bg-green-500 text-black transition-colors duration-200 cursor-pointer"
     >
       ->
     </Button>
