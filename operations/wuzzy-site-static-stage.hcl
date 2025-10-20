@@ -82,6 +82,7 @@ job "wuzzy-site-static-stage" {
       template {
         data = <<-EOF
         #!/bin/sh
+        set -e
 
         echo "Generating static files"
         npm run build
