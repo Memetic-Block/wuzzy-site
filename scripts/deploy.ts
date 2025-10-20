@@ -37,7 +37,6 @@ async function deploy() {
   })
   
   const {
-    // fileResponses,
     manifestResponse,
     manifest,
     errors
@@ -66,15 +65,18 @@ async function deploy() {
 
   logger.info('Updating ANT undername', undername)
   const ant = ANT.init({ processId, signer })
+  const record = {
+    transactionId: manifestResponse?.id,
+    ttlSeconds: 3600,
+    displayName: 'Wuzzy Search',
+    description: 'Wuzzy Search is a decentralized search engine application built on the Arweave and AO',
+    keywords: [ 'wuzzy', 'search', 'ao', 'permaweb', 'seo', 'discover' ]
+  }
   const { id: deployedTxId } = undername === '@'
-    ? await ant.setBaseNameRecord({
-      transactionId: manifestResponse?.id,
-      ttlSeconds: 3600
-    })
+    ? await ant.setBaseNameRecord(record)
     : await ant.setUndernameRecord({
       undername,
-      transactionId: manifestResponse?.id,
-      ttlSeconds: 3600
+      ...record
     })
   logger.info(
     `ANT updated! View deploy message at `
