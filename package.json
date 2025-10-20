@@ -4,6 +4,8 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
+    "deploy:arweave": "npx tsx operations/deploy.ts",
+    "deploy:static": "npx wrangler pages deploy /usr/src/app/dist --project-name=$PROJECT_NAME",
     "dev": "vite",
     "build": "vue-tsc -b && vite-ssg build --mock",
     "preview": "vite preview",

@@ -71,6 +71,7 @@ job "wuzzy-site-static-live" {
         echo "Generating static files"
         npm run build
 
+        echo "Deploying static site to Cloudflare Pages"
         npx wrangler pages deploy /usr/src/app/dist --project-name=${PROJECT_NAME}
 
         echo "Static site deployment complete"

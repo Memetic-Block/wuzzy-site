@@ -9,9 +9,9 @@ const logger = console
 const DEPLOY_FOLDER = `${process.cwd()}/dist`
 const gatewayUrl = process.env.GATEWAY || 'https://arweave.net'
 const processId = process.env.ANT_PROCESS_ID || ''
-// if (!processId) {
-//   throw new Error('No ANT_PROCESS_ID provided!')
-// }
+if (!processId) {
+  throw new Error('No ANT_PROCESS_ID provided!')
+}
 const PRIVATE_KEY = process.env.PRIVATE_KEY || ''
 if (!PRIVATE_KEY) {
   throw new Error('PRIVATE_KEY is not set!')
@@ -35,7 +35,7 @@ async function deploy() {
     gatewayUrl,
     // uploadServiceConfig: { url }
   })
-  // const ant = ANT.init({ processId, signer })
+  
   const {
     // fileResponses,
     manifestResponse,
@@ -56,19 +56,30 @@ async function deploy() {
     logger.error(errors)
     throw new Error('Deploy failed, see errors above')
   }
+
+  if (!manifestResponse?.id) {
+    throw new Error('No manifest id returned!')
+  }
+
   logger.info(`Manifest id ${manifestResponse?.id}`)
   logger.info('Manifest', JSON.stringify(manifest))
-  // logger.info('Updating ANT undername', undername)
-  // const { id: deployedTxId } = undername === '@'
-  //   ? await ant.setBaseNameRecord({
-  //     transactionId: manifestResponse?.id,
-  //     ttlSeconds: 3600
-  //   })
-  //   : await ant.setUndernameRecord({
-  //     undername,
-  //     transactionId: manifestResponse?.id,
-  //     ttlSeconds: 3600
-  //   })
+
+  logger.info('Updating ANT undername', undername)
+  const ant = ANT.init({ processId, signer })
+  const { id: deployedTxId } = undername === '@'
+    ? await ant.setBaseNameRecord({
+      transactionId: manifestResponse?.id,
+      ttlSeconds: 3600
+    })
+    : await ant.setUndernameRecord({
+      undername,
+      transactionId: manifestResponse?.id,
+      ttlSeconds: 3600
+    })
+  logger.info(
+    `ANT updated! View deploy message at `
+      +`https://ao.link/#/message/${deployedTxId}`
+  )
 }
 
 deploy()
