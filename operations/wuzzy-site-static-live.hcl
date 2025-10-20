@@ -50,7 +50,10 @@ job "wuzzy-site-static-live" {
       }
 
       vault {
-        policies = ["memeticblock-io-cloudflare-deployer"]
+        policies = [
+          "memeticblock-io-cloudflare-deployer",
+          "wuzzy-deployer"
+        ]
       }
 
       template {
@@ -66,13 +69,26 @@ job "wuzzy-site-static-live" {
 
       template {
         data = <<-EOF
+        {{- with secret `kv/wuzzy/deployer` }}
+        {{- base64Decode .Data.data.WUZZY_DEPLOYER_KEY_BASE64 }}
+        {{- end }}
+        EOF
+        destination = "secrets/wallet.json"
+      }
+
+      template {
+        data = <<-EOF
         #!/bin/sh
+        set -e
 
         echo "Generating static files"
         npm run build
 
         echo "Deploying static site to Cloudflare Pages"
-        npx wrangler pages deploy /usr/src/app/dist --project-name=${PROJECT_NAME}
+        npm run deploy:static
+
+        echo "Deploying static site to Arweave"
+        npm run deploy:arweave
 
         echo "Static site deployment complete"
         EOF
