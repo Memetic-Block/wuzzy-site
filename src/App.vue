@@ -2,14 +2,19 @@
   <div class="flex flex-col min-h-screen px-4">
     <header class="flex flex-col">
       <div class="self-end py-5">
-        <Button
-          variant="outline"
-          size="sm"
-          v-if="isConnected"
-          @click="disconnect"
-        >
-          Disconnect
-        </Button>
+        <DropdownMenu v-if="isConnected">
+          <DropdownMenuTrigger as-child>
+            <Button size="sm">
+              {{ address?.slice(0, 4) + '...' + address?.slice(-4) }}
+              <ChevronDownIcon />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent>
+            <DropdownMenuItem @select="disconnect">
+              Disconnect
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
         <Button variant="outline" size="sm" v-else-if="isConnecting" disabled>
           Connecting...
         </Button>
@@ -85,13 +90,13 @@
 </style>
 
 <script setup lang="ts">
+import { ChevronDownIcon } from 'lucide-vue-next'
 import Button from './components/ui/button/Button.vue'
+import DropdownMenu from './components/ui/dropdown-menu/DropdownMenu.vue'
+import DropdownMenuTrigger from './components/ui/dropdown-menu/DropdownMenuTrigger.vue'
 import { useWallet } from './composables/wallet'
+import DropdownMenuContent from './components/ui/dropdown-menu/DropdownMenuContent.vue'
+import DropdownMenuItem from './components/ui/dropdown-menu/DropdownMenuItem.vue'
 
 const { address, connect, disconnect, isConnected, isConnecting } = useWallet()
-
-const onConnectClicked = async () => {
-  await connect()
-  console.log('got address', address.value)
-}
 </script>
