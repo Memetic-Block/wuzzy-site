@@ -1,21 +1,31 @@
 <template>
   <div class="flex flex-col min-h-screen px-4">
-    <div class="flex flex-col items-center gap-3 pt-10">
-      <a href="/">
-        <img class="size-32!" src="/wuzzy-logo.png" alt="Wuzzy Logo" />
-      </a>
-      <h1 class="text-xl! font-normal! mt-0! mb-0!">
-        <a href="/"> Wuzzy Permaweb Search </a>
-      </h1>
-    </div>
-
-    <!-- <template v-if="address">
-    Connected as {{ address }}
-  </template>
-  
-  <template v-else>
-    <button @click="onConnectClicked">Connect Wallet</button>
-  </template> -->
+    <header class="flex flex-col">
+      <div class="self-end py-5">
+        <Button
+          variant="outline"
+          size="sm"
+          v-if="isConnected"
+          @click="disconnect"
+        >
+          Disconnect
+        </Button>
+        <Button variant="outline" size="sm" v-else-if="isConnecting" disabled>
+          Connecting...
+        </Button>
+        <Button variant="outline" size="sm" v-else @click="connect">
+          Connect Wallet
+        </Button>
+      </div>
+      <div class="flex flex-col items-center gap-3 pt-5">
+        <a href="/">
+          <img class="size-32!" src="/wuzzy-logo.png" alt="Wuzzy Logo" />
+        </a>
+        <h1 class="text-xl! font-normal! mt-0! mb-0!">
+          <a href="/"> Wuzzy Permaweb Search </a>
+        </h1>
+      </div>
+    </header>
 
     <main class="main-router-view-container">
       <RouterView />
@@ -75,19 +85,13 @@
 </style>
 
 <script setup lang="ts">
-// import { onMounted } from 'vue'
-// import { useWallet } from './composables/wallet'
+import Button from './components/ui/button/Button.vue'
+import { useWallet } from './composables/wallet'
 
-// const {
-//   address,
-//   connect,
-//   checkWalletOnLoad
-// } = useWallet()
+const { address, connect, disconnect, isConnected, isConnecting } = useWallet()
 
-// const onConnectClicked = async () => {
-//   await connect()
-//   console.log('got address', address.value)
-// }
-
-// onMounted(checkWalletOnLoad)
+const onConnectClicked = async () => {
+  await connect()
+  console.log('got address', address.value)
+}
 </script>
