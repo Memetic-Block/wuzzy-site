@@ -26,11 +26,14 @@ job "wuzzy-site-static-live" {
           target = "/workdir/entrypoint.sh"
           readonly = true
         }
+        volumes = [ "secrets/wallet.json:/usr/src/app/wallet.json" ]
       }
       
       env {
         PHASE="live"
         PROJECT_NAME="wuzzy-site-live"
+        PRIVATE_KEY="/usr/src/app/wallet.json"
+        ANT_PROCESS_ID="-Kkir7ML3cb2XCyeD8lUbl1g8tfivrB_0xkzPeChVjM"
         VITE_VERSION_SHA="[[ .commit_sha ]]"
         VITE_VERSION_TIMESTAMP="[[ .commit_timestamp ]]"
         VITE_REGISTRY_PROCESS_ID="PJVif9KTSNZ2pYrt18Wn976SJjCLuvs3dj7r5Oh2xXQ"
