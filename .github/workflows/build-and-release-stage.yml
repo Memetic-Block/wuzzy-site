@@ -39,10 +39,8 @@ jobs:
 
           # Strip git ref prefix from version
           VERSION=$(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,')
-
           # Strip "v" prefix from tag name
           [[ "${{ github.ref }}" == "refs/tags/"* ]] && VERSION=$(echo $VERSION | sed -e 's/^v//')
-
           # Use Docker `latest` tag convention
           [ "$VERSION" == "master" ] && VERSION=stage
           echo IMAGE_ID=$IMAGE_ID
@@ -60,6 +58,9 @@ jobs:
 
       - name: Deploy new version
         run: |
+          VERSION=$(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,')
+          [[ "${{ github.ref }}" == "refs/tags/"* ]] && VERSION=$(echo $VERSION | sed -e 's/^v//')
+          [ "$VERSION" == "master" ] && VERSION=stage
           COMMIT_TIMESTAMP_ISO=$(date -u -d "${{ github.event.head_commit.timestamp }}" +"%Y-%m-%dT%H:%M:%SZ")
           sed -i "s/\[\[ .release_tag \]\]/${VERSION}/g" operations/wuzzy-site-static-stage.hcl
           sed -i "s/\[\[ .commit_timestamp \]\]/${COMMIT_TIMESTAMP_ISO}/g" operations/wuzzy-site-static-stage.hcl
