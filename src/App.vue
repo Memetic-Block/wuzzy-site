@@ -4,7 +4,7 @@
       <div class="self-end py-5">
         <DropdownMenu v-if="isConnected">
           <DropdownMenuTrigger as-child>
-            <Button size="sm">
+            <Button size="sm" class="cursor-pointer">
               {{ address?.slice(0, 4) + '...' + address?.slice(-4) }}
               <ChevronDownIcon />
             </Button>
@@ -15,10 +15,10 @@
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
-        <Button variant="outline" size="sm" v-else-if="isConnecting" disabled>
+        <Button variant="outline" size="sm" class="cursor-pointer" v-else-if="isConnecting" disabled>
           Connecting...
         </Button>
-        <Button variant="outline" size="sm" v-else @click="connect">
+        <Button variant="outline" size="sm" class="cursor-pointer" v-else @click="connect">
           Connect Wallet
         </Button>
       </div>
