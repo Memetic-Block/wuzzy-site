@@ -29,7 +29,7 @@ export function useWallet() {
       // console.log('address set to', address.value)
     } catch (err: any) {
       console.error(`Arweave Wallet Error: ${err.message}`, err)
-      isConnecting.value = true
+      isConnecting.value = false
     }
   }
 
