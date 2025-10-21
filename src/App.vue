@@ -122,10 +122,10 @@ import DropdownMenuItem from './components/ui/dropdown-menu/DropdownMenuItem.vue
 import AppConfig from './app-config'
 
 const { address, connect, disconnect, isConnected, isConnecting } = useWallet()
-const versionUrl = ['stage', 'development'].includes(AppConfig.releaseTag)
+const versionUrl = ['stage', 'development'].includes(AppConfig.releaseTag) || AppConfig.releaseTag === ''
   ? `https://github.com/Memetic-Block/wuzzy-site/commit/${AppConfig.versionSha}`
   : `https://github.com/Memetic-Block/wuzzy-site/releases/tag/v${AppConfig.releaseTag}`
-const versionLabel = ['stage', 'development'].includes(AppConfig.releaseTag)
+const versionLabel = ['stage', 'development'].includes(AppConfig.releaseTag) || AppConfig.releaseTag === ''
   ? AppConfig.versionSha.slice(0, 7)
   : `v${AppConfig.releaseTag}`
 </script>
