@@ -67,7 +67,7 @@ async function deploy() {
   const ant = ANT.init({ processId, signer })
   const record = {
     transactionId: manifestResponse?.id,
-    ttlSeconds: 300,
+    ttlSeconds: undername === '@' ? 1800 : 60,
     displayName: 'Wuzzy Search',
     description: 'Wuzzy Search is a decentralized search engine application built on the Arweave and AO',
     keywords: [ 'wuzzy', 'search', 'ao', 'permaweb', 'seo', 'discover' ]
