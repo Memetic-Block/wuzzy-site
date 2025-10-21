@@ -72,12 +72,11 @@
         >
       </p>
       <p class="footer-credits">
-        Version:
         <a
           class="underline"
           target="_blank"
-          :href="`https://github.com/Memetic-Block/wuzzy-site/commit/${AppConfig.versionSha}`"
-          >{{ AppConfig.versionSha }}</a
+          :href="versionUrl"
+          >{{ versionLabel }}</a
         >
         @ {{ AppConfig.versionTimestamp }}
       </p>
@@ -123,4 +122,10 @@ import DropdownMenuItem from './components/ui/dropdown-menu/DropdownMenuItem.vue
 import AppConfig from './app-config'
 
 const { address, connect, disconnect, isConnected, isConnecting } = useWallet()
+const versionUrl = ['stage', 'development'].includes(AppConfig.releaseTag)
+  ? `https://github.com/Memetic-Block/wuzzy-site/commit/${AppConfig.versionSha}`
+  : `https://github.com/Memetic-Block/wuzzy-site/releases/tag/v${AppConfig.releaseTag}`
+const versionLabel = ['stage', 'development'].includes(AppConfig.releaseTag)
+  ? AppConfig.versionSha.slice(0, 7)
+  : `v${AppConfig.releaseTag}`
 </script>
