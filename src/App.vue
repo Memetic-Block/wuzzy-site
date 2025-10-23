@@ -1,10 +1,10 @@
 <template>
   <div class="flex flex-col min-h-screen px-4">
     <header class="flex flex-col">
-      <div class="self-end py-5">
+      <div class="flex self-end py-5 gap-3">
         <DropdownMenu v-if="isConnected">
           <DropdownMenuTrigger as-child>
-            <Button size="sm">
+            <Button size="sm" class="select-none">
               {{ address?.slice(0, 4) + '...' + address?.slice(-4) }}
               <ChevronDownIcon />
             </Button>
@@ -15,16 +15,74 @@
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
-        <Button variant="outline" size="sm" v-else-if="isConnecting" disabled>
+
+        <Button
+          variant="outline"
+          size="sm"
+          v-else-if="isConnecting"
+          disabled
+          class="select-none"
+        >
           Connecting...
         </Button>
-        <Button variant="outline" size="sm" v-else @click="connect">
+        <Button
+          variant="outline"
+          size="sm"
+          v-else
+          @click="connect"
+          class="select-none"
+        >
           Connect Wallet
         </Button>
+
+        <DropdownMenu>
+          <DropdownMenuTrigger as-child>
+            <Button size="sm" variant="ghost" class="select-none">
+              <span>
+                <DesktopIcon v-if="colorMode === 'system'" />
+                <MoonIcon v-if="colorMode === 'dark'" />
+                <SunIcon v-if="colorMode === 'light'" />
+              </span>
+              <span>
+                {{
+                  colorMode.charAt(0).toUpperCase() +
+                  colorMode.toString().slice(1)
+                }}
+              </span>
+              <ChevronDownIcon />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem @click="mode = 'light'">
+              <SunIcon />
+              Light
+            </DropdownMenuItem>
+            <DropdownMenuItem @click="mode = 'dark'">
+              <MoonIcon />
+              Dark
+            </DropdownMenuItem>
+            <DropdownMenuItem @click="mode = 'auto'">
+              <DesktopIcon />
+
+              System
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
       <div class="flex flex-col items-center gap-3 pt-5">
         <a href="/">
-          <img class="size-32!" src="/wuzzy-logo.png" alt="Wuzzy Logo" />
+          <img
+            class="size-32!"
+            src="/wuzzy-logo.png"
+            alt="Wuzzy Logo"
+            v-if="mode === 'light'"
+          />
+          <img
+            class="size-32!"
+            src="/wuzzy-logo-dark.png"
+            alt="Wuzzy Logo"
+            v-else-if="mode === 'dark'"
+          />
         </a>
         <h1 class="text-xl! font-normal! mt-0! mb-0!">
           <a href="/"> Wuzzy Permaweb Search </a>
@@ -108,6 +166,26 @@ import { useWallet } from './composables/wallet'
 import DropdownMenuContent from './components/ui/dropdown-menu/DropdownMenuContent.vue'
 import DropdownMenuItem from './components/ui/dropdown-menu/DropdownMenuItem.vue'
 import AppConfig from './app-config'
+import { useColorMode, type UseColorModeReturn } from '@vueuse/core'
+import { computed, watch } from 'vue'
+import { SunIcon, MoonIcon, DesktopIcon } from '@radix-icons/vue'
 
 const { address, connect, disconnect, isConnected, isConnecting } = useWallet()
+
+const mode = useColorMode()
+const { store } = useColorMode()
+
+const colorMode = computed(() =>
+  store.value === 'auto' ? 'system' : store.value
+)
+
+watch(store, (newMode) => {
+  if (newMode) {
+    console.log('Color mode changed to:', newMode)
+  }
+})
+
+watch(colorMode, (newColorMode) => {
+  console.log('Effective color mode is now:', newColorMode)
+})
 </script>
