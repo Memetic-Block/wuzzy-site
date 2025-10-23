@@ -97,7 +97,8 @@
       <RouterView />
     </main>
     <footer class="mt-auto pb-2">
-      <img class="footer-wuzzy-logo" src="/wuzzy.png" alt="Wuzzy Logo" />
+      <img v-if="mode ==='dark'" class="footer-wuzzy-logo" src="/wuzzy-inverted.png" alt="Wuzzy" />
+      <img v-else class="footer-wuzzy-logo" src="/wuzzy.png" alt="Wuzzy" />
       <p class="footer-credits">
         <a class="underline" href="/about">About</a>
         &nbsp;
