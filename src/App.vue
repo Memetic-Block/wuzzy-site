@@ -1,7 +1,7 @@
 <template>
   <div class="flex flex-col min-h-screen px-4">
     <header class="flex flex-col">
-      <div class="flex self-end py-5 gap-3">
+      <div class="flex self-end py-5 gap-3 justify-end relative md:mr-[120px]">
         <DropdownMenu v-if="isConnected">
           <DropdownMenuTrigger as-child>
             <Button size="sm" class="select-none cursor-pointer">
@@ -36,13 +36,17 @@
 
         <DropdownMenu>
           <DropdownMenuTrigger as-child>
-            <Button size="sm" variant="ghost" class="cursor-pointer">
+            <Button
+              size="sm"
+              variant="ghost"
+              class="cursor-pointer md:absolute md:right-[-120px]"
+            >
               <span>
                 <DesktopIcon v-if="colorMode === 'system'" />
                 <MoonIcon v-if="colorMode === 'dark'" />
                 <SunIcon v-if="colorMode === 'light'" />
               </span>
-              <span>
+              <span class="hidden md:inline-block">
                 {{
                   colorMode.charAt(0).toUpperCase() +
                   colorMode.toString().slice(1)
