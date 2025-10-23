@@ -2,7 +2,7 @@
   <div class="flex items-center justify-center gap-2 my-7">
     <Switch
       :value="searchType"
-      :class="searchType === 'off-chain' ? 'bg-neutral-400!' : 'bg-green-400!'"
+      :class="searchType === 'off-chain' ? 'bg-neutral-400!' : 'bg-green-400! '"
       @update:modelValue="
         onSearchTypeClicked(
           searchType === 'off-chain' ? 'on-chain' : 'off-chain'
@@ -12,10 +12,10 @@
     <span class="inline-block">Hyperbeam Search (Experimental)</span>
   </div>
   <div
-    class="bg-neutral-100 py-1 px-2 rounded-md flex gap-2 items-center border-input border focus-within:shadow-xs focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
+    class="bg-primary-foreground py-1 px-2 rounded-md flex gap-2 items-center border-input border focus-within:shadow-xs focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
   >
     <Input
-      class="shadow-none focus-visible:ring-[0px] ml-2 border-0 p-0"
+      class="shadow-none focus-visible:ring-[0px] ml-2 border-0 p-0 dark:bg-transparent"
       type="text"
       name="search"
       v-model="searchQuery"
@@ -27,7 +27,7 @@
       :disabled="!searchQuery.trim()"
       size="icon-sm"
       @click="onSearchClicked"
-      class="bg-green-300 hover:bg-green-400 active:bg-green-500 text-black transition-colors duration-200 cursor-pointer"
+      class="bg-green-300 hover:bg-green-400 active:bg-green-400 dark:bg-green-400 dark:hover:bg-green-500 dark:active:bg-green-500 text-black transition-colors duration-200 cursor-pointer"
     >
       ->
     </Button>

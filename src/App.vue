@@ -1,10 +1,10 @@
 <template>
   <div class="flex flex-col min-h-screen px-4">
     <header class="flex flex-col">
-      <div class="self-end py-5">
+      <div class="flex self-end py-5 gap-3 justify-end relative md:mr-[120px]">
         <DropdownMenu v-if="isConnected">
           <DropdownMenuTrigger as-child>
-            <Button size="sm" class="cursor-pointer">
+            <Button size="sm" class="select-none cursor-pointer">
               {{ address?.slice(0, 4) + '...' + address?.slice(-4) }}
               <ChevronDownIcon />
             </Button>
@@ -15,16 +15,77 @@
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
-        <Button variant="outline" size="sm" class="cursor-pointer" v-else-if="isConnecting" disabled>
+        <Button
+          variant="outline"
+          size="sm"
+          class="cursor-pointer"
+          v-else-if="isConnecting"
+          disabled
+        >
           Connecting...
         </Button>
-        <Button variant="outline" size="sm" class="cursor-pointer" v-else @click="connect">
+        <Button
+          variant="outline"
+          size="sm"
+          class="cursor-pointer"
+          v-else
+          @click="connect"
+        >
           Connect Wallet
         </Button>
+
+        <DropdownMenu>
+          <DropdownMenuTrigger as-child>
+            <Button
+              size="sm"
+              variant="ghost"
+              class="cursor-pointer md:absolute md:right-[-120px]"
+            >
+              <span>
+                <DesktopIcon v-if="colorMode === 'system'" />
+                <MoonIcon v-if="colorMode === 'dark'" />
+                <SunIcon v-if="colorMode === 'light'" />
+              </span>
+              <span class="hidden md:inline-block">
+                {{
+                  colorMode.charAt(0).toUpperCase() +
+                  colorMode.toString().slice(1)
+                }}
+              </span>
+              <ChevronDownIcon />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem @click="mode = 'light'">
+              <SunIcon />
+              Light
+            </DropdownMenuItem>
+            <DropdownMenuItem @click="mode = 'dark'">
+              <MoonIcon />
+              Dark
+            </DropdownMenuItem>
+            <DropdownMenuItem @click="mode = 'auto'">
+              <DesktopIcon />
+
+              System
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
-      <div class="flex flex-col items-center gap-3 pt-5">
+      <div class="flex flex-col items-center gap-3 pt-5 select-none">
         <a href="/">
-          <img class="size-32!" src="/wuzzy-logo.png" alt="Wuzzy Logo" />
+          <img
+            class="size-32!"
+            src="/wuzzy-logo.png"
+            alt="Wuzzy Logo"
+            v-if="mode === 'light'"
+          />
+          <img
+            class="size-32!"
+            src="/wuzzy-logo-dark.png"
+            alt="Wuzzy Logo"
+            v-else-if="mode === 'dark'"
+          />
         </a>
         <h1 class="text-xl! font-normal! mt-0! mb-0!">
           <a href="/"> Wuzzy Permaweb Search </a>
@@ -38,11 +99,7 @@
     <footer class="mt-auto pb-2">
       <img class="footer-wuzzy-logo" src="/wuzzy.png" alt="Wuzzy Logo" />
       <p class="footer-credits">
-        <a
-          class="underline"
-          href="/about"
-          >About</a
-        >
+        <a class="underline" href="/about">About</a>
         &nbsp;
         <a
           class="underline"
@@ -58,10 +115,7 @@
           >GitHub</a
         >
         &nbsp;
-        <a
-          class="underline"
-          href="https://x.com/wuzzysearch"
-          target="_blank"
+        <a class="underline" href="https://x.com/wuzzysearch" target="_blank"
           >x.com/wuzzysearch</a
         >
       </p>
@@ -72,12 +126,9 @@
         >
       </p>
       <p class="footer-credits">
-        <a
-          class="underline"
-          target="_blank"
-          :href="versionUrl"
-          >{{ versionLabel }}</a
-        >
+        <a class="underline" target="_blank" :href="versionUrl">{{
+          versionLabel
+        }}</a>
         @ {{ AppConfig.versionTimestamp }}
       </p>
     </footer>
@@ -120,12 +171,27 @@ import { useWallet } from './composables/wallet'
 import DropdownMenuContent from './components/ui/dropdown-menu/DropdownMenuContent.vue'
 import DropdownMenuItem from './components/ui/dropdown-menu/DropdownMenuItem.vue'
 import AppConfig from './app-config'
+import { useColorMode } from '@vueuse/core'
+import { computed } from 'vue'
+import { SunIcon, MoonIcon, DesktopIcon } from '@radix-icons/vue'
 
 const { address, connect, disconnect, isConnected, isConnecting } = useWallet()
-const versionUrl = ['stage', 'development'].includes(AppConfig.releaseTag) || !AppConfig.releaseTag
-  ? `https://github.com/Memetic-Block/wuzzy-site/commit/${AppConfig.versionSha}`
-  : `https://github.com/Memetic-Block/wuzzy-site/releases/tag/v${AppConfig.releaseTag}`
-const versionLabel = ['stage', 'development'].includes(AppConfig.releaseTag) || !AppConfig.releaseTag
-  ? AppConfig.versionSha.slice(0, 7)
-  : `v${AppConfig.releaseTag}`
+
+const mode = useColorMode()
+const { store } = useColorMode()
+
+const colorMode = computed(() =>
+  store.value === 'auto' ? 'system' : store.value
+)
+
+const versionUrl =
+  ['stage', 'development'].includes(AppConfig.releaseTag) ||
+  !AppConfig.releaseTag
+    ? `https://github.com/Memetic-Block/wuzzy-site/commit/${AppConfig.versionSha}`
+    : `https://github.com/Memetic-Block/wuzzy-site/releases/tag/v${AppConfig.releaseTag}`
+const versionLabel =
+  ['stage', 'development'].includes(AppConfig.releaseTag) ||
+  !AppConfig.releaseTag
+    ? AppConfig.versionSha.slice(0, 7)
+    : `v${AppConfig.releaseTag}`
 </script>

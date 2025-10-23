@@ -1,9 +1,9 @@
 <template>
   <div
-    class="mb-4 bg-neutral-100 mt-3 py-1 px-2 rounded-md flex gap-2 items-center border-input border focus-within:shadow-xs focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
+    class="bg-primary-foreground mt-3 mb-4 py-1 px-2 rounded-md flex gap-2 items-center border-input border focus-within:shadow-xs focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
   >
     <Input
-      class="shadow-none focus-visible:ring-[0px] ml-2 border-0 p-0"
+      class="shadow-none focus-visible:ring-[0px] ml-2 border-0 p-0 dark:bg-transparent"
       type="text"
       name="search"
       v-model="searchQuery"
@@ -14,7 +14,7 @@
       :disabled="!searchQuery.trim()"
       size="icon-sm"
       @click="onSearchClicked"
-      class="bg-green-300 hover:bg-green-400 active:bg-green-500 text-black transition-colors duration-200 cursor-pointer"
+      class="bg-green-300 hover:bg-green-400 active:bg-green-400 dark:bg-green-400 dark:hover:bg-green-500 dark:active:bg-green-500 text-black transition-colors duration-200 cursor-pointer"
     >
       ->
     </Button>
@@ -33,7 +33,11 @@
     <hr class="compact-hr" />
     <div v-for="hit in searchResults.hits" :key="hit.id" class="my-6">
       <div class="hit-link-group">
-        <a class="hit-title" :href="hit.resolvedUrl">{{ fallbackTitle(hit) }}</a>
+        <a
+          class="hit-title text-blue-700 dark:text-blue-400"
+          :href="hit.resolvedUrl"
+          >{{ fallbackTitle(hit) }}</a
+        >
         <br />
         <a class="hit-url" :href="hit.resolvedUrl">
           {{ hit.wayfinderUrl }}
@@ -46,11 +50,13 @@
       <a
         v-if="searchResults.hits.length > 0 && currentPage() !== page"
         :href="`?q=${route.query.q}&from=${(page - 1) * pageSize}`"
-        class="underline page-link"
+        class="hover:underline page-link cursor-pointer select-none text-blue-700 dark:text-blue-400"
       >
         {{ page }}
       </a>
-      <span class="page-link" v-else>{{ page }}</span>
+      <span class="page-link text-foreground select-none" v-else>{{
+        page
+      }}</span>
     </template>
   </div>
   <div v-if="hasSearchError">
@@ -77,12 +83,7 @@
   text-decoration: none;
   font-size: larger;
 }
-.hit-title:link {
-  color: blue;
-}
-.hit-title:visited {
-  color: purple;
-}
+
 .hit-url {
   font-size: x-small;
   margin-top: 0;
@@ -101,13 +102,7 @@
   margin: 0.5em 0;
 }
 .page-link {
-  margin-right: 0.5em;
-}
-.page-link:link {
-  color: blue;
-}
-.page-link:visited {
-  color: purple;
+  padding: 0 0.25em;
 }
 </style>
 
