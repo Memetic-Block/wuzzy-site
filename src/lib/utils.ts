@@ -7,7 +7,7 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 const wuzzyOffChainDomains = [
-  'localhost',
+  // 'localhost',
   'wuzzy.io',
   'www.wuzzy.io',
   'stage.wuzzy.io',
@@ -26,7 +26,7 @@ export const convertToHttpsUrl = async (
   const gatewayRoot = wuzzyOffChainDomains
     .includes(window.location.hostname)
     ? 'arweave.net'
-    : window.location.host
+    : window.location.host.split('.').slice(1).join('.')
 
   const url = new URL(wayfinderUrl)
   url.protocol = 'https:'
