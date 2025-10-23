@@ -23,12 +23,14 @@ const wuzzyOffChainDomains = [
 export const convertToHttpsUrl = async (
   wayfinderUrl: `ar://${string}`
 ) => {
-  const url = new URL(wayfinderUrl)
-  url.protocol = 'https:'
-  url.host = wuzzyOffChainDomains
+  const gatewayRoot = wuzzyOffChainDomains
     .includes(window.location.hostname)
     ? 'arweave.net'
     : window.location.host
+
+  const url = new URL(wayfinderUrl)
+  url.protocol = 'https:'
+  url.host = `${wayfinderUrl.split('/')[2]}.${gatewayRoot}`
 
   return url.toString()
 }
@@ -39,9 +41,13 @@ export const convertToHttpsUrl = async (
  * @returns wayfinder-compatible URL
  */
 export const convertToWayfinderUrl = (url: string): `ar://${string}` => {
-  return url
+  
+  const result = url
     .substring(0, url.length)
     .replace('https://', 'ar://')
     .replace('.arweave.net', '')
     .replace(/\/+$/, '') as `ar://${string}`
+
+  // console.log('convertToWayfinderUrl', url, result)
+  return result
 }
