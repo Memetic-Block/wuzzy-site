@@ -69,7 +69,7 @@
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
-      <div class="flex flex-col items-center gap-3 pt-5">
+      <div class="flex flex-col items-center gap-3 pt-5 select-none">
         <a href="/">
           <img
             class="size-32!"
