@@ -26,17 +26,21 @@ job "wuzzy-site-static-live" {
           target = "/workdir/entrypoint.sh"
           readonly = true
         }
+        volumes = [ "secrets/wallet.json:/usr/src/app/wallet.json" ]
       }
       
       env {
         PHASE="live"
         PROJECT_NAME="wuzzy-site-live"
+        PRIVATE_KEY="/usr/src/app/wallet.json"
+        ANT_PROCESS_ID="-Kkir7ML3cb2XCyeD8lUbl1g8tfivrB_0xkzPeChVjM"
         VITE_VERSION_SHA="[[ .commit_sha ]]"
         VITE_VERSION_TIMESTAMP="[[ .commit_timestamp ]]"
+        VITE_RELEASE_TAG="[[ .release_tag ]]"
         VITE_REGISTRY_PROCESS_ID="PJVif9KTSNZ2pYrt18Wn976SJjCLuvs3dj7r5Oh2xXQ"
         VITE_PRIMARY_NEST_ID="1X_nt5ctoJTw6Dc3M6x34_lFTWGTl-jhW8MY7Vff4fA"
         VITE_HYPERBEAM_ENDPOINT="https://wuzzy-hyperbeam.hel.memeticblock.net"
-        VITE_SEARCH_API_URL="https://wuzzy-search-api-stage.hel.memeticblock.net"
+        VITE_SEARCH_API_URL="https://api.wuzzy.tech"
       }
 
       template {
@@ -50,7 +54,10 @@ job "wuzzy-site-static-live" {
       }
 
       vault {
-        policies = ["memeticblock-io-cloudflare-deployer"]
+        policies = [
+          "memeticblock-io-cloudflare-deployer",
+          "wuzzy-deployer"
+        ]
       }
 
       template {
@@ -66,12 +73,26 @@ job "wuzzy-site-static-live" {
 
       template {
         data = <<-EOF
+        {{- with secret `kv/wuzzy/deployer` }}
+        {{- base64Decode .Data.data.WUZZY_DEPLOYER_KEY_BASE64 }}
+        {{- end }}
+        EOF
+        destination = "secrets/wallet.json"
+      }
+
+      template {
+        data = <<-EOF
         #!/bin/sh
+        set -e
 
         echo "Generating static files"
         npm run build
 
-        npx wrangler pages deploy /usr/src/app/dist --project-name=${PROJECT_NAME}
+        echo "Deploying static site to Cloudflare Pages"
+        npm run deploy:static
+
+        echo "Deploying static site to Arweave"
+        npm run deploy:arweave
 
         echo "Static site deployment complete"
         EOF

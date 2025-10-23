@@ -51,7 +51,7 @@ export function useWallet() {
     try {
       address.value = await window.arweaveWallet.getActiveAddress()
     } catch (error: any) {
-      console.error('No wallet connected')
+      console.warn('No wallet connected')
     }
   }
 

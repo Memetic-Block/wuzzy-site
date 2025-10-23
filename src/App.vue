@@ -4,7 +4,7 @@
       <div class="flex self-end py-5 gap-3">
         <DropdownMenu v-if="isConnected">
           <DropdownMenuTrigger as-child>
-            <Button size="sm" class="select-none">
+            <Button size="sm" class="select-none cursor-pointer">
               {{ address?.slice(0, 4) + '...' + address?.slice(-4) }}
               <ChevronDownIcon />
             </Button>
@@ -15,29 +15,28 @@
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
-
         <Button
           variant="outline"
           size="sm"
+          class="cursor-pointer"
           v-else-if="isConnecting"
           disabled
-          class="select-none"
         >
           Connecting...
         </Button>
         <Button
           variant="outline"
           size="sm"
+          class="cursor-pointer"
           v-else
           @click="connect"
-          class="select-none"
         >
           Connect Wallet
         </Button>
 
         <DropdownMenu>
           <DropdownMenuTrigger as-child>
-            <Button size="sm" variant="ghost" class="select-none">
+            <Button size="sm" variant="ghost" class="cursor-pointer">
               <span>
                 <DesktopIcon v-if="colorMode === 'system'" />
                 <MoonIcon v-if="colorMode === 'dark'" />
@@ -96,6 +95,8 @@
     <footer class="mt-auto pb-2">
       <img class="footer-wuzzy-logo" src="/wuzzy.png" alt="Wuzzy Logo" />
       <p class="footer-credits">
+        <a class="underline" href="/about">About</a>
+        &nbsp;
         <a
           class="underline"
           href="https://docs_wuzzy.arweave.net"
@@ -109,6 +110,10 @@
           target="_blank"
           >GitHub</a
         >
+        &nbsp;
+        <a class="underline" href="https://x.com/wuzzysearch" target="_blank"
+          >x.com/wuzzysearch</a
+        >
       </p>
       <p class="footer-credits">
         Built &amp; Operated by
@@ -117,13 +122,9 @@
         >
       </p>
       <p class="footer-credits">
-        Version:
-        <a
-          class="underline"
-          target="_blank"
-          :href="`https://github.com/Memetic-Block/wuzzy-site/commit/${AppConfig.versionSha}`"
-          >{{ AppConfig.versionSha }}</a
-        >
+        <a class="underline" target="_blank" :href="versionUrl">{{
+          versionLabel
+        }}</a>
         @ {{ AppConfig.versionTimestamp }}
       </p>
     </footer>
@@ -166,8 +167,8 @@ import { useWallet } from './composables/wallet'
 import DropdownMenuContent from './components/ui/dropdown-menu/DropdownMenuContent.vue'
 import DropdownMenuItem from './components/ui/dropdown-menu/DropdownMenuItem.vue'
 import AppConfig from './app-config'
-import { useColorMode, type UseColorModeReturn } from '@vueuse/core'
-import { computed, watch } from 'vue'
+import { useColorMode } from '@vueuse/core'
+import { computed } from 'vue'
 import { SunIcon, MoonIcon, DesktopIcon } from '@radix-icons/vue'
 
 const { address, connect, disconnect, isConnected, isConnecting } = useWallet()
@@ -179,13 +180,14 @@ const colorMode = computed(() =>
   store.value === 'auto' ? 'system' : store.value
 )
 
-watch(store, (newMode) => {
-  if (newMode) {
-    console.log('Color mode changed to:', newMode)
-  }
-})
-
-watch(colorMode, (newColorMode) => {
-  console.log('Effective color mode is now:', newColorMode)
-})
+const versionUrl =
+  ['stage', 'development'].includes(AppConfig.releaseTag) ||
+  !AppConfig.releaseTag
+    ? `https://github.com/Memetic-Block/wuzzy-site/commit/${AppConfig.versionSha}`
+    : `https://github.com/Memetic-Block/wuzzy-site/releases/tag/v${AppConfig.releaseTag}`
+const versionLabel =
+  ['stage', 'development'].includes(AppConfig.releaseTag) ||
+  !AppConfig.releaseTag
+    ? AppConfig.versionSha.slice(0, 7)
+    : `v${AppConfig.releaseTag}`
 </script>
