@@ -3,7 +3,7 @@
     class="bg-primary-foreground mt-3 mb-4 py-1 px-2 rounded-md flex gap-2 items-center border-input border focus-within:shadow-xs focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
   >
     <Input
-      class="shadow-none focus-visible:ring-[0px] ml-2 border-0 p-0 dark:bg-transparent"
+      class="shadow-none focus-visible:ring-[0px] ml-2 border-0 p-0 dark:bg-transparent autofill:bg-transparent"
       type="text"
       name="search"
       v-model="searchQuery"
@@ -107,7 +107,7 @@
 </style>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useRoute, type LocationQuery } from 'vue-router'
 import type { SearchResults } from '../types/search-types'
 import config from '../app-config'
@@ -115,6 +115,7 @@ import Input from '../components/ui/input/Input.vue'
 import Button from '../components/ui/button/Button.vue'
 import Skeleton from '@/components/ui/skeleton/Skeleton.vue'
 import { convertToWayfinderUrl, convertToHttpsUrl } from '../lib/utils'
+import { useSeoMeta } from '@unhead/vue'
 
 const route = useRoute()
 const searchResults = ref<SearchResults | null>(null)
@@ -227,4 +228,8 @@ async function search(query: LocationQuery) {
 
   isSearchPending.value = false
 }
+
+useSeoMeta({
+  title: computed(() => searchQuery.value || 'Search The Permaweb')
+})
 </script>

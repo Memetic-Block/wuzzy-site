@@ -2,7 +2,10 @@
   <template v-if="info">
     <table>
       <thead>
-        <tr><th colspan="2">Wuzzy Nest Registry</th></tr>
+        <tr>
+          <th colspan="2">Wuzzy Nest Registry</th>
+        </tr>
+        tr
         <tr>
           <th>Nest ID</th>
           <th>Owner</th>
@@ -10,7 +13,9 @@
       </thead>
       <tbody>
         <tr v-for="nest in nests" :key="nest.id">
-          <td><a class="underline" :href="`/nest/${nest.id}`">{{ nest.id }}</a></td>
+          <td>
+            <a class="underline" :href="`/nest/${nest.id}`">{{ nest.id }}</a>
+          </td>
           <td>{{ nest.owner }}</td>
         </tr>
       </tbody>
@@ -19,15 +24,14 @@
   <template v-else-if="hasError">
     Error loading Wuzzy Nest Registry. Please try again later.
   </template>
-  <template v-else>
-    Loading Wuzzy Nest Registry...
-  </template>
+  <template v-else> Loading Wuzzy Nest Registry... </template>
 </template>
 
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
 import type { WuzzyNestRegistryInfo } from '../types/wuzzy-nest-registry'
 import config from '../app-config'
+import { useSeoMeta } from '@unhead/vue'
 
 const registryViewModuleId = '64J-FBSrijo_KuF4LAaKoHFgkJM6RSJZoyCBmUUSzPI'
 const info = ref<WuzzyNestRegistryInfo | null>(null)
@@ -43,9 +47,12 @@ onMounted(async () => {
       if (!response.ok) {
         if (tries > 1) {
           console.warn(
-            `Fetch failed with status ${response.status}, retrying... (${tries - 1} tries left)`
+            `Fetch failed with status ${response.status}, retrying... (${
+              tries - 1
+            } tries left)`
           )
-          return new Promise<Response>((resolve) => setTimeout(() => resolve(tryFetch(tries - 1)), 1000)
+          return new Promise<Response>((resolve) =>
+            setTimeout(() => resolve(tryFetch(tries - 1)), 1000)
           ).then((res) => res)
         } else {
           throw new Error(
@@ -56,7 +63,7 @@ onMounted(async () => {
       return response
     }
     const response = await tryFetch(3)
-    info.value = await response.json() as WuzzyNestRegistryInfo
+    info.value = (await response.json()) as WuzzyNestRegistryInfo
     console.log('Got Wuzzy Nest Registry Info:', info)
 
     nests.value = []
@@ -69,5 +76,9 @@ onMounted(async () => {
   } catch (e) {
     console.error('Error looking up Wuzzy Nest Registry Info:', e)
   }
+})
+
+useSeoMeta({
+  title: 'Nest Registry'
 })
 </script>

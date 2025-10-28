@@ -108,7 +108,7 @@
 </style>
 
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import {
   type WuzzyNestSearchHit,
@@ -119,6 +119,7 @@ import Input from '../../components/ui/input/Input.vue'
 import Button from '../../components/ui/button/Button.vue'
 import Skeleton from '@/components/ui/skeleton/Skeleton.vue'
 import { convertToWayfinderUrl, convertToHttpsUrl } from '@/lib/utils'
+import { useSeoMeta } from '@unhead/vue'
 
 const nestViewModuleId = 'NWtLbRjMo6JHX1dH04PsnhbaDq8NmNT9L1HAPo_mtvc'
 const route = useRoute()
@@ -231,4 +232,8 @@ function currentPage() {
   const from = parseInt(route.query.from as string) || 0
   return Math.floor(from / pageSize.value) + 1
 }
+
+useSeoMeta({
+  title: computed(() => currentResultsSearchQuery.value || 'Search Nest')
+})
 </script>
