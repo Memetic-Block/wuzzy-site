@@ -1,7 +1,9 @@
 <template>
   <div class="flex flex-col min-h-screen px-4">
     <header class="flex flex-col">
-      <div class="flex self-end py-5 gap-3 justify-end relative md:mr-[120px]">
+      <div
+        class="flex self-end py-5 gap-3 justify-end relative md:mr-[120px] pr-1"
+      >
         <DropdownMenu v-if="isConnected">
           <DropdownMenuTrigger as-child>
             <Button size="sm" class="select-none cursor-pointer">
@@ -97,7 +99,12 @@
       <RouterView />
     </main>
     <footer class="mt-auto pb-2">
-      <img v-if="mode ==='dark'" class="footer-wuzzy-logo" src="/wuzzy-inverted.png" alt="Wuzzy" />
+      <img
+        v-if="mode === 'dark'"
+        class="footer-wuzzy-logo"
+        src="/wuzzy-inverted.png"
+        alt="Wuzzy"
+      />
       <img v-else class="footer-wuzzy-logo" src="/wuzzy.png" alt="Wuzzy" />
       <p class="footer-credits">
         <a class="underline" href="/about">About</a>
@@ -175,6 +182,8 @@ import AppConfig from './app-config'
 import { useColorMode } from '@vueuse/core'
 import { computed } from 'vue'
 import { SunIcon, MoonIcon, DesktopIcon } from '@radix-icons/vue'
+import { headOptions } from './head'
+import { useHead } from '@unhead/vue'
 
 const { address, connect, disconnect, isConnected, isConnecting } = useWallet()
 
@@ -195,4 +204,6 @@ const versionLabel =
   !AppConfig.releaseTag
     ? AppConfig.versionSha.slice(0, 7)
     : `v${AppConfig.releaseTag}`
+
+useHead(headOptions)
 </script>

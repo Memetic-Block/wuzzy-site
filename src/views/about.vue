@@ -373,3 +373,11 @@ p {
   background-color: #faf5ff;
 } */
 </style>
+
+<script setup lang="ts">
+import { useSeoMeta } from '@unhead/vue'
+
+useSeoMeta({
+  title: 'About'
+})
+</script>
