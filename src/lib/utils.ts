@@ -7,7 +7,7 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 const wuzzyOffChainDomains = [
-  // 'localhost',
+  'localhost',
   'wuzzy.io',
   'www.wuzzy.io',
   'stage.wuzzy.io',
