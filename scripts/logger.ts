@@ -1,6 +1,6 @@
 import winston, { createLogger } from 'winston'
 
-const addNomadFields = winston.format((info, opts) => {
+const addNomadFields = winston.format((info) => {
   return {
     ...info,
 
