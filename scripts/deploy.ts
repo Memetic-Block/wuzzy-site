@@ -2,6 +2,7 @@ import 'dotenv/config'
 import { ANT, ArweaveSigner } from '@ar.io/sdk'
 import { TurboFactory } from '@ardrive/turbo-sdk'
 import { readFileSync } from 'fs'
+import { metaTags } from '../src/head'
 
 // import { logger } from './logger'
 const logger = console
@@ -32,15 +33,11 @@ async function deploy() {
   logger.info('Deploying...')
   const turbo = TurboFactory.authenticated({
     signer,
-    gatewayUrl,
+    gatewayUrl
     // uploadServiceConfig: { url }
   })
-  
-  const {
-    manifestResponse,
-    manifest,
-    errors
-  } = await turbo.uploadFolder({
+
+  const { manifestResponse, manifest, errors } = await turbo.uploadFolder({
     folderPath: DEPLOY_FOLDER,
     dataItemOpts: {
       tags: [{ name: 'Deploy-Nonce', value: Date.now().toString() }]
@@ -68,22 +65,26 @@ async function deploy() {
   const record = {
     transactionId: manifestResponse?.id,
     ttlSeconds: 3600,
-    displayName: 'Wuzzy Search',
-    description: 'Wuzzy Search is a decentralized search engine application built on the Arweave and AO',
-    keywords: [ 'wuzzy', 'search', 'ao', 'permaweb', 'seo', 'discover' ]
+    displayName: metaTags.title,
+    description: metaTags.description,
+    keywords: metaTags.keywords
   }
-  const { id: deployedTxId } = undername === '@'
-    ? await ant.setBaseNameRecord(record)
-    : await ant.setUndernameRecord({
-      undername,
-      ...record
-    })
+  const { id: deployedTxId } =
+    undername === '@'
+      ? await ant.setBaseNameRecord(record)
+      : await ant.setUndernameRecord({
+          undername,
+          ...record
+        })
   logger.info(
-    `ANT updated! View deploy message at `
-      +`https://ao.link/#/message/${deployedTxId}`
+    `ANT updated! View deploy message at ` +
+      `https://ao.link/#/message/${deployedTxId}`
   )
 }
 
 deploy()
   .then(() => logger.info('Deployed!'))
-  .catch(err => { logger.error('error deploying!', err); process.exit(1); })
+  .catch((err) => {
+    logger.error('error deploying!', err)
+    process.exit(1)
+  })

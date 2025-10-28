@@ -15,7 +15,7 @@
     class="bg-primary-foreground py-1 px-2 rounded-md flex gap-2 items-center border-input border focus-within:shadow-xs focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
   >
     <Input
-      class="shadow-none focus-visible:ring-[0px] ml-2 border-0 p-0 dark:bg-transparent"
+      class="shadow-none focus-visible:ring-[0px] ml-2 border-0 p-0 dark:bg-transparent autofill:bg-transparent"
       type="text"
       name="search"
       v-model="searchQuery"
@@ -53,6 +53,7 @@ import config from '../app-config'
 import Input from '../components/ui/input/Input.vue'
 import Button from '../components/ui/button/Button.vue'
 import { Switch } from '../components/ui/switch'
+import { useSeoMeta } from '@unhead/vue'
 
 const router = useRouter()
 const searchQuery = ref(
@@ -75,4 +76,8 @@ const onSearchClicked = () => {
     console.warn('Search query is empty')
   }
 }
+
+useSeoMeta({
+  titleTemplate: ''
+})
 </script>

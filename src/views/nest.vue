@@ -1,5 +1,7 @@
 <template>
-  <h2>Nest Id: <code>{{ route.params.nestId }}</code></h2>
+  <h2>
+    Nest Id: <code>{{ route.params.nestId }}</code>
+  </h2>
   <template v-if="info">
     <table>
       <tbody>
@@ -42,9 +44,7 @@
     <table>
       <thead>
         <tr>
-          <td colspan="3">
-            Crawlers ({{ info.total_crawlers }})
-          </td>
+          <td colspan="3">Crawlers ({{ info.total_crawlers }})</td>
         </tr>
         <tr>
           <td>Crawler ID</td>
@@ -68,9 +68,7 @@
     <table>
       <thead>
         <tr>
-          <td colspan="7">
-            Documents ({{ info.total_documents }})
-          </td>
+          <td colspan="7">Documents ({{ info.total_documents }})</td>
         </tr>
         <tr>
           <!-- <td>Document ID</td> -->
@@ -87,7 +85,7 @@
         <tr v-for="document in documents" :key="document.id">
           <td>
             <!-- <a class="underline" :href="`/nest/${route.params.nestId}/document/${document.idx}`"> -->
-              {{ document.idx }}
+            {{ document.idx }}
             <!-- </a> -->
           </td>
           <td>
@@ -104,9 +102,7 @@
       </tbody>
     </table>
   </template>
-  <template v-else>
-    Loading Nest...
-  </template>
+  <template v-else> Loading Nest... </template>
 </template>
 
 <style scoped>
@@ -120,10 +116,11 @@ tbody {
 </style>
 
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import type { WuzzyNestInfo } from '../types/wuzzy-nest'
 import config from '../app-config'
+import { useSeoMeta } from '@unhead/vue'
 // import { useWallet } from '../composables/wallet'
 
 const nestViewModuleId = 'NWtLbRjMo6JHX1dH04PsnhbaDq8NmNT9L1HAPo_mtvc'
@@ -138,7 +135,7 @@ onMounted(async () => {
     const response = await fetch(
       `${config.hyperbeamEndpoint}/${route.params.nestId}/now/~lua@5.3a&module=${nestViewModuleId}/nest_info/serialize~json@1.0`
     )
-    info.value = await response.json() as WuzzyNestInfo
+    info.value = (await response.json()) as WuzzyNestInfo
     console.log('Got Nest Info:', info.value)
 
     crawlers.value = []
@@ -169,4 +166,8 @@ onMounted(async () => {
   }
 })
 // onMounted(checkWalletOnLoad)
+
+useSeoMeta({
+  title: computed(() => `Nest ${route.params.nestId}`)
+})
 </script>
