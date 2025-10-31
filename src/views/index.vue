@@ -34,6 +34,10 @@
   </div>
   <br />
   <a class="text-sm pl-1 underline" href="/registry">Wuzzy Nest Registry</a>
+  <br />
+  <a class="text-sm pl-1 underline" href="/transaction-search">
+    Transaction Search
+  </a>
   <!-- <em>
     Indexing 3,667 <a href="https://arns.app" target="_blank">ARNS</a> Records
   </em> -->
