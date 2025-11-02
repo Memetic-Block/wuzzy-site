@@ -98,6 +98,10 @@
     <main class="main-router-view-container">
       <RouterView />
     </main>
+    
+    <!-- Global Audio Player -->
+    <GlobalAudioPlayer ref="globalAudioPlayer" />
+    
     <footer class="mt-auto pb-2">
       <img
         v-if="mode === 'dark'"
@@ -180,12 +184,19 @@ import DropdownMenuContent from './components/ui/dropdown-menu/DropdownMenuConte
 import DropdownMenuItem from './components/ui/dropdown-menu/DropdownMenuItem.vue'
 import AppConfig from './app-config'
 import { useColorMode } from '@vueuse/core'
-import { computed } from 'vue'
+import { computed, ref, provide } from 'vue'
 import { SunIcon, MoonIcon, DesktopIcon } from '@radix-icons/vue'
 import { headOptions } from './head'
 import { useHead } from '@unhead/vue'
+import GlobalAudioPlayer from './components/GlobalAudioPlayer.vue'
 
 const { address, connect, disconnect, isConnected, isConnecting } = useWallet()
+
+// Global audio player reference
+const globalAudioPlayer = ref<InstanceType<typeof GlobalAudioPlayer>>()
+
+// Provide the audio player to all child components
+provide('audioPlayer', globalAudioPlayer)
 
 const mode = useColorMode()
 const { store } = useColorMode()

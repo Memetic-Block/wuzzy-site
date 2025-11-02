@@ -1,5 +1,5 @@
 <template>
-  <div class="flex items-center justify-center gap-2 my-7">
+  <!-- <div class="flex items-center justify-center gap-2 my-7">
     <Switch
       :value="searchType"
       :class="searchType === 'off-chain' ? 'bg-neutral-400!' : 'bg-green-400! '"
@@ -10,34 +10,18 @@
       "
     />
     <span class="inline-block">Hyperbeam Search (Experimental)</span>
-  </div>
-  <div
-    class="bg-primary-foreground py-1 px-2 rounded-md flex gap-2 items-center border-input border focus-within:shadow-xs focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
-  >
-    <Input
-      class="shadow-none focus-visible:ring-[0px] ml-2 border-0 p-0 dark:bg-transparent autofill:bg-transparent"
-      type="text"
-      name="search"
-      v-model="searchQuery"
-      placeholder="Search the Permaweb..."
-      @keyup.enter="onSearchClicked"
-      autofocus
-    />
-    <Button
-      :disabled="!searchQuery.trim()"
-      size="icon-sm"
-      @click="onSearchClicked"
-      class="bg-green-300 hover:bg-green-400 active:bg-green-400 dark:bg-green-400 dark:hover:bg-green-500 dark:active:bg-green-500 text-black transition-colors duration-200 cursor-pointer"
-    >
-      ->
-    </Button>
-  </div>
+  </div> -->
+  <SearchInput
+    :initial-query="initialQuery"
+    initial-mode="ARNS"
+    :search-type="searchType"
+  />
   <br />
   <a class="text-sm pl-1 underline" href="/registry">Wuzzy Nest Registry</a>
   <br />
-  <a class="text-sm pl-1 underline" href="/transaction-search">
-    Transaction Search
-  </a>
+  <a class="text-sm pl-1 underline" href="/transaction-search">Transaction Search</a>
+  <br />
+  <a class="text-sm pl-1 underline" href="/image-search">Image Search</a>
   <!-- <em>
     Indexing 3,667 <a href="https://arns.app" target="_blank">ARNS</a> Records
   </em> -->
@@ -51,35 +35,23 @@
 </style>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-import { useRouter } from 'vue-router'
-import config from '../app-config'
-import Input from '../components/ui/input/Input.vue'
-import Button from '../components/ui/button/Button.vue'
-import { Switch } from '../components/ui/switch'
+import { ref, computed } from 'vue'
+// import { Switch } from '../components/ui/switch'
+import SearchInput from '../components/SearchInput.vue'
 import { useSeoMeta } from '@unhead/vue'
 
-const router = useRouter()
-const searchQuery = ref(
-  new URL(window.location.href).searchParams.get('q') || ''
-)
-const searchType = ref('off-chain')
-const onSearchTypeClicked = (type: string) => {
-  searchType.value = type
-}
-const onSearchClicked = () => {
-  if (searchQuery.value.trim()) {
-    router.push({
-      path:
-        searchType.value === 'on-chain'
-          ? `/nest/${config.primaryNestId}/search`
-          : '/search',
-      query: { q: searchQuery.value }
-    })
-  } else {
-    console.warn('Search query is empty')
+const searchType = ref<'on-chain' | 'off-chain'>('off-chain')
+
+const initialQuery = computed(() => {
+  if (typeof window !== 'undefined') {
+    return new URL(window.location.href).searchParams.get('q') || ''
   }
-}
+  return ''
+})
+
+// const onSearchTypeClicked = (type: 'on-chain' | 'off-chain') => {
+//   searchType.value = type
+// }
 
 useSeoMeta({
   titleTemplate: ''

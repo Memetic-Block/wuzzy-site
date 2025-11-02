@@ -56,14 +56,15 @@ export interface PageInfo {
 
 export interface TransactionConnection {
   pageInfo: PageInfo
-  count?: string
+  count?: string  // Goldsky provides total count as string
   edges: TransactionEdge[]
 }
 
 export interface TagFilter {
-  name: string
-  values: string[]
+  name?: string  // Optional - can search by values only
+  values?: string[]  // Optional - can search by name only  
   op?: 'EQ' | 'NEQ'
+  match?: 'EXACT' | 'WILDCARD' | 'FUZZY_AND' | 'FUZZY_OR'  // Goldsky match types
 }
 
 export interface RangeFilter {
@@ -76,12 +77,12 @@ export interface TransactionQueryOptions {
   owners?: string[]
   recipients?: string[]
   tags?: TagFilter[]
-  bundledIn?: string[]
+  bundledIn?: string[]  // Array of bundle IDs to search within
   ingested_at?: RangeFilter
   block?: RangeFilter
   first?: number
   after?: string
-  sort?: 'HEIGHT_DESC' | 'HEIGHT_ASC'
+  sort?: 'HEIGHT_DESC' | 'HEIGHT_ASC' | 'INGESTED_AT_DESC' | 'INGESTED_AT_ASC'
 }
 
 export interface GraphQLResponse<T = any> {
@@ -111,7 +112,7 @@ export function useGraphQL() {
 
   // Default GraphQL endpoint (can be overridden)
   const getGraphQLEndpoint = () => {
-    // Try to get from hyperbeam endpoint first, fallback to arweave.net
+    // Try to get from config first, fallback to Goldsky Search Service
     const gqlEndpoint = config.gqlEndpoint
     console.log('GraphQL Endpoint config:', gqlEndpoint)
     if (gqlEndpoint) {
@@ -119,8 +120,8 @@ export function useGraphQL() {
       console.log('Using custom GraphQL endpoint:', fullEndpoint)
       return fullEndpoint
     }
-    console.log('Using default GraphQL endpoint: https://arweave.net/graphql')
-    return 'https://arweave.net/graphql'
+    console.log('Using Goldsky Search GraphQL endpoint: https://arweave-search.goldsky.com/graphql')
+    return 'https://arweave-search.goldsky.com/graphql'
   }
 
   /**
@@ -224,12 +225,12 @@ export function useGraphQL() {
     ids?: string[]
     owners?: string[]
     recipients?: string[]
-    tags?: Array<{ name: string; values: string[]; op?: 'EQ' | 'NEQ' }>
+    tags?: TagFilter[]
     bundledIn?: string[]
     block?: { min?: number; max?: number }
-    sort?: 'HEIGHT_ASC' | 'HEIGHT_DESC'
+    sort?: 'HEIGHT_ASC' | 'HEIGHT_DESC' | 'INGESTED_AT_DESC' | 'INGESTED_AT_ASC'
   } = {}): Promise<TransactionConnection> {
-    const { first = 10, after, ids, owners, recipients, tags, bundledIn, block, sort } = options
+    const { first = 20, after, ids, owners, recipients, tags, bundledIn, block, sort } = options
 
     // Build arguments directly (no variables) like the working example
     let args = [`first: ${first}`]
@@ -256,9 +257,30 @@ export function useGraphQL() {
     
     if (tags && tags.length > 0) {
       const tagsStr = tags.map(tag => {
-        const valuesStr = tag.values.map(v => `"${v}"`).join(', ')
-        const op = tag.op || 'EQ'
-        return `{ name: "${tag.name}", values: [${valuesStr}], op: ${op} }`
+        let tagFilter = '{'
+        
+        // Goldsky allows name-only or values-only searches
+        if (tag.name) {
+          tagFilter += ` name: "${tag.name}"`
+        }
+        
+        if (tag.values && tag.values.length > 0) {
+          if (tag.name) tagFilter += ','
+          const valuesStr = tag.values.map(v => `"${v}"`).join(', ')
+          tagFilter += ` values: [${valuesStr}]`
+        }
+        
+        if (tag.op) {
+          tagFilter += `, op: ${tag.op}`
+        }
+        
+        // Goldsky enhanced matching
+        if (tag.match) {
+          tagFilter += `, match: ${tag.match}`
+        }
+        
+        tagFilter += ' }'
+        return tagFilter
       }).join(', ')
       args.push(`tags: [${tagsStr}]`)
     }
@@ -417,6 +439,38 @@ export function useGraphQL() {
   })
 
   /**
+   * Goldsky: Helper to create wildcard tag filter (e.g., "audio/*")
+   */
+  const createWildcardTagFilter = (name?: string, values?: string[]): TagFilter => ({
+    name,
+    values,
+    match: 'WILDCARD'
+  })
+
+  /**
+   * Goldsky: Helper to create fuzzy tag filter
+   */
+  const createFuzzyTagFilter = (name?: string, values?: string[], mode: 'AND' | 'OR' = 'OR'): TagFilter => ({
+    name,
+    values,
+    match: mode === 'AND' ? 'FUZZY_AND' : 'FUZZY_OR'
+  })
+
+  /**
+   * Goldsky: Helper to search by tag name only
+   */
+  const createTagNameFilter = (name: string): TagFilter => ({
+    name
+  })
+
+  /**
+   * Goldsky: Helper to search by tag values only  
+   */
+  const createTagValueFilter = (values: string[]): TagFilter => ({
+    values
+  })
+
+  /**
    * Helper to create range filters
    */
   const createRangeFilter = (min?: number, max?: number): RangeFilter => ({
@@ -437,6 +491,12 @@ export function useGraphQL() {
     // Helpers
     createTagFilter,
     createRangeFilter,
+    
+    // Goldsky enhanced helpers
+    createWildcardTagFilter,
+    createFuzzyTagFilter,
+    createTagNameFilter,
+    createTagValueFilter,
     
     // State
     defaultState

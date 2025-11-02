@@ -7,8 +7,8 @@
         <strong>💡 Looking for a user-friendly search interface?</strong>
       </p>
       <p class="text-blue-700">
-        Try our <a href="/transaction-search" class="underline font-semibold hover:text-blue-900">Transaction Search Tool</a> 
-        with a simple query syntax like <code class="bg-blue-100 px-1 rounded">owner:address tags:Content-Type=application/json</code>
+        Try our <a href="/transaction-search" class="underline font-semibold hover:text-blue-900">Transaction Search Tool</a>, <a href="/image-search" class="underline font-semibold hover:text-blue-900">Image Search Tool</a>, <a href="/video-search" class="underline font-semibold hover:text-blue-900">Video Search Tool</a>, or <a href="/audio-search" class="underline font-semibold hover:text-blue-900">Audio Search Tool</a> 
+        with a simple query syntax like <code class="bg-blue-100 px-1 rounded">owner:address tag:Content-Type=application/json</code>
       </p>
     </div>
 

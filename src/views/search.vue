@@ -168,6 +168,10 @@ const searchQuery = ref(
   new URL(window.location.href).searchParams.get('q') || ''
 )
 
+useSeoMeta({
+  title: computed(() => searchQuery.value || 'Search The Permaweb')
+})
+
 const onSearchClicked = async () => {
   if (searchQuery.value.trim()) {
     newSearchQuery.value = searchQuery.value
@@ -228,8 +232,4 @@ async function search(query: LocationQuery) {
 
   isSearchPending.value = false
 }
-
-useSeoMeta({
-  title: computed(() => searchQuery.value || 'Search The Permaweb')
-})
 </script>
