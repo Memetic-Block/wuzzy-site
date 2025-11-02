@@ -1,150 +1,154 @@
 <template>
   <div class="max-w-7xl mx-auto px-4 py-8">
-    <div class="image-search">
-      <!-- Simple Search Input -->
-      <div class="search-input-wrapper">
-        <div class="search-input-container">
-          <input 
-            type="text" 
-            v-model="searchQuery"
-            placeholder="Search for images..."
-            @keydown.enter="handleSearch"
-            class="search-input"
-          />
+    <!-- Simple Search Input -->
+    <div class="mb-4">
+      <div class="flex gap-4">
+        <input 
+          type="text" 
+          v-model="searchQuery"
+          placeholder="Search for images..."
+          @keydown.enter="handleSearch"
+          class="flex-1 px-4 py-3 border border-gray-300 rounded-lg text-base focus:outline-none focus:border-blue-500 focus:ring-3 focus:ring-blue-500/10"
+        />
+        <button 
+          @click="handleSearch"
+          :disabled="!searchQuery.trim()"
+          class="px-6 py-3 bg-blue-500 text-white rounded-lg font-semibold cursor-pointer transition-colors hover:bg-blue-600 disabled:bg-gray-400 disabled:cursor-not-allowed"
+        >
+          Search
+        </button>
+      </div>
+    </div>
+
+    <!-- Format Filter Radio Buttons -->
+    <div class="flex items-center gap-3 my-4 px-4 py-3 bg-gray-50 border border-gray-200 rounded-md">
+      <span class="text-sm font-semibold text-gray-700">Format:</span>
+      <label class="flex items-center gap-1.5 cursor-pointer text-sm text-gray-600 px-2 py-1 rounded transition-colors hover:bg-gray-100">
+        <input 
+          type="radio" 
+          name="imageFormat" 
+          value="image/*" 
+          :checked="selectedFormat === 'image/*'"
+          @change="onFormatChange"
+          class="cursor-pointer w-3.5 h-3.5 m-0 accent-blue-500"
+        />
+        <span class="font-medium select-none">All</span>
+      </label>
+      <label class="flex items-center gap-1.5 cursor-pointer text-sm text-gray-600 px-2 py-1 rounded transition-colors hover:bg-gray-100">
+        <input 
+          type="radio" 
+          name="imageFormat" 
+          value="image/png" 
+          :checked="selectedFormat === 'image/png'"
+          @change="onFormatChange"
+          class="cursor-pointer w-3.5 h-3.5 m-0 accent-blue-500"
+        />
+        <span class="font-medium select-none">PNG</span>
+      </label>
+      <label class="flex items-center gap-1.5 cursor-pointer text-sm text-gray-600 px-2 py-1 rounded transition-colors hover:bg-gray-100">
+        <input 
+          type="radio" 
+          name="imageFormat" 
+          value="image/jpeg" 
+          :checked="selectedFormat === 'image/jpeg'"
+          @change="onFormatChange"
+          class="cursor-pointer w-3.5 h-3.5 m-0 accent-blue-500"
+        />
+        <span class="font-medium select-none">JPEG</span>
+      </label>
+      <label class="flex items-center gap-1.5 cursor-pointer text-sm text-gray-600 px-2 py-1 rounded transition-colors hover:bg-gray-100">
+        <input 
+          type="radio" 
+          name="imageFormat" 
+          value="image/gif" 
+          :checked="selectedFormat === 'image/gif'"
+          @change="onFormatChange"
+          class="cursor-pointer w-3.5 h-3.5 m-0 accent-blue-500"
+        />
+        <span class="font-medium select-none">GIF</span>
+      </label>
+      <label class="flex items-center gap-1.5 cursor-pointer text-sm text-gray-600 px-2 py-1 rounded transition-colors hover:bg-gray-100">
+        <input 
+          type="radio" 
+          name="imageFormat" 
+          value="image/svg+xml" 
+          :checked="selectedFormat === 'image/svg+xml'"
+          @change="onFormatChange"
+          class="cursor-pointer w-3.5 h-3.5 m-0 accent-blue-500"
+        />
+        <span class="font-medium select-none">SVG</span>
+      </label>
+    </div>
+
+    <!-- Error Display -->
+    <div v-if="error" class="bg-red-50 border border-red-200 rounded-lg p-4 mb-4 text-red-600">
+      <strong>Error:</strong> {{ error }}
+    </div>
+
+    <!-- Results Display -->
+    <div v-if="results && imageTransactions.length > 0" class="mt-8">
+      <div class="flex justify-between items-center mb-6">
+        <h3 class="m-0 text-gray-700">Found {{ imageTransactions.length }}{{ results.pageInfo.hasNextPage ? '+' : '' }} Images</h3>
+        <div class="flex gap-1 border border-gray-300 rounded-md p-1">
           <button 
-            @click="handleSearch"
-            :disabled="!searchQuery.trim()"
-            class="search-button"
+            @click="gridSize = 'small'" 
+            :class="gridSize === 'small' ? 'bg-blue-500 text-white' : 'bg-transparent hover:bg-gray-100'"
+            class="border-none px-1.5 py-1.5 cursor-pointer rounded transition-colors"
+            title="Small grid"
           >
-            Search
+            ▦
+          </button>
+          <button 
+            @click="gridSize = 'medium'" 
+            :class="gridSize === 'medium' ? 'bg-blue-500 text-white' : 'bg-transparent hover:bg-gray-100'"
+            class="border-none px-1.5 py-1.5 cursor-pointer rounded transition-colors"
+            title="Medium grid"
+          >
+            ⬜
+          </button>
+          <button 
+            @click="gridSize = 'large'" 
+            :class="gridSize === 'large' ? 'bg-blue-500 text-white' : 'bg-transparent hover:bg-gray-100'"
+            class="border-none px-1.5 py-1.5 cursor-pointer rounded transition-colors"
+            title="Large grid"
+          >
+            ⬛
           </button>
         </div>
       </div>
-
-      <!-- Format Filter Radio Buttons -->
-      <div class="format-filter">
-        <span class="filter-label">Format:</span>
-        <label class="radio-option">
-          <input 
-            type="radio" 
-            name="imageFormat" 
-            value="image/*" 
-            :checked="selectedFormat === 'image/*'"
-            @change="onFormatChange"
-          />
-          <span>All</span>
-        </label>
-        <label class="radio-option">
-          <input 
-            type="radio" 
-            name="imageFormat" 
-            value="image/png" 
-            :checked="selectedFormat === 'image/png'"
-            @change="onFormatChange"
-          />
-          <span>PNG</span>
-        </label>
-        <label class="radio-option">
-          <input 
-            type="radio" 
-            name="imageFormat" 
-            value="image/jpeg" 
-            :checked="selectedFormat === 'image/jpeg'"
-            @change="onFormatChange"
-          />
-          <span>JPEG</span>
-        </label>
-        <label class="radio-option">
-          <input 
-            type="radio" 
-            name="imageFormat" 
-            value="image/gif" 
-            :checked="selectedFormat === 'image/gif'"
-            @change="onFormatChange"
-          />
-          <span>GIF</span>
-        </label>
-        <label class="radio-option">
-          <input 
-            type="radio" 
-            name="imageFormat" 
-            value="image/svg+xml" 
-            :checked="selectedFormat === 'image/svg+xml'"
-            @change="onFormatChange"
-          />
-          <span>SVG</span>
-        </label>
-      </div>
-
-      <!-- Error Display -->
-      <div v-if="error" class="error-message">
-        <strong>Error:</strong> {{ error }}
-      </div>
-
-      <!-- Results Display -->
-      <div v-if="results && imageTransactions.length > 0" class="results-section">
-        <div class="results-header">
-          <h3>Found {{ imageTransactions.length }}{{ results.pageInfo.hasNextPage ? '+' : '' }} Images</h3>
-          <div class="view-controls">
-            <button 
-              @click="gridSize = 'small'" 
-              :class="{ active: gridSize === 'small' }"
-              class="grid-size-btn"
-              title="Small grid"
-            >
-              ▦
-            </button>
-            <button 
-              @click="gridSize = 'medium'" 
-              :class="{ active: gridSize === 'medium' }"
-              class="grid-size-btn"
-              title="Medium grid"
-            >
-              ⬜
-            </button>
-            <button 
-              @click="gridSize = 'large'" 
-              :class="{ active: gridSize === 'large' }"
-              class="grid-size-btn"
-              title="Large grid"
-            >
-              ⬛
-            </button>
-          </div>
-        </div>
-        
-        <div class="image-grid" :class="`grid-${gridSize}`">
-          <div 
-            v-for="transaction in imageTransactions" 
-            :key="transaction.id"
-            class="image-item"
-            @click="openImageModal(transaction)"
-          >
-            <div class="image-wrapper">
-              <img 
-                :src="getImageUrl(transaction.id)"
-                :alt="`Image ${transaction.id}`"
-                class="grid-image"
-                @error="handleImageError"
-                @load="handleImageLoad"
-                loading="lazy"
-              />
-              <div class="image-overlay">
-                <div class="image-info">
-                  <span class="image-type">{{ getContentType(transaction) }}</span>
-                  <span class="image-size">{{ formatFileSize(parseInt(transaction.data.size)) }}</span>
+      
+      <div class="image-grid" :class="`grid-${gridSize}`">
+        <div 
+          v-for="transaction in imageTransactions" 
+          :key="transaction.id"
+          class="cursor-pointer rounded-lg overflow-hidden bg-white shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md"
+          @click="openImageModal(transaction)"
+        >
+          <div class="image-wrapper group">
+            <img 
+              :src="getImageUrl(transaction.id)"
+              :alt="`Image ${transaction.id}`"
+              class="grid-image transition-transform group-hover:scale-105"
+              @error="handleImageError"
+              @load="handleImageLoad"
+              loading="lazy"
+            />
+              <div class="absolute inset-0 bg-gradient-to-b from-black/70 via-transparent to-black/70 opacity-0 transition-opacity flex flex-col justify-between p-2 group-hover:opacity-100">
+                <div class="flex flex-col gap-1">
+                  <span class="bg-black/80 text-white px-1.5 py-0.5 rounded text-xs w-fit">{{ getContentType(transaction) }}</span>
+                  <span class="bg-black/80 text-white px-1.5 py-0.5 rounded text-xs w-fit">{{ formatFileSize(parseInt(transaction.data.size)) }}</span>
                 </div>
-                <div class="image-actions">
+                <div class="flex gap-2 self-end">
                   <button 
                     @click.stop="openInNewTab(transaction.id)"
-                    class="action-btn"
+                    class="bg-black/80 text-white border-none rounded px-1.5 py-1.5 cursor-pointer text-sm transition-colors hover:bg-black/90"
                     title="Open in new tab"
                   >
                     🔗
                   </button>
                   <button 
                     @click.stop="copyImageUrl(transaction.id)"
-                    class="action-btn"
+                    class="bg-black/80 text-white border-none rounded px-1.5 py-1.5 cursor-pointer text-sm transition-colors hover:bg-black/90"
                     title="Copy image URL"
                   >
                     📋
@@ -155,84 +159,83 @@
           </div>
         </div>
 
-        <!-- Pagination -->
-        <div v-if="results.pageInfo.hasNextPage" class="pagination">
-          <button 
-            @click="loadMore"
-            :disabled="loading"
-            class="load-more-button"
-          >
-            {{ loading ? 'Loading More Images...' : 'Load More Images' }}
-          </button>
+      <!-- Pagination -->
+      <div v-if="results.pageInfo.hasNextPage" class="flex justify-center mt-8">
+        <button 
+          @click="loadMore"
+          :disabled="loading"
+          class="px-6 py-3 bg-blue-500 text-white border-none rounded-lg font-semibold cursor-pointer transition-colors hover:bg-blue-600 disabled:bg-gray-400 disabled:cursor-not-allowed"
+        >
+          {{ loading ? 'Loading More Images...' : 'Load More Images' }}
+        </button>
+      </div>
+    </div>
+
+    <!-- No results message -->
+    <div v-if="results && results.edges.length === 0" class="text-center py-12 px-4 text-gray-500">
+      <p>No transactions found matching your search criteria.</p>
+    </div>
+
+    <!-- Image Modal -->
+    <div v-if="selectedImage" class="fixed inset-0 bg-black/90 flex items-center justify-center z-[1000] p-4" @click="closeImageModal">
+      <div class="bg-white rounded-lg max-w-[90vw] max-h-[90vh] overflow-auto" @click.stop>
+        <div class="flex justify-between items-center p-4 border-b border-gray-200">
+          <h3 class="m-0">Image Details</h3>
+          <button @click="closeImageModal" class="bg-transparent border-none text-2xl cursor-pointer p-1 text-gray-500">×</button>
         </div>
-      </div>
-
-      <!-- No results message -->
-      <div v-if="results && results.edges.length === 0" class="no-results-message">
-        <p>No transactions found matching your search criteria.</p>
-      </div>
-
-      <!-- Image Modal -->
-      <div v-if="selectedImage" class="image-modal" @click="closeImageModal">
-        <div class="modal-content" @click.stop>
-          <div class="modal-header">
-            <h3>Image Details</h3>
-            <button @click="closeImageModal" class="close-btn">×</button>
-          </div>
-          <div class="modal-body">
-            <img 
-              :src="getImageUrl(selectedImage.id)" 
-              :alt="`Image ${selectedImage.id}`"
-              class="modal-image"
-            />
-            <div class="modal-details">
-              <div class="detail-row">
-                <strong>Transaction ID:</strong>
-                <code class="transaction-id-full">{{ selectedImage.id }}</code>
-              </div>
-              <div class="detail-row">
-                <strong>Size:</strong>
-                {{ formatFileSize(parseInt(selectedImage.data.size)) }}
-              </div>
-              <div class="detail-row">
-                <strong>Type:</strong>
-                {{ getContentType(selectedImage) }}
-              </div>
-              <div class="detail-row">
-                <strong>Owner:</strong>
-                <code>{{ selectedImage.owner.address }}</code>
-              </div>
-              <div class="detail-row">
-                <strong>Block:</strong>
-                {{ selectedImage.block.height }}
-              </div>
-              <div v-if="selectedImage.tags.length > 0" class="detail-row">
-                <strong>Tags:</strong>
-                <div class="modal-tags">
-                  <span 
-                    v-for="tag in selectedImage.tags" 
-                    :key="tag.name"
-                    class="modal-tag"
-                  >
-                    {{ tag.name }}: {{ tag.value }}
-                  </span>
-                </div>
-              </div>
-              <div class="modal-actions">
-                <a 
-                  :href="getImageUrl(selectedImage.id)" 
-                  target="_blank" 
-                  class="modal-action-btn primary"
+        <div class="p-4 flex flex-col md:flex-row gap-4">
+          <img 
+            :src="getImageUrl(selectedImage.id)" 
+            :alt="`Image ${selectedImage.id}`"
+            class="max-w-full max-h-[60vh] md:max-h-[70vh] object-contain rounded"
+          />
+          <div class="min-w-[300px]">
+            <div class="mb-3">
+              <strong class="block mb-1 text-gray-700">Transaction ID:</strong>
+              <code class="font-mono text-sm bg-gray-100 px-2 py-1 rounded break-all">{{ selectedImage.id }}</code>
+            </div>
+            <div class="mb-3">
+              <strong class="block mb-1 text-gray-700">Size:</strong>
+              {{ formatFileSize(parseInt(selectedImage.data.size)) }}
+            </div>
+            <div class="mb-3">
+              <strong class="block mb-1 text-gray-700">Type:</strong>
+              {{ getContentType(selectedImage) }}
+            </div>
+            <div class="mb-3">
+              <strong class="block mb-1 text-gray-700">Owner:</strong>
+              <code class="font-mono text-sm bg-gray-100 px-2 py-1 rounded break-all">{{ selectedImage.owner.address }}</code>
+            </div>
+            <div class="mb-3">
+              <strong class="block mb-1 text-gray-700">Block:</strong>
+              {{ selectedImage.block.height }}
+            </div>
+            <div v-if="selectedImage.tags.length > 0" class="mb-3">
+              <strong class="block mb-1 text-gray-700">Tags:</strong>
+              <div class="flex flex-wrap gap-1">
+                <span 
+                  v-for="tag in selectedImage.tags" 
+                  :key="tag.name"
+                  class="bg-gray-100 px-2 py-1 rounded text-sm"
                 >
-                  View Full Size
-                </a>
-                <button 
-                  @click="copyImageUrl(selectedImage.id)" 
-                  class="modal-action-btn secondary"
-                >
-                  Copy URL
-                </button>
+                  {{ tag.name }}: {{ tag.value }}
+                </span>
               </div>
+            </div>
+            <div class="flex gap-2 mt-4">
+              <a 
+                :href="getImageUrl(selectedImage.id)" 
+                target="_blank" 
+                class="px-4 py-2 rounded-md font-medium cursor-pointer no-underline border-none bg-blue-500 text-white hover:opacity-90"
+              >
+                View Full Size
+              </a>
+              <button 
+                @click="copyImageUrl(selectedImage.id)" 
+                class="px-4 py-2 rounded-md font-medium cursor-pointer border-none bg-gray-100 text-gray-700 hover:opacity-90"
+              >
+                Copy URL
+              </button>
             </div>
           </div>
         </div>
@@ -534,149 +537,6 @@ function copyImageUrl(transactionId: string) {
 </script>
 
 <style scoped>
-.image-search {
-  max-width: 1400px;
-  margin: 0 auto;
-}
-
-.search-input-container {
-  display: flex;
-  gap: 1rem;
-  margin-bottom: 1rem;
-}
-
-.search-input {
-  flex: 1;
-  padding: 0.75rem 1rem;
-  border: 1px solid #d1d5db;
-  border-radius: 0.5rem;
-  font-size: 1rem;
-  font-family: inherit;
-}
-
-.search-input:focus {
-  outline: none;
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-}
-
-.search-button {
-  padding: 0.75rem 1.5rem;
-  background: #3b82f6;
-  color: white;
-  border: none;
-  border-radius: 0.5rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background-color 0.2s;
-}
-
-.search-button:hover:not(:disabled) {
-  background: #2563eb;
-}
-
-.search-button:disabled {
-  background: #9ca3af;
-  cursor: not-allowed;
-}
-
-.format-filter {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  margin: 1rem 0;
-  padding: 0.75rem 1rem;
-  background: #f9fafb;
-  border: 1px solid #e5e7eb;
-  border-radius: 0.375rem;
-}
-
-.filter-label {
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: #374151;
-}
-
-.radio-option {
-  display: flex;
-  align-items: center;
-  gap: 0.375rem;
-  cursor: pointer;
-  font-size: 0.875rem;
-  color: #4b5563;
-  padding: 0.25rem 0.5rem;
-  border-radius: 0.25rem;
-  transition: background-color 0.15s;
-}
-
-.radio-option:hover {
-  background: #f3f4f6;
-}
-
-.radio-option input[type="radio"] {
-  cursor: pointer;
-  width: 0.875rem;
-  height: 0.875rem;
-  margin: 0;
-  accent-color: #3b82f6;
-}
-
-.radio-option span {
-  font-weight: 500;
-  user-select: none;
-}
-
-.error-message {
-  background: #fef2f2;
-  border: 1px solid #fecaca;
-  border-radius: 0.5rem;
-  padding: 1rem;
-  margin-bottom: 1rem;
-  color: #dc2626;
-}
-
-.results-section {
-  margin-top: 2rem;
-}
-
-.results-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1.5rem;
-}
-
-.results-header h3 {
-  margin: 0;
-  color: #374151;
-}
-
-.view-controls {
-  display: flex;
-  gap: 0.25rem;
-  border: 1px solid #d1d5db;
-  border-radius: 0.375rem;
-  padding: 0.25rem;
-}
-
-.grid-size-btn {
-  background: none;
-  border: none;
-  padding: 0.375rem;
-  cursor: pointer;
-  border-radius: 0.25rem;
-  transition: background-color 0.2s;
-}
-
-.grid-size-btn:hover {
-  background: #f3f4f6;
-}
-
-.grid-size-btn.active {
-  background: #3b82f6;
-  color: white;
-}
-
 .image-grid {
   display: grid;
   gap: 1rem;
@@ -694,20 +554,6 @@ function copyImageUrl(transactionId: string) {
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
 }
 
-.image-item {
-  cursor: pointer;
-  border-radius: 0.5rem;
-  overflow: hidden;
-  background: white;
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
-  transition: transform 0.2s, box-shadow 0.2s;
-}
-
-.image-item:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-}
-
 .image-wrapper {
   position: relative;
   aspect-ratio: 1;
@@ -718,232 +564,5 @@ function copyImageUrl(transactionId: string) {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform 0.3s;
-}
-
-.image-item:hover .grid-image {
-  transform: scale(1.05);
-}
-
-.image-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(to bottom, rgba(0,0,0,0.7) 0%, transparent 30%, transparent 70%, rgba(0,0,0,0.7) 100%);
-  opacity: 0;
-  transition: opacity 0.3s;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  padding: 0.5rem;
-}
-
-.image-item:hover .image-overlay {
-  opacity: 1;
-}
-
-.image-info {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-}
-
-.image-type,
-.image-size {
-  background: rgba(0, 0, 0, 0.8);
-  color: white;
-  padding: 0.125rem 0.375rem;
-  border-radius: 0.25rem;
-  font-size: 0.75rem;
-  width: fit-content;
-}
-
-.image-actions {
-  display: flex;
-  gap: 0.5rem;
-  align-self: flex-end;
-}
-
-.action-btn {
-  background: rgba(0, 0, 0, 0.8);
-  color: white;
-  border: none;
-  border-radius: 0.25rem;
-  padding: 0.375rem;
-  cursor: pointer;
-  font-size: 0.875rem;
-  transition: background-color 0.2s;
-}
-
-.action-btn:hover {
-  background: rgba(0, 0, 0, 0.9);
-}
-
-.no-results-message {
-  text-align: center;
-  padding: 3rem 1rem;
-  color: #6b7280;
-}
-
-.pagination {
-  display: flex;
-  justify-content: center;
-  margin-top: 2rem;
-}
-
-.load-more-button {
-  padding: 0.75rem 1.5rem;
-  background: #3b82f6;
-  color: white;
-  border: none;
-  border-radius: 0.5rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background-color 0.2s;
-}
-
-.load-more-button:hover:not(:disabled) {
-  background: #2563eb;
-}
-
-.load-more-button:disabled {
-  background: #9ca3af;
-  cursor: not-allowed;
-}
-
-/* Image Modal Styles */
-.image-modal {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.9);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-  padding: 1rem;
-}
-
-.modal-content {
-  background: white;
-  border-radius: 0.5rem;
-  max-width: 90vw;
-  max-height: 90vh;
-  overflow: auto;
-}
-
-.modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1rem;
-  border-bottom: 1px solid #e5e7eb;
-}
-
-.modal-header h3 {
-  margin: 0;
-}
-
-.close-btn {
-  background: none;
-  border: none;
-  font-size: 1.5rem;
-  cursor: pointer;
-  padding: 0.25rem;
-  color: #6b7280;
-}
-
-.modal-body {
-  padding: 1rem;
-  display: flex;
-  gap: 1rem;
-  flex-direction: column;
-}
-
-.modal-image {
-  max-width: 100%;
-  max-height: 60vh;
-  object-fit: contain;
-  border-radius: 0.25rem;
-}
-
-.modal-details {
-  min-width: 300px;
-}
-
-.detail-row {
-  margin-bottom: 0.75rem;
-}
-
-.detail-row strong {
-  display: block;
-  margin-bottom: 0.25rem;
-  color: #374151;
-}
-
-.transaction-id-full {
-  font-family: monospace;
-  font-size: 0.875rem;
-  background: #f3f4f6;
-  padding: 0.25rem 0.5rem;
-  border-radius: 0.25rem;
-  word-break: break-all;
-}
-
-.modal-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.25rem;
-}
-
-.modal-tag {
-  background: #f3f4f6;
-  padding: 0.25rem 0.5rem;
-  border-radius: 0.25rem;
-  font-size: 0.875rem;
-}
-
-.modal-actions {
-  display: flex;
-  gap: 0.5rem;
-  margin-top: 1rem;
-}
-
-.modal-action-btn {
-  padding: 0.5rem 1rem;
-  border-radius: 0.375rem;
-  font-weight: 500;
-  cursor: pointer;
-  text-decoration: none;
-  border: none;
-}
-
-.modal-action-btn.primary {
-  background: #3b82f6;
-  color: white;
-}
-
-.modal-action-btn.secondary {
-  background: #f3f4f6;
-  color: #374151;
-}
-
-.modal-action-btn:hover {
-  opacity: 0.9;
-}
-
-/* Responsive adjustments */
-@media (min-width: 768px) {
-  .modal-body {
-    flex-direction: row;
-  }
-  
-  .modal-image {
-    max-height: 70vh;
-  }
 }
 </style>
