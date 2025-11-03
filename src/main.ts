@@ -12,11 +12,7 @@ import NestSearchView from './views/nest/search.vue'
 import CrawlerView from './views/crawler.vue'
 import RegistryView from './views/registry.vue'
 import AboutView from './views/about.vue'
-// import GraphQLView from './views/graphql.vue'
-// import TransactionSearchView from './views/transaction-search.vue'
 import ImageSearchView from './views/image-search.vue'
-// import VideoSearchView from './views/video-search.vue'
-// import AudioSearchView from './views/audio-search.vue'
 
 const routes = [
   { path: '/', component: IndexView },
@@ -26,11 +22,7 @@ const routes = [
   { path: '/crawler/:crawlerId', component: CrawlerView },
   { path: '/registry', component: RegistryView },
   { path: '/about', component: AboutView },
-  // { path: '/graphql', component: GraphQLView },
-  // { path: '/transaction-search', component: TransactionSearchView },
   { path: '/images', component: ImageSearchView },
-  // { path: '/video-search', component: VideoSearchView },
-  // { path: '/audio-search', component: AudioSearchView },
 ]
 
 export const createApp = ViteSSG(
