@@ -103,6 +103,19 @@ export interface GQLState {
   data: any
 }
 
+/**
+ * Escape a string for safe inclusion in a GraphQL query
+ * Handles quotes, backslashes, and control characters
+ */
+function escapeGraphQLString(str: string): string {
+  return str
+    .replace(/\\/g, '\\\\')  // Escape backslashes first
+    .replace(/"/g, '\\"')     // Escape double quotes
+    .replace(/\n/g, '\\n')    // Escape newlines
+    .replace(/\r/g, '\\r')    // Escape carriage returns
+    .replace(/\t/g, '\\t')    // Escape tabs
+}
+
 export function useGraphQL() {
   const defaultState = (): GQLState => ({
     loading: false,
@@ -233,17 +246,17 @@ export function useGraphQL() {
     let args = ['first: 1'] // Request minimal data
     
     if (ids && ids.length > 0) {
-      const idsStr = ids.map(id => `"${id}"`).join(', ')
+      const idsStr = ids.map(id => `"${escapeGraphQLString(id)}"`).join(', ')
       args.push(`ids: [${idsStr}]`)
     }
     
     if (owners && owners.length > 0) {
-      const ownersStr = owners.map(owner => `"${owner}"`).join(', ')
+      const ownersStr = owners.map(owner => `"${escapeGraphQLString(owner)}"`).join(', ')
       args.push(`owners: [${ownersStr}]`)
     }
     
     if (recipients && recipients.length > 0) {
-      const recipientsStr = recipients.map(recipient => `"${recipient}"`).join(', ')
+      const recipientsStr = recipients.map(recipient => `"${escapeGraphQLString(recipient)}"`).join(', ')
       args.push(`recipients: [${recipientsStr}]`)
     }
     
@@ -252,12 +265,12 @@ export function useGraphQL() {
         let tagFilter = '{'
         
         if (tag.name) {
-          tagFilter += ` name: "${tag.name}"`
+          tagFilter += ` name: "${escapeGraphQLString(tag.name)}"`
         }
         
         if (tag.values && tag.values.length > 0) {
           if (tag.name) tagFilter += ','
-          const valuesStr = tag.values.map(v => `"${v}"`).join(', ')
+          const valuesStr = tag.values.map(v => `"${escapeGraphQLString(v)}"`).join(', ')
           tagFilter += ` values: [${valuesStr}]`
         }
         
@@ -276,7 +289,7 @@ export function useGraphQL() {
     }
     
     if (bundledIn && bundledIn.length > 0) {
-      const bundledInStr = bundledIn.map(id => `"${id}"`).join(', ')
+      const bundledInStr = bundledIn.map(id => `"${escapeGraphQLString(id)}"`).join(', ')
       args.push(`bundledIn: [${bundledInStr}]`)
     }
     
@@ -349,22 +362,22 @@ export function useGraphQL() {
     let args = [`first: ${first}`]
     
     if (after) {
-      args.push(`after: "${after}"`)
+      args.push(`after: "${escapeGraphQLString(after)}"`)
       console.log('Using cursor pagination with after:', after)
     }
     
     if (ids && ids.length > 0) {
-      const idsStr = ids.map(id => `"${id}"`).join(', ')
+      const idsStr = ids.map(id => `"${escapeGraphQLString(id)}"`).join(', ')
       args.push(`ids: [${idsStr}]`)
     }
     
     if (owners && owners.length > 0) {
-      const ownersStr = owners.map(owner => `"${owner}"`).join(', ')
+      const ownersStr = owners.map(owner => `"${escapeGraphQLString(owner)}"`).join(', ')
       args.push(`owners: [${ownersStr}]`)
     }
     
     if (recipients && recipients.length > 0) {
-      const recipientsStr = recipients.map(recipient => `"${recipient}"`).join(', ')
+      const recipientsStr = recipients.map(recipient => `"${escapeGraphQLString(recipient)}"`).join(', ')
       args.push(`recipients: [${recipientsStr}]`)
     }
     
@@ -374,12 +387,12 @@ export function useGraphQL() {
         
         // Goldsky allows name-only or values-only searches
         if (tag.name) {
-          tagFilter += ` name: "${tag.name}"`
+          tagFilter += ` name: "${escapeGraphQLString(tag.name)}"`
         }
         
         if (tag.values && tag.values.length > 0) {
           if (tag.name) tagFilter += ','
-          const valuesStr = tag.values.map(v => `"${v}"`).join(', ')
+          const valuesStr = tag.values.map(v => `"${escapeGraphQLString(v)}"`).join(', ')
           tagFilter += ` values: [${valuesStr}]`
         }
         
@@ -399,7 +412,7 @@ export function useGraphQL() {
     }
     
     if (bundledIn && bundledIn.length > 0) {
-      const bundledInStr = bundledIn.map(id => `"${id}"`).join(', ')
+      const bundledInStr = bundledIn.map(id => `"${escapeGraphQLString(id)}"`).join(', ')
       args.push(`bundledIn: [${bundledInStr}]`)
     }
     
