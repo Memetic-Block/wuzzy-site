@@ -3,31 +3,31 @@
   <div class="mb-4">
     <SearchInput
       :initial-query="searchQuery"
-      initial-mode="Images"
+      initial-mode="Video"
     />
   </div>
 
   <!-- Format Filter Checkboxes -->
   <div class="format-picker">
     <label>
-      <input type="checkbox" value="image/*" :checked="selectedFormats.includes('image/*')" @change="onFormatChange" />
+      <input type="checkbox" value="video/*" :checked="selectedFormats.includes('video/*')" @change="onFormatChange" />
       <span>All</span>
     </label>
     <label>
-      <input type="checkbox" value="image/png" :checked="selectedFormats.includes('image/png')" @change="onFormatChange" />
-      <span>PNG</span>
+      <input type="checkbox" value="video/mp4" :checked="selectedFormats.includes('video/mp4')" @change="onFormatChange" />
+      <span>MP4</span>
     </label>
     <label>
-      <input type="checkbox" value="image/jpeg" :checked="selectedFormats.includes('image/jpeg')" @change="onFormatChange" />
-      <span>JPEG</span>
+      <input type="checkbox" value="video/webm" :checked="selectedFormats.includes('video/webm')" @change="onFormatChange" />
+      <span>WebM</span>
     </label>
     <label>
-      <input type="checkbox" value="image/gif" :checked="selectedFormats.includes('image/gif')" @change="onFormatChange" />
-      <span>GIF</span>
+      <input type="checkbox" value="video/ogg" :checked="selectedFormats.includes('video/ogg')" @change="onFormatChange" />
+      <span>OGG</span>
     </label>
     <label>
-      <input type="checkbox" value="image/svg+xml" :checked="selectedFormats.includes('image/svg+xml')" @change="onFormatChange" />
-      <span>SVG</span>
+      <input type="checkbox" value="video/quicktime" :checked="selectedFormats.includes('video/quicktime')" @change="onFormatChange" />
+      <span>MOV</span>
     </label>
   </div>
 
@@ -55,7 +55,7 @@
   <div v-if="isSearching">
     <div class="flex justify-between items-center mb-6">
       <h3 class="m-0 mt-1 text-foreground flex items-center gap-2">
-        Found ... Images
+        Found ... Videos
       </h3>
       <Skeleton class="h-10 w-32 rounded-md" />
     </div>
@@ -65,11 +65,11 @@
   </div>
 
   <!-- Results Display -->
-  <div v-if="results && imageTransactions.length > 0 && !isSearching">
+  <div v-if="results && videoTransactions.length > 0 && !isSearching">
     <div class="flex justify-between items-center">
       <h3 class="m-0 mt-1 text-foreground">
-        <span v-if="totalCount">Found {{ displayCount.toLocaleString() }} Images</span>
-        <span v-else>Found {{ displayCount }}+ Images</span>
+        <span v-if="totalCount">Found {{ displayCount.toLocaleString() }} Videos</span>
+        <span v-else>Found {{ displayCount }}+ Videos</span>
         (Page {{ currentPage }} of {{ totalPages }}{{ results.pageInfo.hasNextPage ? '+' : '' }})
       </h3>
       <div class="flex gap-1 border border-border rounded-md p-1 bg-background">
@@ -102,19 +102,22 @@
     
     <div class="image-grid" :class="`grid-${gridSize}`">
       <div 
-        v-for="transaction in imageTransactions" 
+        v-for="transaction in videoTransactions" 
         :key="transaction.id"
         class="cursor-pointer rounded-lg overflow-hidden bg-white shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md"
-        @click="openImageModal(transaction)"
+        @click="openVideoModal(transaction)"
       >
         <div class="image-wrapper group">
-          <img 
-            :src="getImageUrl(transaction.id)"
-            :alt="`Image ${transaction.id}`"
+          <video 
+            :src="getVideoUrl(transaction.id)"
             class="grid-image transition-transform group-hover:scale-105"
-            @error="handleImageError"
-            @load="handleImageLoad"
-            loading="lazy"
+            @error="handleVideoError"
+            @loadeddata="handleVideoLoad"
+            muted
+            loop
+            playsinline
+            @mouseenter="(e) => (e.target as HTMLVideoElement).play()"
+            @mouseleave="(e) => (e.target as HTMLVideoElement).pause()"
           />
             <div class="absolute inset-0 bg-gradient-to-b from-black/70 via-transparent to-black/70 opacity-0 transition-opacity flex flex-col justify-between p-2 group-hover:opacity-100">
               <div class="flex flex-col gap-1">
@@ -130,9 +133,9 @@
                   🔗
                 </button>
                 <button 
-                  @click.stop="copyImageUrl(transaction.id)"
+                  @click.stop="copyVideoUrl(transaction.id)"
                   class="bg-black/80 text-white border-none rounded px-1.5 py-1.5 cursor-pointer text-sm transition-colors hover:bg-black/90"
-                  title="Copy image URL"
+                  title="Copy video URL"
                 >
                   📋
                 </button>
@@ -187,45 +190,45 @@
     <p>No transactions found matching your search criteria.</p>
   </div>
 
-  <!-- Image Modal -->
-  <div v-if="selectedImage" class="fixed inset-0 bg-black/90 flex items-center justify-center z-[1000] p-4" @click="closeImageModal">
+  <!-- Video Modal -->
+  <div v-if="selectedVideo" class="fixed inset-0 bg-black/90 flex items-center justify-center z-[1000] p-4" @click="closeVideoModal">
     <div class="bg-background rounded-lg max-w-[90vw] max-h-[90vh] overflow-auto border border-border" @click.stop>
       <div class="flex justify-between items-center p-4 border-b border-border">
-        <h3 class="m-0 text-foreground">Image Details</h3>
-        <button @click="closeImageModal" class="bg-transparent border-none text-2xl cursor-pointer p-1 text-muted-foreground hover:text-foreground">×</button>
+        <h3 class="m-0 text-foreground">Video Details</h3>
+        <button @click="closeVideoModal" class="bg-transparent border-none text-2xl cursor-pointer p-1 text-muted-foreground hover:text-foreground">×</button>
       </div>
       <div class="p-4 flex flex-col md:flex-row gap-4">
-        <img 
-          :src="getImageUrl(selectedImage.id)" 
-          :alt="`Image ${selectedImage.id}`"
-          class="max-w-full max-h-[60vh] md:max-h-[70vh] object-contain rounded"
+        <video 
+          :src="getVideoUrl(selectedVideo.id)" 
+          controls
+          class="max-w-full max-h-[60vh] md:max-h-[70vh] rounded"
         />
         <div class="min-w-[300px]">
           <div class="mb-3">
             <strong class="block mb-1 text-foreground">Transaction ID:</strong>
-            <code class="font-mono text-sm bg-muted px-2 py-1 rounded break-all text-muted-foreground">{{ selectedImage.id }}</code>
+            <code class="font-mono text-sm bg-muted px-2 py-1 rounded break-all text-muted-foreground">{{ selectedVideo.id }}</code>
           </div>
           <div class="mb-3">
             <strong class="block mb-1 text-foreground">Size:</strong>
-            <span class="text-muted-foreground">{{ formatFileSize(parseInt(selectedImage.data.size)) }}</span>
+            <span class="text-muted-foreground">{{ formatFileSize(parseInt(selectedVideo.data.size)) }}</span>
           </div>
           <div class="mb-3">
             <strong class="block mb-1 text-foreground">Type:</strong>
-            <span class="text-muted-foreground">{{ getContentType(selectedImage) }}</span>
+            <span class="text-muted-foreground">{{ getContentType(selectedVideo) }}</span>
           </div>
           <div class="mb-3">
             <strong class="block mb-1 text-foreground">Owner:</strong>
-            <code class="font-mono text-sm bg-muted px-2 py-1 rounded break-all text-muted-foreground">{{ selectedImage.owner.address }}</code>
+            <code class="font-mono text-sm bg-muted px-2 py-1 rounded break-all text-muted-foreground">{{ selectedVideo.owner.address }}</code>
           </div>
           <div class="mb-3">
             <strong class="block mb-1 text-foreground">Block:</strong>
-            <span class="text-muted-foreground">{{ selectedImage.block.height }}</span>
+            <span class="text-muted-foreground">{{ selectedVideo.block.height }}</span>
           </div>
-          <div v-if="selectedImage.tags.length > 0" class="mb-3">
+          <div v-if="selectedVideo.tags.length > 0" class="mb-3">
             <strong class="block mb-1 text-foreground">Tags:</strong>
             <div class="flex flex-wrap gap-1">
               <span 
-                v-for="tag in selectedImage.tags" 
+                v-for="tag in selectedVideo.tags" 
                 :key="tag.name"
                 class="bg-muted px-2 py-1 rounded text-sm text-muted-foreground"
               >
@@ -235,14 +238,14 @@
           </div>
           <div class="flex gap-2 mt-4">
             <a 
-              :href="getImageUrl(selectedImage.id)" 
+              :href="getVideoUrl(selectedVideo.id)" 
               target="_blank" 
               class="px-4 py-2 rounded-md font-medium cursor-pointer no-underline border-none bg-primary text-primary-foreground hover:opacity-90"
             >
               View Full Size
             </a>
             <button 
-              @click="copyImageUrl(selectedImage.id)" 
+              @click="copyVideoUrl(selectedVideo.id)" 
               class="px-4 py-2 rounded-md font-medium cursor-pointer border-none bg-muted text-foreground hover:bg-accent hover:text-accent-foreground"
             >
               Copy URL
@@ -268,10 +271,10 @@ const router = useRouter()
 const searchQuery = ref<string>((route.query.q as string) || '')
 const error = ref<string | null>(null)
 const info = ref<string | null>(null)
-const failedImages = ref(new Set<string>())
-const failedImagesCount = ref(0)
+const failedVideos = ref(new Set<string>())
+const failedVideosCount = ref(0)
 const gridSize = ref<'small' | 'medium' | 'large'>('medium')
-const selectedImage = ref<any>(null)
+const selectedVideo = ref<any>(null)
 const results = ref<TransactionConnection | null>(null)
 const loading = ref(false)
 const isSearching = ref(false)
@@ -279,7 +282,7 @@ const lastCursor = ref<string | undefined>()
 const selectedFormats = ref<string[]>(
   route.query.format 
     ? (route.query.format as string).split(',')
-    : ['image/*']
+    : ['video/*']
 )
 const totalCount = ref<string | null>(null) // Separate state for count
 
@@ -384,13 +387,13 @@ function onFormatChange(event: Event) {
   const target = event.target as HTMLInputElement
   const value = target.value
   
-  if (value === 'image/*') {
+  if (value === 'video/*') {
     // If "All" is checked, set only "All" and uncheck others
     if (target.checked) {
-      selectedFormats.value = ['image/*']
+      selectedFormats.value = ['video/*']
     } else {
       // If unchecking "All", do nothing (keep at least one selected)
-      if (selectedFormats.value.length === 1 && selectedFormats.value[0] === 'image/*') {
+      if (selectedFormats.value.length === 1 && selectedFormats.value[0] === 'video/*') {
         target.checked = true
         return
       }
@@ -398,14 +401,14 @@ function onFormatChange(event: Event) {
   } else {
     // If checking a specific format, remove "All" if present
     if (target.checked) {
-      selectedFormats.value = selectedFormats.value.filter(f => f !== 'image/*')
+      selectedFormats.value = selectedFormats.value.filter(f => f !== 'video/*')
       selectedFormats.value.push(value)
     } else {
       // Remove the format
       selectedFormats.value = selectedFormats.value.filter(f => f !== value)
       // If nothing is selected, default to "All"
       if (selectedFormats.value.length === 0) {
-        selectedFormats.value = ['image/*']
+        selectedFormats.value = ['video/*']
       }
     }
   }
@@ -429,7 +432,7 @@ watch(
   () => [route.query.q, route.query.format, route.query.page],
   ([newQuery, newFormat, newPage], oldValues) => {
     const query = (newQuery as string) || ''
-    const format = (newFormat as string) || 'image/*'
+    const format = (newFormat as string) || 'video/*'
     const page = parseInt(newPage as string) || 1
     
     if (!query.trim()) {
@@ -443,7 +446,7 @@ watch(
     
     // Check if query or format changed (requires new search)
     const oldQuery = oldValues ? (oldValues[0] as string) || '' : ''
-    const oldFormat = oldValues ? (oldValues[1] as string) || 'image/*' : 'image/*'
+    const oldFormat = oldValues ? (oldValues[1] as string) || 'video/*' : 'video/*'
     const queryChanged = query !== oldQuery
     const formatChanged = format !== oldFormat
     const isInitialLoad = !oldValues
@@ -525,16 +528,16 @@ watch(
   { immediate: true }
 )
 
-const imageTransactions = computed(() => {
+const videoTransactions = computed(() => {
   return paginatedResults.value
     .filter((transaction: any) => 
-      isImageTransaction(transaction) && !failedImages.value.has(transaction.id)
+      isVideoTransaction(transaction) && !failedVideos.value.has(transaction.id)
     )
 })
 
 const displayResultsCount = computed(() => {
   return allResults.value.filter((transaction: any) => 
-    isImageTransaction(transaction) && !failedImages.value.has(transaction.id)
+    isVideoTransaction(transaction) && !failedVideos.value.has(transaction.id)
   ).length
 })
 
@@ -542,7 +545,7 @@ const displayResultsCount = computed(() => {
 const displayCount = computed(() => {
   // If we have a total count from GraphQL and we're beyond cached results, use it
   if (totalCount.value && allResults.value.length >= 100) {
-    // Estimate based on the ratio of valid images in our cached results
+    // Estimate based on the ratio of valid videos in our cached results
     const cachedTotal = allResults.value.length
     const cachedValid = displayResultsCount.value
     const validRatio = cachedValid / cachedTotal
@@ -566,8 +569,8 @@ async function executeSearch() {
   isSearching.value = true
   error.value = null
   lastCursor.value = undefined
-  failedImages.value.clear()
-  failedImagesCount.value = 0
+  failedVideos.value.clear()
+  failedVideosCount.value = 0
   totalCount.value = null // Reset count
   
   try {
@@ -581,18 +584,15 @@ async function executeSearch() {
     const formatValues: string[] = []
     
     for (const format of selectedFormats.value) {
-      if (format === 'image/*') {
+      if (format === 'video/*') {
         // Wildcard - add separately with match parameter
         queryOptions.tags.push({
           name: 'Content-Type',
-          values: ['image/*'],
+          values: ['video/*'],
           match: 'WILDCARD'
         })
-      } else if (format === 'image/jpeg') {
-        // JPEG needs both variants
-        formatValues.push('image/jpg', 'image/jpeg')
       } else {
-        // PNG, GIF, SVG - exact match
+        // MP4, WebM, OGG, MOV - exact match
         formatValues.push(format)
       }
     }
@@ -615,7 +615,7 @@ async function executeSearch() {
       })
     }
     
-    console.log('ImageSearch executeSearch:', { query, selectedFormats: selectedFormats.value, queryOptions })
+    console.log('VideoSearch executeSearch:', { query, selectedFormats: selectedFormats.value, queryOptions })
     
     // Fetch results (priority)
     results.value = await getTransactions(queryOptions)
@@ -674,18 +674,15 @@ async function loadMore() {
     const formatValues: string[] = []
     
     for (const format of selectedFormats.value) {
-      if (format === 'image/*') {
+      if (format === 'video/*') {
         // Wildcard - add separately with match parameter
         queryOptions.tags.push({
           name: 'Content-Type',
-          values: ['image/*'],
+          values: ['video/*'],
           match: 'WILDCARD'
         })
-      } else if (format === 'image/jpeg') {
-        // JPEG needs both variants
-        formatValues.push('image/jpg', 'image/jpeg')
       } else {
-        // PNG, GIF, SVG - exact match
+        // MP4, WebM, OGG, MOV - exact match
         formatValues.push(format)
       }
     }
@@ -773,10 +770,10 @@ function goToPage(page: number) {
   }
 }
 
-// Image handling
-function isImageTransaction(transaction: any): boolean {
+// Video handling
+function isVideoTransaction(transaction: any): boolean {
   const contentType = getContentType(transaction)
-  return contentType.startsWith('image/')
+  return contentType.startsWith('video/')
 }
 
 function getContentType(transaction: any): string {
@@ -786,22 +783,23 @@ function getContentType(transaction: any): string {
   return contentTypeTag?.value || 'unknown'
 }
 
-function getImageUrl(transactionId: string): string {
+function getVideoUrl(transactionId: string): string {
   return `https://arweave.net/${transactionId}`
 }
 
-function handleImageError(event: Event) {
-  const img = event.target as HTMLImageElement
-  const transactionId = img.src.split('/').pop()
-  if (transactionId && !failedImages.value.has(transactionId)) {
-    failedImages.value.add(transactionId)
-    failedImagesCount.value++
+function handleVideoError(event: Event) {
+  const video = event.target as HTMLVideoElement
+  const transactionId = video.src.split('/').pop()
+  if (transactionId && !failedVideos.value.has(transactionId)) {
+    console.warn(`Video failed to load: ${transactionId}`)
+    failedVideos.value.add(transactionId)
+    failedVideosCount.value++
   }
 }
 
-function handleImageLoad(event: Event) {
-  const img = event.target as HTMLImageElement
-  console.log('Image loaded:', img.src)
+function handleVideoLoad(event: Event) {
+  const video = event.target as HTMLVideoElement
+  console.log('Video loaded:', video.src)
 }
 
 function formatFileSize(bytes: number): string {
@@ -813,15 +811,15 @@ function formatFileSize(bytes: number): string {
 }
 
 // Modal functions
-function openImageModal(transaction: any) {
-  selectedImage.value = transaction
+function openVideoModal(transaction: any) {
+  selectedVideo.value = transaction
   // Push a history state so back button closes modal
   window.history.pushState({ modal: true }, '', '')
 }
 
-function closeImageModal() {
+function closeVideoModal() {
   const currentState = window.history.state
-  selectedImage.value = null
+  selectedVideo.value = null
   
   // If the current history state is the modal state, go back to remove it
   // This happens when user clicks X or overlay
@@ -833,8 +831,8 @@ function closeImageModal() {
 // Handle browser back button
 function handlePopState() {
   // If modal is open when back button is pressed, close it
-  if (selectedImage.value) {
-    selectedImage.value = null
+  if (selectedVideo.value) {
+    selectedVideo.value = null
   }
 }
 
@@ -849,13 +847,13 @@ onUnmounted(() => {
 })
 
 function openInNewTab(transactionId: string) {
-  window.open(getImageUrl(transactionId), '_blank')
+  window.open(getVideoUrl(transactionId), '_blank')
 }
 
-function copyImageUrl(transactionId: string) {
-  navigator.clipboard.writeText(getImageUrl(transactionId))
+function copyVideoUrl(transactionId: string) {
+  navigator.clipboard.writeText(getVideoUrl(transactionId))
     .then(() => {
-      console.log('Image URL copied to clipboard')
+      console.log('Video URL copied to clipboard')
     })
     .catch(err => {
       console.error('Failed to copy URL:', err)

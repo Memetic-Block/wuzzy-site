@@ -13,6 +13,7 @@ import CrawlerView from './views/crawler.vue'
 import RegistryView from './views/registry.vue'
 import AboutView from './views/about.vue'
 import ImageSearchView from './views/image-search.vue'
+import VideoSearchView from './views/video-search.vue'
 
 const routes = [
   { path: '/', component: IndexView },
@@ -23,6 +24,7 @@ const routes = [
   { path: '/registry', component: RegistryView },
   { path: '/about', component: AboutView },
   { path: '/images', component: ImageSearchView },
+  { path: '/videos', component: VideoSearchView },
 ]
 
 export const createApp = ViteSSG(
