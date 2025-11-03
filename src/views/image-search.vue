@@ -37,8 +37,21 @@
     <strong>Error:</strong> {{ error }}
   </div>
 
+  <!-- Loading Skeleton -->
+  <div v-if="isSearching">
+    <div class="flex justify-between items-center mb-6">
+      <h3 class="m-0 mt-1 text-foreground flex items-center gap-2">
+        Found ... Images
+      </h3>
+      <Skeleton class="h-10 w-32 rounded-md" />
+    </div>
+    <div class="image-grid" :class="`grid-${gridSize}`">
+      <Skeleton v-for="n in 20" :key="n" class="skeleton-image" />
+    </div>
+  </div>
+
   <!-- Results Display -->
-  <div v-if="results && imageTransactions.length > 0">
+  <div v-if="results && imageTransactions.length > 0 && !isSearching">
     <div class="flex justify-between items-center">
       <h3 class="m-0 mt-1 text-foreground">Found {{ imageTransactions.length }}{{ results.pageInfo.hasNextPage ? '+' : '' }} Images</h3>
       <div class="flex gap-1 border border-border rounded-md p-1 bg-background">
@@ -200,6 +213,7 @@ import { ref, computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useGraphQL, type TransactionConnection } from '../composables/gql'
 import SearchInput from '../components/SearchInput.vue'
+import Skeleton from '@/components/ui/skeleton/Skeleton.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -212,6 +226,7 @@ const gridSize = ref<'small' | 'medium' | 'large'>('medium')
 const selectedImage = ref<any>(null)
 const results = ref<TransactionConnection | null>(null)
 const loading = ref(false)
+const isSearching = ref(false)
 const lastCursor = ref<string | undefined>()
 const selectedFormat = ref<string>((route.query.format as string) || 'image/*')
 
@@ -277,6 +292,7 @@ async function executeSearch() {
   }
   
   loading.value = true
+  isSearching.value = true
   error.value = null
   lastCursor.value = undefined
   failedImages.value.clear()
@@ -336,6 +352,7 @@ async function executeSearch() {
     results.value = null
   } finally {
     loading.value = false
+    isSearching.value = false
   }
 }
 
@@ -532,5 +549,10 @@ function copyImageUrl(transactionId: string) {
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+
+.skeleton-image {
+  aspect-ratio: 1;
+  border-radius: 0.5rem;
 }
 </style>
