@@ -1,242 +1,193 @@
 <template>
-  <div class="max-w-7xl mx-auto px-4 py-8">
-    <!-- Simple Search Input -->
-    <div class="mb-4">
-      <div class="flex gap-4">
-        <input 
-          type="text" 
-          v-model="searchQuery"
-          placeholder="Search for images..."
-          @keydown.enter="handleSearch"
-          class="flex-1 px-4 py-3 border border-gray-300 rounded-lg text-base focus:outline-none focus:border-blue-500 focus:ring-3 focus:ring-blue-500/10"
-        />
+  <!-- Search Input -->
+  <div class="mb-4">
+    <SearchInput
+      :initial-query="searchQuery"
+      initial-mode="Images"
+    />
+  </div>
+
+  <!-- Format Filter Radio Buttons -->
+  <div class="format-picker">
+    <label>
+      <input type="radio" name="imageFormat" value="image/*" :checked="selectedFormat === 'image/*'" @change="onFormatChange" />
+      <span>All</span>
+    </label>
+    <label>
+      <input type="radio" name="imageFormat" value="image/png" :checked="selectedFormat === 'image/png'" @change="onFormatChange" />
+      <span>PNG</span>
+    </label>
+    <label>
+      <input type="radio" name="imageFormat" value="image/jpeg" :checked="selectedFormat === 'image/jpeg'" @change="onFormatChange" />
+      <span>JPEG</span>
+    </label>
+    <label>
+      <input type="radio" name="imageFormat" value="image/gif" :checked="selectedFormat === 'image/gif'" @change="onFormatChange" />
+      <span>GIF</span>
+    </label>
+    <label>
+      <input type="radio" name="imageFormat" value="image/svg+xml" :checked="selectedFormat === 'image/svg+xml'" @change="onFormatChange" />
+      <span>SVG</span>
+    </label>
+  </div>
+
+
+  <!-- Error Display -->
+  <div v-if="error" class="bg-destructive/10 border border-destructive/30 rounded-lg p-4 mb-4 text-destructive">
+    <strong>Error:</strong> {{ error }}
+  </div>
+
+  <!-- Results Display -->
+  <div v-if="results && imageTransactions.length > 0">
+    <div class="flex justify-between items-center">
+      <h3 class="m-0 mt-1 text-foreground">Found {{ imageTransactions.length }}{{ results.pageInfo.hasNextPage ? '+' : '' }} Images</h3>
+      <div class="flex gap-1 border border-border rounded-md p-1 bg-background">
         <button 
-          @click="handleSearch"
-          :disabled="!searchQuery.trim()"
-          class="px-6 py-3 bg-blue-500 text-white rounded-lg font-semibold cursor-pointer transition-colors hover:bg-blue-600 disabled:bg-gray-400 disabled:cursor-not-allowed"
+          @click="gridSize = 'small'" 
+          :class="gridSize === 'small' ? 'bg-primary text-primary-foreground' : 'bg-transparent hover:bg-accent hover:text-accent-foreground'"
+          class="border-none px-1.5 py-1.5 cursor-pointer rounded transition-colors"
+          title="Small grid"
         >
-          Search
+          ▦
+        </button>
+        <button 
+          @click="gridSize = 'medium'" 
+          :class="gridSize === 'medium' ? 'bg-primary text-primary-foreground' : 'bg-transparent hover:bg-accent hover:text-accent-foreground'"
+          class="border-none px-1.5 py-1.5 cursor-pointer rounded transition-colors"
+          title="Medium grid"
+        >
+          ⬜
+        </button>
+        <button 
+          @click="gridSize = 'large'" 
+          :class="gridSize === 'large' ? 'bg-primary text-primary-foreground' : 'bg-transparent hover:bg-accent hover:text-accent-foreground'"
+          class="border-none px-1.5 py-1.5 cursor-pointer rounded transition-colors"
+          title="Large grid"
+        >
+          ⬛
         </button>
       </div>
     </div>
-
-    <!-- Format Filter Radio Buttons -->
-    <div class="flex items-center gap-3 my-4 px-4 py-3 bg-gray-50 border border-gray-200 rounded-md">
-      <span class="text-sm font-semibold text-gray-700">Format:</span>
-      <label class="flex items-center gap-1.5 cursor-pointer text-sm text-gray-600 px-2 py-1 rounded transition-colors hover:bg-gray-100">
-        <input 
-          type="radio" 
-          name="imageFormat" 
-          value="image/*" 
-          :checked="selectedFormat === 'image/*'"
-          @change="onFormatChange"
-          class="cursor-pointer w-3.5 h-3.5 m-0 accent-blue-500"
-        />
-        <span class="font-medium select-none">All</span>
-      </label>
-      <label class="flex items-center gap-1.5 cursor-pointer text-sm text-gray-600 px-2 py-1 rounded transition-colors hover:bg-gray-100">
-        <input 
-          type="radio" 
-          name="imageFormat" 
-          value="image/png" 
-          :checked="selectedFormat === 'image/png'"
-          @change="onFormatChange"
-          class="cursor-pointer w-3.5 h-3.5 m-0 accent-blue-500"
-        />
-        <span class="font-medium select-none">PNG</span>
-      </label>
-      <label class="flex items-center gap-1.5 cursor-pointer text-sm text-gray-600 px-2 py-1 rounded transition-colors hover:bg-gray-100">
-        <input 
-          type="radio" 
-          name="imageFormat" 
-          value="image/jpeg" 
-          :checked="selectedFormat === 'image/jpeg'"
-          @change="onFormatChange"
-          class="cursor-pointer w-3.5 h-3.5 m-0 accent-blue-500"
-        />
-        <span class="font-medium select-none">JPEG</span>
-      </label>
-      <label class="flex items-center gap-1.5 cursor-pointer text-sm text-gray-600 px-2 py-1 rounded transition-colors hover:bg-gray-100">
-        <input 
-          type="radio" 
-          name="imageFormat" 
-          value="image/gif" 
-          :checked="selectedFormat === 'image/gif'"
-          @change="onFormatChange"
-          class="cursor-pointer w-3.5 h-3.5 m-0 accent-blue-500"
-        />
-        <span class="font-medium select-none">GIF</span>
-      </label>
-      <label class="flex items-center gap-1.5 cursor-pointer text-sm text-gray-600 px-2 py-1 rounded transition-colors hover:bg-gray-100">
-        <input 
-          type="radio" 
-          name="imageFormat" 
-          value="image/svg+xml" 
-          :checked="selectedFormat === 'image/svg+xml'"
-          @change="onFormatChange"
-          class="cursor-pointer w-3.5 h-3.5 m-0 accent-blue-500"
-        />
-        <span class="font-medium select-none">SVG</span>
-      </label>
-    </div>
-
-    <!-- Error Display -->
-    <div v-if="error" class="bg-red-50 border border-red-200 rounded-lg p-4 mb-4 text-red-600">
-      <strong>Error:</strong> {{ error }}
-    </div>
-
-    <!-- Results Display -->
-    <div v-if="results && imageTransactions.length > 0" class="mt-8">
-      <div class="flex justify-between items-center mb-6">
-        <h3 class="m-0 text-gray-700">Found {{ imageTransactions.length }}{{ results.pageInfo.hasNextPage ? '+' : '' }} Images</h3>
-        <div class="flex gap-1 border border-gray-300 rounded-md p-1">
-          <button 
-            @click="gridSize = 'small'" 
-            :class="gridSize === 'small' ? 'bg-blue-500 text-white' : 'bg-transparent hover:bg-gray-100'"
-            class="border-none px-1.5 py-1.5 cursor-pointer rounded transition-colors"
-            title="Small grid"
-          >
-            ▦
-          </button>
-          <button 
-            @click="gridSize = 'medium'" 
-            :class="gridSize === 'medium' ? 'bg-blue-500 text-white' : 'bg-transparent hover:bg-gray-100'"
-            class="border-none px-1.5 py-1.5 cursor-pointer rounded transition-colors"
-            title="Medium grid"
-          >
-            ⬜
-          </button>
-          <button 
-            @click="gridSize = 'large'" 
-            :class="gridSize === 'large' ? 'bg-blue-500 text-white' : 'bg-transparent hover:bg-gray-100'"
-            class="border-none px-1.5 py-1.5 cursor-pointer rounded transition-colors"
-            title="Large grid"
-          >
-            ⬛
-          </button>
-        </div>
-      </div>
-      
-      <div class="image-grid" :class="`grid-${gridSize}`">
-        <div 
-          v-for="transaction in imageTransactions" 
-          :key="transaction.id"
-          class="cursor-pointer rounded-lg overflow-hidden bg-white shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md"
-          @click="openImageModal(transaction)"
-        >
-          <div class="image-wrapper group">
-            <img 
-              :src="getImageUrl(transaction.id)"
-              :alt="`Image ${transaction.id}`"
-              class="grid-image transition-transform group-hover:scale-105"
-              @error="handleImageError"
-              @load="handleImageLoad"
-              loading="lazy"
-            />
-              <div class="absolute inset-0 bg-gradient-to-b from-black/70 via-transparent to-black/70 opacity-0 transition-opacity flex flex-col justify-between p-2 group-hover:opacity-100">
-                <div class="flex flex-col gap-1">
-                  <span class="bg-black/80 text-white px-1.5 py-0.5 rounded text-xs w-fit">{{ getContentType(transaction) }}</span>
-                  <span class="bg-black/80 text-white px-1.5 py-0.5 rounded text-xs w-fit">{{ formatFileSize(parseInt(transaction.data.size)) }}</span>
-                </div>
-                <div class="flex gap-2 self-end">
-                  <button 
-                    @click.stop="openInNewTab(transaction.id)"
-                    class="bg-black/80 text-white border-none rounded px-1.5 py-1.5 cursor-pointer text-sm transition-colors hover:bg-black/90"
-                    title="Open in new tab"
-                  >
-                    🔗
-                  </button>
-                  <button 
-                    @click.stop="copyImageUrl(transaction.id)"
-                    class="bg-black/80 text-white border-none rounded px-1.5 py-1.5 cursor-pointer text-sm transition-colors hover:bg-black/90"
-                    title="Copy image URL"
-                  >
-                    📋
-                  </button>
-                </div>
+    
+    <div class="image-grid" :class="`grid-${gridSize}`">
+      <div 
+        v-for="transaction in imageTransactions" 
+        :key="transaction.id"
+        class="cursor-pointer rounded-lg overflow-hidden bg-white shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md"
+        @click="openImageModal(transaction)"
+      >
+        <div class="image-wrapper group">
+          <img 
+            :src="getImageUrl(transaction.id)"
+            :alt="`Image ${transaction.id}`"
+            class="grid-image transition-transform group-hover:scale-105"
+            @error="handleImageError"
+            @load="handleImageLoad"
+            loading="lazy"
+          />
+            <div class="absolute inset-0 bg-gradient-to-b from-black/70 via-transparent to-black/70 opacity-0 transition-opacity flex flex-col justify-between p-2 group-hover:opacity-100">
+              <div class="flex flex-col gap-1">
+                <span class="bg-black/80 text-white px-1.5 py-0.5 rounded text-xs w-fit">{{ getContentType(transaction) }}</span>
+                <span class="bg-black/80 text-white px-1.5 py-0.5 rounded text-xs w-fit">{{ formatFileSize(parseInt(transaction.data.size)) }}</span>
+              </div>
+              <div class="flex gap-2 self-end">
+                <button 
+                  @click.stop="openInNewTab(transaction.id)"
+                  class="bg-black/80 text-white border-none rounded px-1.5 py-1.5 cursor-pointer text-sm transition-colors hover:bg-black/90"
+                  title="Open in new tab"
+                >
+                  🔗
+                </button>
+                <button 
+                  @click.stop="copyImageUrl(transaction.id)"
+                  class="bg-black/80 text-white border-none rounded px-1.5 py-1.5 cursor-pointer text-sm transition-colors hover:bg-black/90"
+                  title="Copy image URL"
+                >
+                  📋
+                </button>
               </div>
             </div>
           </div>
         </div>
-
-      <!-- Pagination -->
-      <div v-if="results.pageInfo.hasNextPage" class="flex justify-center mt-8">
-        <button 
-          @click="loadMore"
-          :disabled="loading"
-          class="px-6 py-3 bg-blue-500 text-white border-none rounded-lg font-semibold cursor-pointer transition-colors hover:bg-blue-600 disabled:bg-gray-400 disabled:cursor-not-allowed"
-        >
-          {{ loading ? 'Loading More Images...' : 'Load More Images' }}
-        </button>
       </div>
-    </div>
 
-    <!-- No results message -->
-    <div v-if="results && results.edges.length === 0" class="text-center py-12 px-4 text-gray-500">
-      <p>No transactions found matching your search criteria.</p>
+    <!-- Pagination -->
+    <div v-if="results.pageInfo.hasNextPage" class="flex justify-center mt-8">
+      <button 
+        @click="loadMore"
+        :disabled="loading"
+        class="px-6 py-3 bg-primary text-primary-foreground border-none rounded-lg font-semibold cursor-pointer transition-colors hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        {{ loading ? 'Loading More Images...' : 'Load More Images' }}
+      </button>
     </div>
+  </div>
 
-    <!-- Image Modal -->
-    <div v-if="selectedImage" class="fixed inset-0 bg-black/90 flex items-center justify-center z-[1000] p-4" @click="closeImageModal">
-      <div class="bg-white rounded-lg max-w-[90vw] max-h-[90vh] overflow-auto" @click.stop>
-        <div class="flex justify-between items-center p-4 border-b border-gray-200">
-          <h3 class="m-0">Image Details</h3>
-          <button @click="closeImageModal" class="bg-transparent border-none text-2xl cursor-pointer p-1 text-gray-500">×</button>
-        </div>
-        <div class="p-4 flex flex-col md:flex-row gap-4">
-          <img 
-            :src="getImageUrl(selectedImage.id)" 
-            :alt="`Image ${selectedImage.id}`"
-            class="max-w-full max-h-[60vh] md:max-h-[70vh] object-contain rounded"
-          />
-          <div class="min-w-[300px]">
-            <div class="mb-3">
-              <strong class="block mb-1 text-gray-700">Transaction ID:</strong>
-              <code class="font-mono text-sm bg-gray-100 px-2 py-1 rounded break-all">{{ selectedImage.id }}</code>
-            </div>
-            <div class="mb-3">
-              <strong class="block mb-1 text-gray-700">Size:</strong>
-              {{ formatFileSize(parseInt(selectedImage.data.size)) }}
-            </div>
-            <div class="mb-3">
-              <strong class="block mb-1 text-gray-700">Type:</strong>
-              {{ getContentType(selectedImage) }}
-            </div>
-            <div class="mb-3">
-              <strong class="block mb-1 text-gray-700">Owner:</strong>
-              <code class="font-mono text-sm bg-gray-100 px-2 py-1 rounded break-all">{{ selectedImage.owner.address }}</code>
-            </div>
-            <div class="mb-3">
-              <strong class="block mb-1 text-gray-700">Block:</strong>
-              {{ selectedImage.block.height }}
-            </div>
-            <div v-if="selectedImage.tags.length > 0" class="mb-3">
-              <strong class="block mb-1 text-gray-700">Tags:</strong>
-              <div class="flex flex-wrap gap-1">
-                <span 
-                  v-for="tag in selectedImage.tags" 
-                  :key="tag.name"
-                  class="bg-gray-100 px-2 py-1 rounded text-sm"
-                >
-                  {{ tag.name }}: {{ tag.value }}
-                </span>
-              </div>
-            </div>
-            <div class="flex gap-2 mt-4">
-              <a 
-                :href="getImageUrl(selectedImage.id)" 
-                target="_blank" 
-                class="px-4 py-2 rounded-md font-medium cursor-pointer no-underline border-none bg-blue-500 text-white hover:opacity-90"
+  <!-- No results message -->
+  <div v-if="results && results.edges.length === 0" class="text-center py-12 px-4 text-muted-foreground">
+    <p>No transactions found matching your search criteria.</p>
+  </div>
+
+  <!-- Image Modal -->
+  <div v-if="selectedImage" class="fixed inset-0 bg-black/90 flex items-center justify-center z-[1000] p-4" @click="closeImageModal">
+    <div class="bg-background rounded-lg max-w-[90vw] max-h-[90vh] overflow-auto border border-border" @click.stop>
+      <div class="flex justify-between items-center p-4 border-b border-border">
+        <h3 class="m-0 text-foreground">Image Details</h3>
+        <button @click="closeImageModal" class="bg-transparent border-none text-2xl cursor-pointer p-1 text-muted-foreground hover:text-foreground">×</button>
+      </div>
+      <div class="p-4 flex flex-col md:flex-row gap-4">
+        <img 
+          :src="getImageUrl(selectedImage.id)" 
+          :alt="`Image ${selectedImage.id}`"
+          class="max-w-full max-h-[60vh] md:max-h-[70vh] object-contain rounded"
+        />
+        <div class="min-w-[300px]">
+          <div class="mb-3">
+            <strong class="block mb-1 text-foreground">Transaction ID:</strong>
+            <code class="font-mono text-sm bg-muted px-2 py-1 rounded break-all text-muted-foreground">{{ selectedImage.id }}</code>
+          </div>
+          <div class="mb-3">
+            <strong class="block mb-1 text-foreground">Size:</strong>
+            <span class="text-muted-foreground">{{ formatFileSize(parseInt(selectedImage.data.size)) }}</span>
+          </div>
+          <div class="mb-3">
+            <strong class="block mb-1 text-foreground">Type:</strong>
+            <span class="text-muted-foreground">{{ getContentType(selectedImage) }}</span>
+          </div>
+          <div class="mb-3">
+            <strong class="block mb-1 text-foreground">Owner:</strong>
+            <code class="font-mono text-sm bg-muted px-2 py-1 rounded break-all text-muted-foreground">{{ selectedImage.owner.address }}</code>
+          </div>
+          <div class="mb-3">
+            <strong class="block mb-1 text-foreground">Block:</strong>
+            <span class="text-muted-foreground">{{ selectedImage.block.height }}</span>
+          </div>
+          <div v-if="selectedImage.tags.length > 0" class="mb-3">
+            <strong class="block mb-1 text-foreground">Tags:</strong>
+            <div class="flex flex-wrap gap-1">
+              <span 
+                v-for="tag in selectedImage.tags" 
+                :key="tag.name"
+                class="bg-muted px-2 py-1 rounded text-sm text-muted-foreground"
               >
-                View Full Size
-              </a>
-              <button 
-                @click="copyImageUrl(selectedImage.id)" 
-                class="px-4 py-2 rounded-md font-medium cursor-pointer border-none bg-gray-100 text-gray-700 hover:opacity-90"
-              >
-                Copy URL
-              </button>
+                {{ tag.name }}: {{ tag.value }}
+              </span>
             </div>
+          </div>
+          <div class="flex gap-2 mt-4">
+            <a 
+              :href="getImageUrl(selectedImage.id)" 
+              target="_blank" 
+              class="px-4 py-2 rounded-md font-medium cursor-pointer no-underline border-none bg-primary text-primary-foreground hover:opacity-90"
+            >
+              View Full Size
+            </a>
+            <button 
+              @click="copyImageUrl(selectedImage.id)" 
+              class="px-4 py-2 rounded-md font-medium cursor-pointer border-none bg-muted text-foreground hover:bg-accent hover:text-accent-foreground"
+            >
+              Copy URL
+            </button>
           </div>
         </div>
       </div>
@@ -248,6 +199,7 @@
 import { ref, computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useGraphQL, type TransactionConnection } from '../composables/gql'
+import SearchInput from '../components/SearchInput.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -283,25 +235,6 @@ function onFormatChange(event: Event) {
   if (searchQuery.value.trim()) {
     executeSearch()
   }
-}
-
-// Handle search
-function handleSearch() {
-  if (!searchQuery.value.trim()) {
-    console.warn('Search query is empty')
-    return
-  }
-  
-  // Update URL query with both query and format
-  router.replace({ 
-    query: { 
-      q: searchQuery.value,
-      format: selectedFormat.value
-    } 
-  })
-  
-  // Execute search
-  executeSearch()
 }
 
 // Watch route query changes
@@ -537,6 +470,41 @@ function copyImageUrl(transactionId: string) {
 </script>
 
 <style scoped>
+.format-picker {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 0rem 0;
+  padding: 0.5rem 0.75rem;
+  background-color: var(--color-muted);
+  border: 1px solid var(--color-border);
+  border-radius: 0.375rem;
+  font-size: 0.75rem;
+}
+
+.format-picker label {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  cursor: pointer;
+}
+
+.format-picker label:hover {
+  color: var(--color-accent-foreground);
+}
+
+.format-picker input[type="radio"] {
+  width: 12px;
+  height: 12px;
+  margin: 0;
+  vertical-align: middle;
+}
+
+.format-picker span {
+  line-height: 1;
+  vertical-align: middle;
+}
+
 .image-grid {
   display: grid;
   gap: 1rem;

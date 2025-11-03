@@ -1,24 +1,45 @@
 <template>
   <div
-    class="bg-primary-foreground py-1 px-2 rounded-md flex gap-2 items-center border-input border focus-within:shadow-xs focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
+    class="bg-primary-foreground mt-3 mb-4 py-1 px-2 rounded-md flex gap-2 items-center border-input border focus-within:shadow-xs focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
   >
-    <!-- Mode switcher dropdown (conditionally shown) -->
-    <DropdownMenu v-if="showModeSwitch">
-      <DropdownMenuTrigger class="flex items-center gap-1 px-2 py-1 text-sm bg-muted hover:bg-muted/80 rounded border border-input transition-colors cursor-pointer">
-        {{ searchMode }}
+    <!-- Mode switcher dropdown (custom, no portal) -->
+    <div class="relative">
+      <button
+        @click="dropdownOpen = !dropdownOpen"
+        @blur="onDropdownBlur"
+        class="flex items-center gap-1 px-2 py-1 text-sm bg-muted hover:bg-muted/80 rounded border border-input transition-colors cursor-pointer whitespace-nowrap"
+      >
+        {{ searchModeDisplay }}
         <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
         </svg>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent class="min-w-[120px]">
-        <DropdownMenuItem @click="onSearchModeChange('ARNS')" class="cursor-pointer">
+      </button>
+      
+      <!-- Custom dropdown menu -->
+      <div
+        v-if="dropdownOpen"
+        class="absolute top-full left-0 mt-1 min-w-[120px] bg-popover text-popover-foreground rounded-md border border-border shadow-md z-50 py-1"
+      >
+        <div
+          @mousedown.prevent="onSearchModeChange('ARNS')"
+          class="px-2 py-1.5 text-sm cursor-pointer hover:bg-accent hover:text-accent-foreground rounded-sm mx-1 whitespace-nowrap"
+        >
           ARNS
-        </DropdownMenuItem>
-        <DropdownMenuItem @click="onSearchModeChange('Images')" class="cursor-pointer">
+        </div>
+        <div
+          @mousedown.prevent="onSearchModeChange('Images')"
+          class="px-2 py-1.5 text-sm cursor-pointer hover:bg-accent hover:text-accent-foreground rounded-sm mx-1 whitespace-nowrap"
+        >
           Images
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+        </div>
+        <div
+          @mousedown.prevent="onSearchModeChange('Hyperbeam')"
+          class="px-2 py-1.5 text-sm cursor-pointer hover:bg-accent hover:text-accent-foreground rounded-sm mx-1 whitespace-nowrap"
+        >
+          HyperBEAM (Demo)
+        </div>
+      </div>
+    </div>
     
     <Input
       class="shadow-none focus-visible:ring-[0px] ml-2 border-0 p-0 dark:bg-transparent autofill:bg-transparent"
@@ -50,56 +71,84 @@ import { useRouter } from 'vue-router'
 import config from '../app-config'
 import Input from './ui/input/Input.vue'
 import Button from './ui/button/Button.vue'
-import { 
-  DropdownMenu, 
-  DropdownMenuContent, 
-  DropdownMenuItem, 
-  DropdownMenuTrigger 
-} from './ui/dropdown-menu'
 
 interface Props {
   initialQuery?: string
-  initialMode?: 'ARNS' | 'Transactions' | 'Images' | 'Audio' | 'Video'
-  searchType?: 'on-chain' | 'off-chain'
-  standalone?: boolean // If true, emit search event instead of navigating
-  showModeSwitch?: boolean // If false, hide the dropdown (useful for dedicated search pages)
+  initialMode?: 'ARNS' | 'Hyperbeam' | 'Transactions' | 'Images' | 'Audio' | 'Video'
   buttonText?: string // Custom button text (default is "->")
 }
 
 const props = withDefaults(defineProps<Props>(), {
   initialQuery: '',
   initialMode: 'ARNS',
-  searchType: 'off-chain',
-  standalone: false,
-  showModeSwitch: true,
   buttonText: '->'
 })
 
 const emit = defineEmits<{
-  search: [mode: 'ARNS' | 'Transactions' | 'Images' | 'Audio' | 'Video', query: string, parsedOptions?: any]
-  modeChanged: [mode: 'ARNS' | 'Transactions' | 'Images' | 'Audio' | 'Video']
+  modeChanged: [mode: 'ARNS' | 'Hyperbeam' | 'Transactions' | 'Images' | 'Audio' | 'Video']
 }>()
 
 const router = useRouter()
 const searchQuery = ref(props.initialQuery)
-const searchMode = ref<'ARNS' | 'Transactions' | 'Images' | 'Audio' | 'Video'>(props.initialMode)
+const searchMode = ref<'ARNS' | 'Hyperbeam' | 'Transactions' | 'Images' | 'Audio' | 'Video'>(props.initialMode)
+const dropdownOpen = ref(false)
+
+const searchModeDisplay = computed(() => {
+  if (searchMode.value === 'Hyperbeam') {
+    return 'HyperBEAM (Demo)'
+  }
+  return searchMode.value
+})
 
 const placeholderText = computed(() => {
-  if (searchMode.value === 'ARNS') {
-    return 'Search the Permaweb...'
-  }
-  
   switch (searchMode.value) {
     case 'Images':
-      return 'Search for images...'
+      return 'Search the Permaweb for images...'
     default:
-      return 'Enter search query...'
+      return 'Search the Permaweb...'
   }
 })
 
-const onSearchModeChange = (mode: 'ARNS' | 'Transactions' | 'Images' | 'Audio' | 'Video') => {
+const onDropdownBlur = () => {
+  // Close dropdown when focus leaves the button
+  setTimeout(() => {
+    dropdownOpen.value = false
+  }, 150) // Small delay to allow click events to fire
+}
+
+const onSearchModeChange = (mode: 'ARNS' | 'Hyperbeam' | 'Transactions' | 'Images' | 'Audio' | 'Video') => {
   searchMode.value = mode
+  dropdownOpen.value = false // Close dropdown after selection
   emit('modeChanged', mode)
+  
+  // If we have a query, navigate to the new search type with the current query
+  if (searchQuery.value.trim()) {
+    const query = searchQuery.value.trim()
+    
+    if (mode === 'ARNS') {
+      router.push({
+        path: '/search',
+        query: { q: query }
+      })
+    } else if (mode === 'Hyperbeam') {
+      router.push({
+        path: `/nest/${config.primaryNestId}/search`,
+        query: { q: query }
+      })
+    } else if (mode === 'Images') {
+      // Preserve format when switching from images back to Images
+      const currentQuery = router.currentRoute.value.query
+      const isOnImages = router.currentRoute.value.path === '/images'
+      
+      router.push({
+        path: '/images',
+        query: { 
+          q: query,
+          ...(isOnImages && currentQuery.format ? { format: currentQuery.format } : {})
+        }
+      })
+    }
+  }
 }
 
 const handleInput = () => {
@@ -126,24 +175,30 @@ const onSearchClicked = () => {
     return
   }
   
-  // Emit the search event
-  emit('search', searchMode.value, trimmedQuery)
-  
-  // If not standalone, handle navigation
-  if (!props.standalone) {
-    if (searchMode.value === 'ARNS') {
-      router.push({
-        path: props.searchType === 'on-chain'
-          ? `/nest/${config.primaryNestId}/search`
-          : '/search',
-        query: { q: trimmedQuery }
-      })
-    } else if (searchMode.value === 'Images') {
-      router.push({
-        path: '/image-search',
-        query: { q: trimmedQuery }
-      })
-    }
+  // Always navigate to the appropriate search page
+  if (searchMode.value === 'ARNS') {
+    router.push({
+      path: '/search',
+      query: { q: trimmedQuery }
+    })
+  } else if (searchMode.value === 'Hyperbeam') {
+    router.push({
+      path: `/nest/${config.primaryNestId}/search`,
+      query: { q: trimmedQuery }
+    })
+  } else if (searchMode.value === 'Images') {
+    // Preserve existing query params (like format) when on the same page
+    const currentQuery = router.currentRoute.value.query
+    const isOnImages = router.currentRoute.value.path === '/images'
+    
+    router.push({
+      path: '/images',
+      query: { 
+        q: trimmedQuery,
+        // Preserve format if we're already on images page
+        ...(isOnImages && currentQuery.format ? { format: currentQuery.format } : {})
+      }
+    })
   }
 }
 
@@ -152,7 +207,7 @@ defineExpose({
   setQuery: (query: string) => {
     searchQuery.value = query
   },
-  setMode: (mode: 'ARNS' | 'Transactions' | 'Images' | 'Audio' | 'Video') => {
+  setMode: (mode: 'ARNS' | 'Hyperbeam' | 'Transactions' | 'Images' | 'Audio' | 'Video') => {
     searchMode.value = mode
   }
 })

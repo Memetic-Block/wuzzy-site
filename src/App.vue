@@ -102,7 +102,7 @@
     <!-- Global Audio Player -->
     <GlobalAudioPlayer ref="globalAudioPlayer" />
     
-    <footer class="mt-auto pb-2">
+    <footer class="mt-auto pb-2 pt-12">
       <img
         v-if="mode === 'dark'"
         class="footer-wuzzy-logo"
