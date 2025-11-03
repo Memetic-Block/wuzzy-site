@@ -7,30 +7,44 @@
     />
   </div>
 
-  <!-- Format Filter Radio Buttons -->
+  <!-- Format Filter Checkboxes -->
   <div class="format-picker">
     <label>
-      <input type="radio" name="imageFormat" value="image/*" :checked="selectedFormat === 'image/*'" @change="onFormatChange" />
+      <input type="checkbox" value="image/*" :checked="selectedFormats.includes('image/*')" @change="onFormatChange" />
       <span>All</span>
     </label>
     <label>
-      <input type="radio" name="imageFormat" value="image/png" :checked="selectedFormat === 'image/png'" @change="onFormatChange" />
+      <input type="checkbox" value="image/png" :checked="selectedFormats.includes('image/png')" @change="onFormatChange" />
       <span>PNG</span>
     </label>
     <label>
-      <input type="radio" name="imageFormat" value="image/jpeg" :checked="selectedFormat === 'image/jpeg'" @change="onFormatChange" />
+      <input type="checkbox" value="image/jpeg" :checked="selectedFormats.includes('image/jpeg')" @change="onFormatChange" />
       <span>JPEG</span>
     </label>
     <label>
-      <input type="radio" name="imageFormat" value="image/gif" :checked="selectedFormat === 'image/gif'" @change="onFormatChange" />
+      <input type="checkbox" value="image/gif" :checked="selectedFormats.includes('image/gif')" @change="onFormatChange" />
       <span>GIF</span>
     </label>
     <label>
-      <input type="radio" name="imageFormat" value="image/svg+xml" :checked="selectedFormat === 'image/svg+xml'" @change="onFormatChange" />
+      <input type="checkbox" value="image/svg+xml" :checked="selectedFormats.includes('image/svg+xml')" @change="onFormatChange" />
       <span>SVG</span>
     </label>
   </div>
 
+
+  <!-- Info Display -->
+  <div v-if="info" class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mb-4 text-blue-800 dark:text-blue-200 flex justify-between items-start gap-4">
+    <div>
+      <strong>Info:</strong> {{ info }}
+    </div>
+    <button 
+      @click="info = null"
+      class="bg-transparent border-none text-blue-800 dark:text-blue-200 cursor-pointer text-xl leading-none hover:opacity-70 flex-shrink-0"
+      aria-label="Close"
+    >
+      ×
+    </button>
+  </div>
 
   <!-- Error Display -->
   <div v-if="error" class="bg-destructive/10 border border-destructive/30 rounded-lg p-4 mb-4 text-destructive">
@@ -241,7 +255,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useGraphQL, type TransactionConnection } from '../composables/gql'
 import SearchInput from '../components/SearchInput.vue'
@@ -253,6 +267,7 @@ const router = useRouter()
 // Component state
 const searchQuery = ref<string>((route.query.q as string) || '')
 const error = ref<string | null>(null)
+const info = ref<string | null>(null)
 const failedImages = ref(new Set<string>())
 const gridSize = ref<'small' | 'medium' | 'large'>('medium')
 const selectedImage = ref<any>(null)
@@ -260,7 +275,11 @@ const results = ref<TransactionConnection | null>(null)
 const loading = ref(false)
 const isSearching = ref(false)
 const lastCursor = ref<string | undefined>()
-const selectedFormat = ref<string>((route.query.format as string) || 'image/*')
+const selectedFormats = ref<string[]>(
+  route.query.format 
+    ? (route.query.format as string).split(',')
+    : ['image/*']
+)
 const totalCount = ref<string | null>(null) // Separate state for count
 
 // Pagination state
@@ -280,17 +299,23 @@ const totalPages = computed(() => {
   if (totalCount.value) {
     return Math.ceil(parseInt(totalCount.value) / resultsPerPage)
   }
-  // Otherwise use cached results length, but add 1 if there's more data available
+  // Otherwise use cached results length
+  // Only add +1 if we have more data AND we've filled the current cached pages
   const cachedPages = Math.ceil(allResults.value.length / resultsPerPage)
-  if (results.value?.pageInfo.hasNextPage) {
+  if (results.value?.pageInfo.hasNextPage && allResults.value.length >= cachedPages * resultsPerPage) {
     return cachedPages + 1 // Show one more page to indicate there's more
   }
   return cachedPages
 })
 
 const canGoNext = computed(() => {
+  // If we have total count, use that as the definitive answer
+  if (totalCount.value) {
+    const maxPages = Math.ceil(parseInt(totalCount.value) / resultsPerPage)
+    return currentPage.value < maxPages
+  }
+  // Otherwise check cached data
   const cachedPages = Math.ceil(allResults.value.length / resultsPerPage)
-  // Can go next if we have cached data OR if API says there's more
   return currentPage.value < cachedPages || results.value?.pageInfo.hasNextPage
 })
 
@@ -321,16 +346,74 @@ const pageNumbers = computed(() => {
 // GraphQL composable
 const { getTransactions, getTransactionCount } = useGraphQL()
 
+// Parse search query to handle quoted phrases
+function parseSearchTerms(query: string): string[] {
+  const terms: string[] = []
+  let current = ''
+  let inQuotes = false
+  
+  for (let i = 0; i < query.length; i++) {
+    const char = query[i]
+    
+    if (char === '"') {
+      inQuotes = !inQuotes
+      // Don't include the quote characters in the term
+    } else if (char === ' ' && !inQuotes) {
+      // Space outside quotes - end current term
+      if (current.trim()) {
+        terms.push(current.trim())
+        current = ''
+      }
+    } else {
+      // Regular character - add to current term
+      current += char
+    }
+  }
+  
+  // Add final term if exists
+  if (current.trim()) {
+    terms.push(current.trim())
+  }
+  
+  return terms
+}
+
 // Handle format change
 function onFormatChange(event: Event) {
   const target = event.target as HTMLInputElement
-  selectedFormat.value = target.value
+  const value = target.value
+  
+  if (value === 'image/*') {
+    // If "All" is checked, set only "All" and uncheck others
+    if (target.checked) {
+      selectedFormats.value = ['image/*']
+    } else {
+      // If unchecking "All", do nothing (keep at least one selected)
+      if (selectedFormats.value.length === 1 && selectedFormats.value[0] === 'image/*') {
+        target.checked = true
+        return
+      }
+    }
+  } else {
+    // If checking a specific format, remove "All" if present
+    if (target.checked) {
+      selectedFormats.value = selectedFormats.value.filter(f => f !== 'image/*')
+      selectedFormats.value.push(value)
+    } else {
+      // Remove the format
+      selectedFormats.value = selectedFormats.value.filter(f => f !== value)
+      // If nothing is selected, default to "All"
+      if (selectedFormats.value.length === 0) {
+        selectedFormats.value = ['image/*']
+      }
+    }
+  }
   
   // Update URL with format parameter
   router.replace({ 
     query: { 
       q: searchQuery.value,
-      format: target.value 
+      format: selectedFormats.value.join(',')
     } 
   })
   
@@ -365,14 +448,27 @@ watch(
     const isInitialLoad = !oldValues
     
     searchQuery.value = query
-    selectedFormat.value = format
+    selectedFormats.value = format.split(',')
     
     if (queryChanged || formatChanged) {
       // Execute new search
       if (isInitialLoad) {
-        // On initial load, honor the page from URL
-        currentPage.value = page
-        executeSearch()
+        // On initial load, if page > 5, reset to page 1 and show info message
+        if (page > 5) {
+          info.value = `Page ${page} is not available on initial load. Starting from page 1 - use navigation controls to reach page ${page}.`
+          currentPage.value = 1
+          router.replace({
+            query: {
+              q: query,
+              format: format,
+              page: '1'
+            }
+          })
+          executeSearch()
+        } else {
+          currentPage.value = page
+          executeSearch()
+        }
       } else {
         // On query/format change, reset to page 1
         currentPage.value = 1
@@ -390,8 +486,17 @@ watch(
       }
     } else {
       // Only page changed
-      const neededResults = page * resultsPerPage
-      const hasEnoughCached = allResults.value.length >= neededResults
+      const startIndex = (page - 1) * resultsPerPage
+      const hasEnoughCached = allResults.value.length > startIndex
+      
+      // If we know the total count, check if page is valid
+      if (totalCount.value) {
+        const maxPages = Math.ceil(parseInt(totalCount.value) / resultsPerPage)
+        if (page > maxPages) {
+          console.warn(`Page ${page} exceeds total pages ${maxPages}`)
+          return
+        }
+      }
       
       if (hasEnoughCached || page === 1) {
         // Just update currentPage and scroll (data already cached or going to page 1)
@@ -402,7 +507,7 @@ watch(
         console.log(`Loading more data for page ${page}...`)
         loadMore().then(() => {
           // Check again if we have enough data now
-          const hasEnoughNow = allResults.value.length >= neededResults
+          const hasEnoughNow = allResults.value.length > startIndex
           if (hasEnoughNow) {
             currentPage.value = page
             window.scrollTo({ top: 0, behavior: 'smooth' })
@@ -447,35 +552,37 @@ async function executeSearch() {
       first: 100 // Request max results per page
     }
     
-    // Add Content-Type filter based on selected format
-    if (selectedFormat.value === 'image/*') {
+    // Add Content-Type filter based on selected formats
+    const formatValues: string[] = []
+    
+    for (const format of selectedFormats.value) {
+      if (format === 'image/*') {
+        // Wildcard - add separately with match parameter
+        queryOptions.tags.push({
+          name: 'Content-Type',
+          values: ['image/*'],
+          match: 'WILDCARD'
+        })
+      } else if (format === 'image/jpeg') {
+        // JPEG needs both variants
+        formatValues.push('image/jpg', 'image/jpeg')
+      } else {
+        // PNG, GIF, SVG - exact match
+        formatValues.push(format)
+      }
+    }
+    
+    // Add non-wildcard formats as a single tag
+    if (formatValues.length > 0) {
       queryOptions.tags.push({
         name: 'Content-Type',
-        values: ['image/*'],
-        match: 'WILDCARD'
-      })
-    } else if (selectedFormat.value === 'image/jpeg') {
-      // JPEG needs both variants
-      queryOptions.tags.push({
-        name: 'Content-Type',
-        values: ['image/jpg', 'image/jpeg']
-      })
-    } else if (selectedFormat.value === 'image/svg+xml') {
-      // SVG - exact match
-      queryOptions.tags.push({
-        name: 'Content-Type',
-        values: ['image/svg+xml']
-      })
-    } else {
-      // PNG or GIF - exact match
-      queryOptions.tags.push({
-        name: 'Content-Type',
-        values: [selectedFormat.value]
+        values: formatValues
       })
     }
     
     // Add user query as a single value-only tag with fuzzy match
-    const words = query.split(/\s+/).filter(word => word.trim())
+    // Parse query to handle quoted phrases
+    const words = parseSearchTerms(query)
     if (words.length > 0) {
       queryOptions.tags.push({
         values: words,
@@ -483,7 +590,7 @@ async function executeSearch() {
       })
     }
     
-    console.log('ImageSearch executeSearch:', { query, selectedFormat: selectedFormat.value, queryOptions })
+    console.log('ImageSearch executeSearch:', { query, selectedFormats: selectedFormats.value, queryOptions })
     
     // Fetch results (priority)
     results.value = await getTransactions(queryOptions)
@@ -538,35 +645,37 @@ async function loadMore() {
       after: lastCursor.value
     }
     
-    // Add Content-Type filter based on selected format
-    if (selectedFormat.value === 'image/*') {
+    // Add Content-Type filter based on selected formats
+    const formatValues: string[] = []
+    
+    for (const format of selectedFormats.value) {
+      if (format === 'image/*') {
+        // Wildcard - add separately with match parameter
+        queryOptions.tags.push({
+          name: 'Content-Type',
+          values: ['image/*'],
+          match: 'WILDCARD'
+        })
+      } else if (format === 'image/jpeg') {
+        // JPEG needs both variants
+        formatValues.push('image/jpg', 'image/jpeg')
+      } else {
+        // PNG, GIF, SVG - exact match
+        formatValues.push(format)
+      }
+    }
+    
+    // Add non-wildcard formats as a single tag
+    if (formatValues.length > 0) {
       queryOptions.tags.push({
         name: 'Content-Type',
-        values: ['image/*'],
-        match: 'WILDCARD'
-      })
-    } else if (selectedFormat.value === 'image/jpeg') {
-      // JPEG needs both variants
-      queryOptions.tags.push({
-        name: 'Content-Type',
-        values: ['image/jpg', 'image/jpeg']
-      })
-    } else if (selectedFormat.value === 'image/svg+xml') {
-      // SVG - exact match
-      queryOptions.tags.push({
-        name: 'Content-Type',
-        values: ['image/svg+xml']
-      })
-    } else {
-      // PNG or GIF - exact match
-      queryOptions.tags.push({
-        name: 'Content-Type',
-        values: [selectedFormat.value]
+        values: formatValues
       })
     }
     
     // Add user query as a single value-only tag with fuzzy match
-    const words = query.split(/\s+/).filter(word => word.trim())
+    // Parse query to handle quoted phrases
+    const words = parseSearchTerms(query)
     if (words.length > 0) {
       queryOptions.tags.push({
         values: words,
@@ -609,7 +718,7 @@ async function goToNextPage() {
   router.push({
     query: {
       q: searchQuery.value,
-      format: selectedFormat.value,
+      format: selectedFormats.value.join(','),
       page: nextPage.toString()
     }
   })
@@ -620,7 +729,7 @@ function goToPrevPage() {
     router.push({
       query: {
         q: searchQuery.value,
-        format: selectedFormat.value,
+        format: selectedFormats.value.join(','),
         page: (currentPage.value - 1).toString()
       }
     })
@@ -632,7 +741,7 @@ function goToPage(page: number) {
     router.push({
       query: {
         q: searchQuery.value,
-        format: selectedFormat.value,
+        format: selectedFormats.value.join(','),
         page: page.toString()
       }
     })
@@ -680,11 +789,38 @@ function formatFileSize(bytes: number): string {
 // Modal functions
 function openImageModal(transaction: any) {
   selectedImage.value = transaction
+  // Push a history state so back button closes modal
+  window.history.pushState({ modal: true }, '', '')
 }
 
 function closeImageModal() {
+  const currentState = window.history.state
   selectedImage.value = null
+  
+  // If the current history state is the modal state, go back to remove it
+  // This happens when user clicks X or overlay
+  if (currentState && currentState.modal) {
+    window.history.back()
+  }
 }
+
+// Handle browser back button
+function handlePopState() {
+  // If modal is open when back button is pressed, close it
+  if (selectedImage.value) {
+    selectedImage.value = null
+  }
+}
+
+// Set up popstate listener
+onMounted(() => {
+  window.addEventListener('popstate', handlePopState)
+})
+
+// Clean up listener
+onUnmounted(() => {
+  window.removeEventListener('popstate', handlePopState)
+})
 
 function openInNewTab(transactionId: string) {
   window.open(getImageUrl(transactionId), '_blank')
