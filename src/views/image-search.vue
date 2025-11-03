@@ -32,6 +32,20 @@
   </div>
 
 
+  <!-- Info Display -->
+  <div v-if="info" class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mb-4 text-blue-800 dark:text-blue-200 flex justify-between items-start gap-4">
+    <div>
+      <strong>Info:</strong> {{ info }}
+    </div>
+    <button 
+      @click="info = null"
+      class="bg-transparent border-none text-blue-800 dark:text-blue-200 cursor-pointer text-xl leading-none hover:opacity-70 flex-shrink-0"
+      aria-label="Close"
+    >
+      ×
+    </button>
+  </div>
+
   <!-- Error Display -->
   <div v-if="error" class="bg-destructive/10 border border-destructive/30 rounded-lg p-4 mb-4 text-destructive">
     <strong>Error:</strong> {{ error }}
@@ -253,6 +267,7 @@ const router = useRouter()
 // Component state
 const searchQuery = ref<string>((route.query.q as string) || '')
 const error = ref<string | null>(null)
+const info = ref<string | null>(null)
 const failedImages = ref(new Set<string>())
 const gridSize = ref<'small' | 'medium' | 'large'>('medium')
 const selectedImage = ref<any>(null)
@@ -280,17 +295,23 @@ const totalPages = computed(() => {
   if (totalCount.value) {
     return Math.ceil(parseInt(totalCount.value) / resultsPerPage)
   }
-  // Otherwise use cached results length, but add 1 if there's more data available
+  // Otherwise use cached results length
+  // Only add +1 if we have more data AND we've filled the current cached pages
   const cachedPages = Math.ceil(allResults.value.length / resultsPerPage)
-  if (results.value?.pageInfo.hasNextPage) {
+  if (results.value?.pageInfo.hasNextPage && allResults.value.length >= cachedPages * resultsPerPage) {
     return cachedPages + 1 // Show one more page to indicate there's more
   }
   return cachedPages
 })
 
 const canGoNext = computed(() => {
+  // If we have total count, use that as the definitive answer
+  if (totalCount.value) {
+    const maxPages = Math.ceil(parseInt(totalCount.value) / resultsPerPage)
+    return currentPage.value < maxPages
+  }
+  // Otherwise check cached data
   const cachedPages = Math.ceil(allResults.value.length / resultsPerPage)
-  // Can go next if we have cached data OR if API says there's more
   return currentPage.value < cachedPages || results.value?.pageInfo.hasNextPage
 })
 
@@ -370,9 +391,22 @@ watch(
     if (queryChanged || formatChanged) {
       // Execute new search
       if (isInitialLoad) {
-        // On initial load, honor the page from URL
-        currentPage.value = page
-        executeSearch()
+        // On initial load, if page > 5, reset to page 1 and show info message
+        if (page > 5) {
+          info.value = `Page ${page} is not available on initial load. Starting from page 1 - use navigation controls to reach page ${page}.`
+          currentPage.value = 1
+          router.replace({
+            query: {
+              q: query,
+              format: format,
+              page: '1'
+            }
+          })
+          executeSearch()
+        } else {
+          currentPage.value = page
+          executeSearch()
+        }
       } else {
         // On query/format change, reset to page 1
         currentPage.value = 1
@@ -390,8 +424,17 @@ watch(
       }
     } else {
       // Only page changed
-      const neededResults = page * resultsPerPage
-      const hasEnoughCached = allResults.value.length >= neededResults
+      const startIndex = (page - 1) * resultsPerPage
+      const hasEnoughCached = allResults.value.length > startIndex
+      
+      // If we know the total count, check if page is valid
+      if (totalCount.value) {
+        const maxPages = Math.ceil(parseInt(totalCount.value) / resultsPerPage)
+        if (page > maxPages) {
+          console.warn(`Page ${page} exceeds total pages ${maxPages}`)
+          return
+        }
+      }
       
       if (hasEnoughCached || page === 1) {
         // Just update currentPage and scroll (data already cached or going to page 1)
@@ -402,7 +445,7 @@ watch(
         console.log(`Loading more data for page ${page}...`)
         loadMore().then(() => {
           // Check again if we have enough data now
-          const hasEnoughNow = allResults.value.length >= neededResults
+          const hasEnoughNow = allResults.value.length > startIndex
           if (hasEnoughNow) {
             currentPage.value = page
             window.scrollTo({ top: 0, behavior: 'smooth' })
