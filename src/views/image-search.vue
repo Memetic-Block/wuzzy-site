@@ -53,7 +53,11 @@
   <!-- Results Display -->
   <div v-if="results && imageTransactions.length > 0 && !isSearching">
     <div class="flex justify-between items-center">
-      <h3 class="m-0 mt-1 text-foreground">Found {{ imageTransactions.length }}{{ results.pageInfo.hasNextPage ? '+' : '' }} Images</h3>
+      <h3 class="m-0 mt-1 text-foreground">
+        <span v-if="totalCount">Found {{ parseInt(totalCount).toLocaleString() }} Images</span>
+        <span v-else>Found {{ allResults.length }}+ Images</span>
+        (Page {{ currentPage }} of {{ totalPages }}{{ results.pageInfo.hasNextPage ? '+' : '' }})
+      </h3>
       <div class="flex gap-1 border border-border rounded-md p-1 bg-background">
         <button 
           @click="gridSize = 'small'" 
@@ -124,14 +128,42 @@
         </div>
       </div>
 
-    <!-- Pagination -->
-    <div v-if="results.pageInfo.hasNextPage" class="flex justify-center mt-8">
+    <!-- Pagination Controls -->
+    <div v-if="totalPages > 0" class="flex justify-center items-center gap-2 mt-8 flex-wrap">
       <button 
-        @click="loadMore"
-        :disabled="loading"
-        class="px-6 py-3 bg-primary text-primary-foreground border-none rounded-lg font-semibold cursor-pointer transition-colors hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
+        @click="goToPrevPage"
+        :disabled="!canGoPrev"
+        class="px-4 py-2 bg-primary text-primary-foreground border-none rounded-lg font-medium cursor-pointer transition-colors hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
       >
-        {{ loading ? 'Loading More Images...' : 'Load More Images' }}
+        ← Previous
+      </button>
+      
+      <!-- Page Numbers -->
+      <div class="flex gap-1">
+        <button
+          v-for="pageNum in pageNumbers"
+          :key="pageNum"
+          @click="goToPage(pageNum)"
+          :class="[
+            'px-3 py-2 border-none rounded-lg font-medium cursor-pointer transition-colors',
+            pageNum === currentPage
+              ? 'bg-primary text-primary-foreground'
+              : 'bg-muted text-foreground hover:bg-accent hover:text-accent-foreground'
+          ]"
+        >
+          {{ pageNum }}
+        </button>
+        <span v-if="results?.pageInfo.hasNextPage && pageNumbers[pageNumbers.length - 1] === totalPages" class="px-3 py-2 text-muted-foreground">
+          ...
+        </span>
+      </div>
+      
+      <button 
+        @click="goToNextPage"
+        :disabled="!canGoNext || loading"
+        class="px-4 py-2 bg-primary text-primary-foreground border-none rounded-lg font-medium cursor-pointer transition-colors hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        {{ loading ? 'Loading...' : 'Next →' }}
       </button>
     </div>
   </div>
@@ -229,9 +261,65 @@ const loading = ref(false)
 const isSearching = ref(false)
 const lastCursor = ref<string | undefined>()
 const selectedFormat = ref<string>((route.query.format as string) || 'image/*')
+const totalCount = ref<string | null>(null) // Separate state for count
+
+// Pagination state
+const allResults = ref<any[]>([]) // All fetched transactions
+const currentPage = ref(parseInt(route.query.page as string) || 1)
+const resultsPerPage = 20
+
+// Computed pagination properties
+const paginatedResults = computed(() => {
+  const start = (currentPage.value - 1) * resultsPerPage
+  const end = start + resultsPerPage
+  return allResults.value.slice(start, end)
+})
+
+const totalPages = computed(() => {
+  // If we have a count from the async query, use that for total pages calculation
+  if (totalCount.value) {
+    return Math.ceil(parseInt(totalCount.value) / resultsPerPage)
+  }
+  // Otherwise use cached results length, but add 1 if there's more data available
+  const cachedPages = Math.ceil(allResults.value.length / resultsPerPage)
+  if (results.value?.pageInfo.hasNextPage) {
+    return cachedPages + 1 // Show one more page to indicate there's more
+  }
+  return cachedPages
+})
+
+const canGoNext = computed(() => {
+  const cachedPages = Math.ceil(allResults.value.length / resultsPerPage)
+  // Can go next if we have cached data OR if API says there's more
+  return currentPage.value < cachedPages || results.value?.pageInfo.hasNextPage
+})
+
+const canGoPrev = computed(() => currentPage.value > 1)
+
+// Generate page numbers to display (show current +/- 2 pages)
+const pageNumbers = computed(() => {
+  const pages: number[] = []
+  const maxPagesToShow = 5
+  const halfRange = Math.floor(maxPagesToShow / 2)
+  
+  // Show page numbers up to totalPages (which includes the +1 if hasNextPage)
+  let startPage = Math.max(1, currentPage.value - halfRange)
+  let endPage = Math.min(totalPages.value, currentPage.value + halfRange)
+  
+  // Adjust if we're near the beginning
+  if (currentPage.value <= halfRange) {
+    endPage = Math.min(totalPages.value, maxPagesToShow)
+  } 
+  
+  for (let i = startPage; i <= endPage; i++) {
+    pages.push(i)
+  }
+  
+  return pages
+})
 
 // GraphQL composable
-const { getTransactions } = useGraphQL()
+const { getTransactions, getTransactionCount } = useGraphQL()
 
 // Handle format change
 function onFormatChange(event: Event) {
@@ -254,31 +342,85 @@ function onFormatChange(event: Event) {
 
 // Watch route query changes
 watch(
-  () => [route.query.q, route.query.format],
-  ([newQuery, newFormat]) => {
+  () => [route.query.q, route.query.format, route.query.page],
+  ([newQuery, newFormat, newPage], oldValues) => {
     const query = (newQuery as string) || ''
     const format = (newFormat as string) || 'image/*'
-    
-    searchQuery.value = query
-    selectedFormat.value = format
+    const page = parseInt(newPage as string) || 1
     
     if (!query.trim()) {
       // Clear results if query is empty
       results.value = null
+      allResults.value = []
+      currentPage.value = 1
+      searchQuery.value = ''
       return
     }
     
-    // Execute search
-    executeSearch()
+    // Check if query or format changed (requires new search)
+    const oldQuery = oldValues ? (oldValues[0] as string) || '' : ''
+    const oldFormat = oldValues ? (oldValues[1] as string) || 'image/*' : 'image/*'
+    const queryChanged = query !== oldQuery
+    const formatChanged = format !== oldFormat
+    const isInitialLoad = !oldValues
+    
+    searchQuery.value = query
+    selectedFormat.value = format
+    
+    if (queryChanged || formatChanged) {
+      // Execute new search
+      if (isInitialLoad) {
+        // On initial load, honor the page from URL
+        currentPage.value = page
+        executeSearch()
+      } else {
+        // On query/format change, reset to page 1
+        currentPage.value = 1
+        executeSearch()
+        // Update URL to page 1 if needed
+        if (page !== 1) {
+          router.replace({
+            query: {
+              q: query,
+              format: format,
+              page: '1'
+            }
+          })
+        }
+      }
+    } else {
+      // Only page changed
+      const neededResults = page * resultsPerPage
+      const hasEnoughCached = allResults.value.length >= neededResults
+      
+      if (hasEnoughCached || page === 1) {
+        // Just update currentPage and scroll (data already cached or going to page 1)
+        currentPage.value = page
+        window.scrollTo({ top: 0, behavior: 'smooth' })
+      } else if (results.value?.pageInfo.hasNextPage) {
+        // Need to load more data - fetch it then navigate
+        console.log(`Loading more data for page ${page}...`)
+        loadMore().then(() => {
+          // Check again if we have enough data now
+          const hasEnoughNow = allResults.value.length >= neededResults
+          if (hasEnoughNow) {
+            currentPage.value = page
+            window.scrollTo({ top: 0, behavior: 'smooth' })
+          } else {
+            console.warn(`Still not enough data for page ${page} after loading more`)
+          }
+        })
+      } else {
+        // No more data available
+        console.warn(`Not enough cached data for page ${page} and no more pages available`)
+      }
+    }
   },
   { immediate: true }
 )
 
 const imageTransactions = computed(() => {
-  if (!results.value) return []
-  
-  return results.value.edges
-    .map((edge: any) => edge.node)
+  return paginatedResults.value
     .filter((transaction: any) => isImageTransaction(transaction) && !failedImages.value.has(transaction.id))
 })
 
@@ -296,11 +438,13 @@ async function executeSearch() {
   error.value = null
   lastCursor.value = undefined
   failedImages.value.clear()
+  totalCount.value = null // Reset count
   
   try {
     // Build query options
     const queryOptions: any = {
-      tags: []
+      tags: [],
+      first: 100 // Request max results per page
     }
     
     // Add Content-Type filter based on selected format
@@ -341,12 +485,34 @@ async function executeSearch() {
     
     console.log('ImageSearch executeSearch:', { query, selectedFormat: selectedFormat.value, queryOptions })
     
+    // Fetch results (priority)
     results.value = await getTransactions(queryOptions)
+    
+    // Populate allResults with the fetched transactions
+    allResults.value = results.value.edges.map(edge => edge.node)
+    // Don't reset currentPage here - let the route watcher handle it
     
     // Store cursor for pagination
     if (results.value.edges.length > 0) {
       lastCursor.value = results.value.edges[results.value.edges.length - 1].cursor
     }
+    
+    // Fetch count asynchronously (non-blocking)
+    // Build count query options (same filters, but no pagination)
+    const countOptions = {
+      ids: queryOptions.ids,
+      owners: queryOptions.owners,
+      recipients: queryOptions.recipients,
+      tags: queryOptions.tags,
+      bundledIn: queryOptions.bundledIn,
+      block: queryOptions.block
+    }
+    getTransactionCount(countOptions).then(count => {
+      totalCount.value = count
+    }).catch(err => {
+      console.error('Failed to fetch count:', err)
+      // Don't set error - count is optional
+    })
   } catch (err) {
     error.value = err instanceof Error ? err.message : String(err)
     results.value = null
@@ -368,6 +534,7 @@ async function loadMore() {
     // Build query options (same as executeSearch)
     const queryOptions: any = {
       tags: [],
+      first: 100, // Request max results per page
       after: lastCursor.value
     }
     
@@ -409,7 +576,10 @@ async function loadMore() {
     
     const moreResults = await getTransactions(queryOptions)
     
-    // Append new results
+    // Append new results to allResults array
+    allResults.value.push(...moreResults.edges.map(edge => edge.node))
+    
+    // Update results metadata
     results.value.edges.push(...moreResults.edges)
     results.value.pageInfo = moreResults.pageInfo
     
@@ -421,6 +591,51 @@ async function loadMore() {
     error.value = err instanceof Error ? err.message : String(err)
   } finally {
     loading.value = false
+  }
+}
+
+// Page navigation functions
+async function goToNextPage() {
+  const cachedPages = Math.ceil(allResults.value.length / resultsPerPage)
+  const nextPage = currentPage.value + 1
+  
+  // Check if we need to fetch more data
+  if (nextPage > cachedPages && results.value?.pageInfo.hasNextPage) {
+    // Need to fetch more results first
+    await loadMore()
+  }
+  
+  // Navigate to next page
+  router.push({
+    query: {
+      q: searchQuery.value,
+      format: selectedFormat.value,
+      page: nextPage.toString()
+    }
+  })
+}
+
+function goToPrevPage() {
+  if (currentPage.value > 1) {
+    router.push({
+      query: {
+        q: searchQuery.value,
+        format: selectedFormat.value,
+        page: (currentPage.value - 1).toString()
+      }
+    })
+  }
+}
+
+function goToPage(page: number) {
+  if (page >= 1 && page <= totalPages.value) {
+    router.push({
+      query: {
+        q: searchQuery.value,
+        format: selectedFormat.value,
+        page: page.toString()
+      }
+    })
   }
 }
 

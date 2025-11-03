@@ -217,6 +217,119 @@ export function useGraphQL() {
   }
 
   /**
+   * Get transaction count only (lightweight query)
+   */
+  async function getTransactionCount(options: {
+    ids?: string[]
+    owners?: string[]
+    recipients?: string[]
+    tags?: TagFilter[]
+    bundledIn?: string[]
+    block?: { min?: number; max?: number }
+  } = {}): Promise<string | null> {
+    const { ids, owners, recipients, tags, bundledIn, block } = options
+
+    // Build arguments (minimal query - just need count)
+    let args = ['first: 1'] // Request minimal data
+    
+    if (ids && ids.length > 0) {
+      const idsStr = ids.map(id => `"${id}"`).join(', ')
+      args.push(`ids: [${idsStr}]`)
+    }
+    
+    if (owners && owners.length > 0) {
+      const ownersStr = owners.map(owner => `"${owner}"`).join(', ')
+      args.push(`owners: [${ownersStr}]`)
+    }
+    
+    if (recipients && recipients.length > 0) {
+      const recipientsStr = recipients.map(recipient => `"${recipient}"`).join(', ')
+      args.push(`recipients: [${recipientsStr}]`)
+    }
+    
+    if (tags && tags.length > 0) {
+      const tagsStr = tags.map(tag => {
+        let tagFilter = '{'
+        
+        if (tag.name) {
+          tagFilter += ` name: "${tag.name}"`
+        }
+        
+        if (tag.values && tag.values.length > 0) {
+          if (tag.name) tagFilter += ','
+          const valuesStr = tag.values.map(v => `"${v}"`).join(', ')
+          tagFilter += ` values: [${valuesStr}]`
+        }
+        
+        if (tag.op) {
+          tagFilter += `, op: ${tag.op}`
+        }
+        
+        if (tag.match) {
+          tagFilter += `, match: ${tag.match}`
+        }
+        
+        tagFilter += ' }'
+        return tagFilter
+      }).join(', ')
+      args.push(`tags: [${tagsStr}]`)
+    }
+    
+    if (bundledIn && bundledIn.length > 0) {
+      const bundledInStr = bundledIn.map(id => `"${id}"`).join(', ')
+      args.push(`bundledIn: [${bundledInStr}]`)
+    }
+    
+    if (block) {
+      let blockFilter = '{'
+      if (block.min !== undefined) blockFilter += ` min: ${block.min}`
+      if (block.max !== undefined) {
+        if (block.min !== undefined) blockFilter += ','
+        blockFilter += ` max: ${block.max}`
+      }
+      blockFilter += ' }'
+      args.push(`block: ${blockFilter}`)
+    }
+
+    // Minimal query - only fetch count
+    const queryString = `
+      {
+        transactions(${args.join(', ')}) {
+          count
+        }
+      }
+    `
+
+    try {
+      const endpoint = getGraphQLEndpoint()
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ query: queryString })
+      })
+
+      if (!response.ok) {
+        console.error('GraphQL count request failed:', response.status)
+        return null
+      }
+
+      const json: GraphQLResponse = await response.json()
+      
+      if (json.errors) {
+        console.error('GraphQL count errors:', json.errors)
+        return null
+      }
+
+      return json.data?.transactions?.count || null
+    } catch (error) {
+      console.error('Error fetching transaction count:', error)
+      return null
+    }
+  }
+
+  /**
    * Get transactions with filters
    */
   async function getTransactions(options: {
@@ -485,6 +598,7 @@ export function useGraphQL() {
     
     // Convenience functions
     getTransactions,
+    getTransactionCount,
     getTransaction,
     getBlock,
     
