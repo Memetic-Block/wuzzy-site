@@ -33,6 +33,12 @@
           Images
         </div>
         <div
+          @mousedown.prevent="onSearchModeChange('Video')"
+          class="px-2 py-1.5 text-sm cursor-pointer hover:bg-accent hover:text-accent-foreground rounded-sm mx-1 whitespace-nowrap"
+        >
+          Videos
+        </div>
+        <div
           @mousedown.prevent="onSearchModeChange('Hyperbeam')"
           class="px-2 py-1.5 text-sm cursor-pointer hover:bg-accent hover:text-accent-foreground rounded-sm mx-1 whitespace-nowrap"
         >
@@ -97,6 +103,9 @@ const searchModeDisplay = computed(() => {
   if (searchMode.value === 'Hyperbeam') {
     return 'HyperBEAM (Demo)'
   }
+  if (searchMode.value === 'Video') {
+    return 'Videos'
+  }
   return searchMode.value
 })
 
@@ -104,6 +113,8 @@ const placeholderText = computed(() => {
   switch (searchMode.value) {
     case 'Images':
       return 'Search the Permaweb for images...'
+    case 'Video':
+      return 'Search the Permaweb for videos...'
     default:
       return 'Search the Permaweb...'
   }
@@ -145,6 +156,18 @@ const onSearchModeChange = (mode: 'ARNS' | 'Hyperbeam' | 'Transactions' | 'Image
         query: { 
           q: query,
           ...(isOnImages && currentQuery.format ? { format: currentQuery.format } : {})
+        }
+      })
+    } else if (mode === 'Video') {
+      // Preserve format when switching from videos back to Videos
+      const currentQuery = router.currentRoute.value.query
+      const isOnVideos = router.currentRoute.value.path === '/videos'
+      
+      router.push({
+        path: '/videos',
+        query: { 
+          q: query,
+          ...(isOnVideos && currentQuery.format ? { format: currentQuery.format } : {})
         }
       })
     }
@@ -197,6 +220,19 @@ const onSearchClicked = () => {
         q: trimmedQuery,
         // Preserve format if we're already on images page
         ...(isOnImages && currentQuery.format ? { format: currentQuery.format } : {})
+      }
+    })
+  } else if (searchMode.value === 'Video') {
+    // Preserve existing query params (like format) when on the same page
+    const currentQuery = router.currentRoute.value.query
+    const isOnVideos = router.currentRoute.value.path === '/videos'
+    
+    router.push({
+      path: '/videos',
+      query: { 
+        q: trimmedQuery,
+        // Preserve format if we're already on videos page
+        ...(isOnVideos && currentQuery.format ? { format: currentQuery.format } : {})
       }
     })
   }

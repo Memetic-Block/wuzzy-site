@@ -68,8 +68,8 @@
   <div v-if="results && imageTransactions.length > 0 && !isSearching">
     <div class="flex justify-between items-center">
       <h3 class="m-0 mt-1 text-foreground">
-        <span v-if="totalCount">Found {{ parseInt(totalCount).toLocaleString() }} Images</span>
-        <span v-else>Found {{ allResults.length }}+ Images</span>
+        <span v-if="totalCount">Found {{ displayCount.toLocaleString() }} Images</span>
+        <span v-else>Found {{ displayCount }}+ Images</span>
         (Page {{ currentPage }} of {{ totalPages }}{{ results.pageInfo.hasNextPage ? '+' : '' }})
       </h3>
       <div class="flex gap-1 border border-border rounded-md p-1 bg-background">
@@ -269,6 +269,7 @@ const searchQuery = ref<string>((route.query.q as string) || '')
 const error = ref<string | null>(null)
 const info = ref<string | null>(null)
 const failedImages = ref(new Set<string>())
+const failedImagesCount = ref(0)
 const gridSize = ref<'small' | 'medium' | 'large'>('medium')
 const selectedImage = ref<any>(null)
 const results = ref<TransactionConnection | null>(null)
@@ -526,7 +527,30 @@ watch(
 
 const imageTransactions = computed(() => {
   return paginatedResults.value
-    .filter((transaction: any) => isImageTransaction(transaction) && !failedImages.value.has(transaction.id))
+    .filter((transaction: any) => 
+      isImageTransaction(transaction) && !failedImages.value.has(transaction.id)
+    )
+})
+
+const displayResultsCount = computed(() => {
+  return allResults.value.filter((transaction: any) => 
+    isImageTransaction(transaction) && !failedImages.value.has(transaction.id)
+  ).length
+})
+
+// Computed count for display - uses GraphQL total if available and we're past page 5
+const displayCount = computed(() => {
+  // If we have a total count from GraphQL and we're beyond cached results, use it
+  if (totalCount.value && allResults.value.length >= 100) {
+    // Estimate based on the ratio of valid images in our cached results
+    const cachedTotal = allResults.value.length
+    const cachedValid = displayResultsCount.value
+    const validRatio = cachedValid / cachedTotal
+    const estimatedTotal = Math.round(parseInt(totalCount.value) * validRatio)
+    return estimatedTotal
+  }
+  // Otherwise use the exact count from filtered results
+  return displayResultsCount.value
 })
 
 // Search functionality
@@ -543,6 +567,7 @@ async function executeSearch() {
   error.value = null
   lastCursor.value = undefined
   failedImages.value.clear()
+  failedImagesCount.value = 0
   totalCount.value = null // Reset count
   
   try {
@@ -768,8 +793,9 @@ function getImageUrl(transactionId: string): string {
 function handleImageError(event: Event) {
   const img = event.target as HTMLImageElement
   const transactionId = img.src.split('/').pop()
-  if (transactionId) {
+  if (transactionId && !failedImages.value.has(transactionId)) {
     failedImages.value.add(transactionId)
+    failedImagesCount.value++
   }
 }
 
