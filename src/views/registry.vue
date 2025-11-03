@@ -5,7 +5,6 @@
         <tr>
           <th colspan="2">Wuzzy Nest Registry</th>
         </tr>
-        tr
         <tr>
           <th>Nest ID</th>
           <th>Owner</th>

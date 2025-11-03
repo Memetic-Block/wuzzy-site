@@ -1,24 +1,9 @@
 <template>
-  <div
-    class="bg-primary-foreground mt-3 mb-4 py-1 px-2 rounded-md flex gap-2 items-center border-input border focus-within:shadow-xs focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
-  >
-    <Input
-      class="shadow-none focus-visible:ring-[0px] ml-2 border-0 p-0 dark:bg-transparent autofill:bg-transparent"
-      type="text"
-      name="search"
-      v-model="searchQuery"
-      placeholder="Search the Permaweb..."
-      @keyup.enter="onSearchClicked"
-    />
-    <Button
-      :disabled="!searchQuery.trim()"
-      size="icon-sm"
-      @click="onSearchClicked"
-      class="bg-green-300 hover:bg-green-400 active:bg-green-400 dark:bg-green-400 dark:hover:bg-green-500 dark:active:bg-green-500 text-black transition-colors duration-200 cursor-pointer"
-    >
-      ->
-    </Button>
-  </div>
+  <SearchInput
+    :initial-query="searchQuery"
+    initial-mode="ARNS"
+    button-text="->"
+  />
   <div v-if="isSearchPending">
     <Skeleton class="h-5 w-full rounded-xs" />
     <Skeleton class="h-5 my-2 w-full rounded-xs" />
@@ -111,8 +96,7 @@ import { computed, ref, watch } from 'vue'
 import { useRoute, type LocationQuery } from 'vue-router'
 import type { SearchResults } from '../types/search-types'
 import config from '../app-config'
-import Input from '../components/ui/input/Input.vue'
-import Button from '../components/ui/button/Button.vue'
+import SearchInput from '../components/SearchInput.vue'
 import Skeleton from '@/components/ui/skeleton/Skeleton.vue'
 import { convertToWayfinderUrl, convertToHttpsUrl } from '../lib/utils'
 import { useSeoMeta } from '@unhead/vue'
@@ -168,15 +152,9 @@ const searchQuery = ref(
   new URL(window.location.href).searchParams.get('q') || ''
 )
 
-const onSearchClicked = async () => {
-  if (searchQuery.value.trim()) {
-    newSearchQuery.value = searchQuery.value
-    const query: LocationQuery = { q: searchQuery.value }
-    search(query)
-  } else {
-    console.warn('Search query is empty')
-  }
-}
+useSeoMeta({
+  title: computed(() => searchQuery.value || 'Search The Permaweb')
+})
 
 async function search(query: LocationQuery) {
   isSearchPending.value = true
@@ -228,8 +206,4 @@ async function search(query: LocationQuery) {
 
   isSearchPending.value = false
 }
-
-useSeoMeta({
-  title: computed(() => searchQuery.value || 'Search The Permaweb')
-})
 </script>
