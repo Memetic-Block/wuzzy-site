@@ -10,11 +10,22 @@
         class="flex items-center gap-1 px-2 py-1 text-sm bg-muted hover:bg-muted/80 rounded border border-input transition-colors cursor-pointer whitespace-nowrap"
       >
         {{ searchModeDisplay }}
-        <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+        <svg
+          class="h-4 w-4"
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M19 9l-7 7-7-7"
+          />
         </svg>
       </button>
-      
+
       <!-- Custom dropdown menu -->
       <div
         v-if="dropdownOpen"
@@ -46,9 +57,9 @@
         </div>
       </div>
     </div>
-    
+
     <Input
-      class="shadow-none focus-visible:ring-[0px] ml-2 border-0 p-0 dark:bg-transparent autofill:bg-transparent"
+      class="shadow-none focus-visible:ring-[0px] ml-2 border-0 p-0 dark:bg-transparent rounded-none"
       type="text"
       name="search"
       v-model="searchQuery"
@@ -59,7 +70,7 @@
       @keydown.backspace="handleBackspace"
       autofocus
     />
-    
+
     <Button
       :disabled="!searchQuery.trim()"
       size="icon-sm"
@@ -80,7 +91,13 @@ import Button from './ui/button/Button.vue'
 
 interface Props {
   initialQuery?: string
-  initialMode?: 'ARNS' | 'Hyperbeam' | 'Transactions' | 'Images' | 'Audio' | 'Video'
+  initialMode?:
+    | 'ARNS'
+    | 'Hyperbeam'
+    | 'Transactions'
+    | 'Images'
+    | 'Audio'
+    | 'Video'
   buttonText?: string // Custom button text (default is "->")
 }
 
@@ -91,12 +108,16 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 const emit = defineEmits<{
-  modeChanged: [mode: 'ARNS' | 'Hyperbeam' | 'Transactions' | 'Images' | 'Audio' | 'Video']
+  modeChanged: [
+    mode: 'ARNS' | 'Hyperbeam' | 'Transactions' | 'Images' | 'Audio' | 'Video'
+  ]
 }>()
 
 const router = useRouter()
 const searchQuery = ref(props.initialQuery)
-const searchMode = ref<'ARNS' | 'Hyperbeam' | 'Transactions' | 'Images' | 'Audio' | 'Video'>(props.initialMode)
+const searchMode = ref<
+  'ARNS' | 'Hyperbeam' | 'Transactions' | 'Images' | 'Audio' | 'Video'
+>(props.initialMode)
 const dropdownOpen = ref(false)
 
 const searchModeDisplay = computed(() => {
@@ -127,15 +148,17 @@ const onDropdownBlur = () => {
   }, 150) // Small delay to allow click events to fire
 }
 
-const onSearchModeChange = (mode: 'ARNS' | 'Hyperbeam' | 'Transactions' | 'Images' | 'Audio' | 'Video') => {
+const onSearchModeChange = (
+  mode: 'ARNS' | 'Hyperbeam' | 'Transactions' | 'Images' | 'Audio' | 'Video'
+) => {
   searchMode.value = mode
   dropdownOpen.value = false // Close dropdown after selection
   emit('modeChanged', mode)
-  
+
   // If we have a query, navigate to the new search type with the current query
   if (searchQuery.value.trim()) {
     const query = searchQuery.value.trim()
-    
+
     if (mode === 'ARNS') {
       router.push({
         path: '/search',
@@ -150,24 +173,28 @@ const onSearchModeChange = (mode: 'ARNS' | 'Hyperbeam' | 'Transactions' | 'Image
       // Preserve format when switching from images back to Images
       const currentQuery = router.currentRoute.value.query
       const isOnImages = router.currentRoute.value.path === '/images'
-      
+
       router.push({
         path: '/images',
-        query: { 
+        query: {
           q: query,
-          ...(isOnImages && currentQuery.format ? { format: currentQuery.format } : {})
+          ...(isOnImages && currentQuery.format
+            ? { format: currentQuery.format }
+            : {})
         }
       })
     } else if (mode === 'Video') {
       // Preserve format when switching from videos back to Videos
       const currentQuery = router.currentRoute.value.query
       const isOnVideos = router.currentRoute.value.path === '/videos'
-      
+
       router.push({
         path: '/videos',
-        query: { 
+        query: {
           q: query,
-          ...(isOnVideos && currentQuery.format ? { format: currentQuery.format } : {})
+          ...(isOnVideos && currentQuery.format
+            ? { format: currentQuery.format }
+            : {})
         }
       })
     }
@@ -192,12 +219,12 @@ const handleEnter = () => {
 
 const onSearchClicked = () => {
   const trimmedQuery = searchQuery.value.trim()
-  
+
   if (!trimmedQuery) {
     console.warn('Search query is empty')
     return
   }
-  
+
   // Always navigate to the appropriate search page
   if (searchMode.value === 'ARNS') {
     router.push({
@@ -213,26 +240,30 @@ const onSearchClicked = () => {
     // Preserve existing query params (like format) when on the same page
     const currentQuery = router.currentRoute.value.query
     const isOnImages = router.currentRoute.value.path === '/images'
-    
+
     router.push({
       path: '/images',
-      query: { 
+      query: {
         q: trimmedQuery,
         // Preserve format if we're already on images page
-        ...(isOnImages && currentQuery.format ? { format: currentQuery.format } : {})
+        ...(isOnImages && currentQuery.format
+          ? { format: currentQuery.format }
+          : {})
       }
     })
   } else if (searchMode.value === 'Video') {
     // Preserve existing query params (like format) when on the same page
     const currentQuery = router.currentRoute.value.query
     const isOnVideos = router.currentRoute.value.path === '/videos'
-    
+
     router.push({
       path: '/videos',
-      query: { 
+      query: {
         q: trimmedQuery,
         // Preserve format if we're already on videos page
-        ...(isOnVideos && currentQuery.format ? { format: currentQuery.format } : {})
+        ...(isOnVideos && currentQuery.format
+          ? { format: currentQuery.format }
+          : {})
       }
     })
   }
@@ -243,7 +274,9 @@ defineExpose({
   setQuery: (query: string) => {
     searchQuery.value = query
   },
-  setMode: (mode: 'ARNS' | 'Hyperbeam' | 'Transactions' | 'Images' | 'Audio' | 'Video') => {
+  setMode: (
+    mode: 'ARNS' | 'Hyperbeam' | 'Transactions' | 'Images' | 'Audio' | 'Video'
+  ) => {
     searchMode.value = mode
   }
 })
