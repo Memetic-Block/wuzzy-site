@@ -14,6 +14,7 @@ import RegistryView from './views/registry.vue'
 import AboutView from './views/about.vue'
 import ImageSearchView from './views/image-search.vue'
 import VideoSearchView from './views/video-search.vue'
+import AudioSearchView from './views/audio-search.vue'
 
 const routes = [
   { path: '/', component: IndexView },
@@ -25,6 +26,7 @@ const routes = [
   { path: '/about', component: AboutView },
   { path: '/images', component: ImageSearchView },
   { path: '/videos', component: VideoSearchView },
+  { path: '/audio', component: AudioSearchView },
 ]
 
 export const createApp = ViteSSG(
