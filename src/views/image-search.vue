@@ -267,7 +267,7 @@
       @click.stop
     >
       <div class="flex justify-between items-center p-4 border-b border-border">
-        <h3 class="m-0 text-foreground">Image Details</h3>
+        <h3 class="text-foreground" style="margin: 0">Image Details</h3>
         <button
           @click="closeImageModal"
           class="bg-transparent border-none text-2xl cursor-pointer p-1 text-muted-foreground hover:text-foreground"
@@ -275,7 +275,7 @@
           ×
         </button>
       </div>
-      <div class="p-4 flex flex-col md:flex-row gap-4">
+      <div class="p-4 flex flex-col md:grid md:grid-cols-2 gap-4">
         <img
           :src="getImageUrl(selectedImage.id)"
           :alt="`Image ${selectedImage.id}`"
