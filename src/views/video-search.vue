@@ -173,20 +173,29 @@
               >
             </div>
             <div class="flex gap-2 self-end">
-              <button
+              <Button
                 @click.stop="openInNewTab(transaction.id)"
-                class="bg-black/80 text-white border-none rounded px-1.5 py-1.5 cursor-pointer text-sm transition-colors hover:bg-black/90"
+                class="bg-black/80 text-white border-none cursor-pointer text-xs [&_svg]:size-1 transition-colors hover:bg-black/90"
                 title="Open in new tab"
+                size="icon"
               >
-                🔗
-              </button>
-              <button
+                <ExternalLinkIcon />
+              </Button>
+              <Button
                 @click.stop="copyVideoUrl(transaction.id)"
-                class="bg-black/80 text-white border-none rounded px-1.5 py-1.5 cursor-pointer text-sm transition-colors hover:bg-black/90"
-                title="Copy video URL"
+                :class="[
+                  ' text-white border-none cursor-pointer text-xs',
+                  videoCopied && videoCopied[transaction.id]
+                    ? 'bg-green-400 hover:bg-green-400'
+                    : 'bg-black/80 hover:bg-black/90'
+                ]"
+                class=""
+                title="Copy image URL"
+                size="icon"
               >
-                📋
-              </button>
+                <CheckIcon v-if="videoCopied && videoCopied[transaction.id]" />
+                <CopyIcon v-else />
+              </Button>
             </div>
           </div>
         </div>
@@ -347,7 +356,15 @@ import { useRoute, useRouter } from 'vue-router'
 import { useGraphQL, type TransactionConnection } from '../composables/gql'
 import SearchInput from '../components/SearchInput.vue'
 import Skeleton from '@/components/ui/skeleton/Skeleton.vue'
-import { Grid2x2Icon, Grid2x2PlusIcon, Grid3X3Icon } from 'lucide-vue-next'
+import {
+  CheckIcon,
+  CopyIcon,
+  ExternalLinkIcon,
+  Grid2x2Icon,
+  Grid2x2PlusIcon,
+  Grid3X3Icon
+} from 'lucide-vue-next'
+import Button from '@/components/ui/button/Button.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -368,6 +385,8 @@ const selectedFormats = ref<string[]>(
   route.query.format ? (route.query.format as string).split(',') : ['video/*']
 )
 const totalCount = ref<string | null>(null) // Separate state for count
+
+const videoCopied = ref<{ [key: string]: boolean }>()
 
 // Pagination state
 const allResults = ref<any[]>([]) // All fetched transactions
@@ -959,7 +978,17 @@ function copyVideoUrl(transactionId: string) {
   navigator.clipboard
     .writeText(getVideoUrl(transactionId))
     .then(() => {
+      videoCopied.value = {
+        ...videoCopied.value,
+        [transactionId]: true
+      }
       console.log('Video URL copied to clipboard')
+      setTimeout(() => {
+        videoCopied.value = {
+          ...videoCopied.value,
+          [transactionId]: false
+        }
+      }, 2000)
     })
     .catch((err) => {
       console.error('Failed to copy URL:', err)
