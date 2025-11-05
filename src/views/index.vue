@@ -1,7 +1,5 @@
 <template>
-  <SearchInput
-    initial-mode="ARNS"
-  />
+  <SearchInput initial-mode="ARNS" />
 </template>
 
 <script setup lang="ts">

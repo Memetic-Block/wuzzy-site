@@ -1,43 +1,65 @@
 <template>
   <!-- Search Input -->
   <div class="mb-4">
-    <SearchInput
-      :initial-query="searchQuery"
-      initial-mode="Video"
-    />
+    <SearchInput :initial-query="searchQuery" initial-mode="Video" />
   </div>
 
   <!-- Format Filter Checkboxes -->
   <div class="format-picker">
     <label>
-      <input type="checkbox" value="video/*" :checked="selectedFormats.includes('video/*')" @change="onFormatChange" />
+      <input
+        type="checkbox"
+        value="video/*"
+        :checked="selectedFormats.includes('video/*')"
+        @change="onFormatChange"
+      />
       <span>All</span>
     </label>
     <label>
-      <input type="checkbox" value="video/mp4" :checked="selectedFormats.includes('video/mp4')" @change="onFormatChange" />
+      <input
+        type="checkbox"
+        value="video/mp4"
+        :checked="selectedFormats.includes('video/mp4')"
+        @change="onFormatChange"
+      />
       <span>MP4</span>
     </label>
     <label>
-      <input type="checkbox" value="video/webm" :checked="selectedFormats.includes('video/webm')" @change="onFormatChange" />
+      <input
+        type="checkbox"
+        value="video/webm"
+        :checked="selectedFormats.includes('video/webm')"
+        @change="onFormatChange"
+      />
       <span>WebM</span>
     </label>
     <label>
-      <input type="checkbox" value="video/ogg" :checked="selectedFormats.includes('video/ogg')" @change="onFormatChange" />
+      <input
+        type="checkbox"
+        value="video/ogg"
+        :checked="selectedFormats.includes('video/ogg')"
+        @change="onFormatChange"
+      />
       <span>OGG</span>
     </label>
     <label>
-      <input type="checkbox" value="video/quicktime" :checked="selectedFormats.includes('video/quicktime')" @change="onFormatChange" />
+      <input
+        type="checkbox"
+        value="video/quicktime"
+        :checked="selectedFormats.includes('video/quicktime')"
+        @change="onFormatChange"
+      />
       <span>MOV</span>
     </label>
   </div>
 
-
   <!-- Info Display -->
-  <div v-if="info" class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mb-4 text-blue-800 dark:text-blue-200 flex justify-between items-start gap-4">
-    <div>
-      <strong>Info:</strong> {{ info }}
-    </div>
-    <button 
+  <div
+    v-if="info"
+    class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mb-4 text-blue-800 dark:text-blue-200 flex justify-between items-start gap-4"
+  >
+    <div><strong>Info:</strong> {{ info }}</div>
+    <button
       @click="info = null"
       class="bg-transparent border-none text-blue-800 dark:text-blue-200 cursor-pointer text-xl leading-none hover:opacity-70 flex-shrink-0"
       aria-label="Close"
@@ -47,7 +69,10 @@
   </div>
 
   <!-- Error Display -->
-  <div v-if="error" class="bg-destructive/10 border border-destructive/30 rounded-lg p-4 mb-4 text-destructive">
+  <div
+    v-if="error"
+    class="bg-destructive/10 border border-destructive/30 rounded-lg p-4 mb-4 text-destructive"
+  >
     <strong>Error:</strong> {{ error }}
   </div>
 
@@ -68,47 +93,62 @@
   <div v-if="results && videoTransactions.length > 0 && !isSearching">
     <div class="flex justify-between items-center">
       <h3 class="m-0 mt-1 text-foreground">
-        <span v-if="totalCount">Found {{ displayCount.toLocaleString() }} Videos</span>
+        <span v-if="totalCount"
+          >Found {{ displayCount.toLocaleString() }} Videos</span
+        >
         <span v-else>Found {{ displayCount }}+ Videos</span>
-        (Page {{ currentPage }} of {{ totalPages }}{{ results.pageInfo.hasNextPage ? '+' : '' }})
+        (Page {{ currentPage }} of {{ totalPages
+        }}{{ results.pageInfo.hasNextPage ? '+' : '' }})
       </h3>
       <div class="flex gap-1 border border-border rounded-md p-1 bg-background">
-        <button 
-          @click="gridSize = 'small'" 
-          :class="gridSize === 'small' ? 'bg-primary text-primary-foreground' : 'bg-transparent hover:bg-accent hover:text-accent-foreground'"
+        <button
+          @click="gridSize = 'small'"
+          :class="
+            gridSize === 'small'
+              ? 'bg-primary text-primary-foreground'
+              : 'bg-transparent hover:bg-accent hover:text-accent-foreground'
+          "
           class="border-none px-1.5 py-1.5 cursor-pointer rounded transition-colors"
           title="Small grid"
         >
-          ▦
+          <Grid3X3Icon />
         </button>
-        <button 
-          @click="gridSize = 'medium'" 
-          :class="gridSize === 'medium' ? 'bg-primary text-primary-foreground' : 'bg-transparent hover:bg-accent hover:text-accent-foreground'"
+        <button
+          @click="gridSize = 'medium'"
+          :class="
+            gridSize === 'medium'
+              ? 'bg-primary text-primary-foreground'
+              : 'bg-transparent hover:bg-accent hover:text-accent-foreground'
+          "
           class="border-none px-1.5 py-1.5 cursor-pointer rounded transition-colors"
           title="Medium grid"
         >
-          ⬜
+          <Grid2x2Icon />
         </button>
-        <button 
-          @click="gridSize = 'large'" 
-          :class="gridSize === 'large' ? 'bg-primary text-primary-foreground' : 'bg-transparent hover:bg-accent hover:text-accent-foreground'"
+        <button
+          @click="gridSize = 'large'"
+          :class="
+            gridSize === 'large'
+              ? 'bg-primary text-primary-foreground'
+              : 'bg-transparent hover:bg-accent hover:text-accent-foreground'
+          "
           class="border-none px-1.5 py-1.5 cursor-pointer rounded transition-colors"
           title="Large grid"
         >
-          ⬛
+          <Grid2x2PlusIcon />
         </button>
       </div>
     </div>
-    
+
     <div class="image-grid" :class="`grid-${gridSize}`">
-      <div 
-        v-for="transaction in videoTransactions" 
+      <div
+        v-for="transaction in videoTransactions"
         :key="transaction.id"
         class="cursor-pointer rounded-lg overflow-hidden bg-white shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md"
         @click="openVideoModal(transaction)"
       >
         <div class="image-wrapper group">
-          <video 
+          <video
             :src="getVideoUrl(transaction.id)"
             class="grid-image transition-transform group-hover:scale-105"
             @error="handleVideoError"
@@ -119,42 +159,62 @@
             @mouseenter="(e) => (e.target as HTMLVideoElement).play()"
             @mouseleave="(e) => (e.target as HTMLVideoElement).pause()"
           />
-            <div class="absolute inset-0 bg-gradient-to-b from-black/70 via-transparent to-black/70 opacity-0 transition-opacity flex flex-col justify-between p-2 group-hover:opacity-100">
-              <div class="flex flex-col gap-1">
-                <span class="bg-black/80 text-white px-1.5 py-0.5 rounded text-xs w-fit">{{ getContentType(transaction) }}</span>
-                <span class="bg-black/80 text-white px-1.5 py-0.5 rounded text-xs w-fit">{{ formatFileSize(parseInt(transaction.data.size)) }}</span>
-              </div>
-              <div class="flex gap-2 self-end">
-                <button 
-                  @click.stop="openInNewTab(transaction.id)"
-                  class="bg-black/80 text-white border-none rounded px-1.5 py-1.5 cursor-pointer text-sm transition-colors hover:bg-black/90"
-                  title="Open in new tab"
-                >
-                  🔗
-                </button>
-                <button 
-                  @click.stop="copyVideoUrl(transaction.id)"
-                  class="bg-black/80 text-white border-none rounded px-1.5 py-1.5 cursor-pointer text-sm transition-colors hover:bg-black/90"
-                  title="Copy video URL"
-                >
-                  📋
-                </button>
-              </div>
+          <div
+            class="absolute inset-0 bg-gradient-to-b from-black/70 via-transparent to-black/70 opacity-0 transition-opacity flex flex-col justify-between p-2 group-hover:opacity-100"
+          >
+            <div class="flex flex-col gap-1">
+              <span
+                class="bg-black/80 text-white px-1.5 py-0.5 rounded text-xs w-fit"
+                >{{ getContentType(transaction) }}</span
+              >
+              <span
+                class="bg-black/80 text-white px-1.5 py-0.5 rounded text-xs w-fit"
+                >{{ formatFileSize(parseInt(transaction.data.size)) }}</span
+              >
+            </div>
+            <div class="flex gap-2 self-end">
+              <Button
+                @click.stop="openInNewTab(transaction.id)"
+                class="bg-black/80 text-white border-none cursor-pointer text-xs [&_svg]:size-1 transition-colors hover:bg-black/90"
+                title="Open in new tab"
+                size="icon"
+              >
+                <ExternalLinkIcon />
+              </Button>
+              <Button
+                @click.stop="copyVideoUrl(transaction.id)"
+                :class="[
+                  ' text-white border-none cursor-pointer text-xs',
+                  videoCopied && videoCopied[transaction.id]
+                    ? 'bg-green-400 hover:bg-green-400'
+                    : 'bg-black/80 hover:bg-black/90'
+                ]"
+                class=""
+                title="Copy image URL"
+                size="icon"
+              >
+                <CheckIcon v-if="videoCopied && videoCopied[transaction.id]" />
+                <CopyIcon v-else />
+              </Button>
             </div>
           </div>
         </div>
       </div>
+    </div>
 
     <!-- Pagination Controls -->
-    <div v-if="totalPages > 0" class="flex justify-center items-center gap-2 mt-8 flex-wrap">
-      <button 
+    <div
+      v-if="totalPages > 0"
+      class="flex justify-center items-center gap-2 mt-8 flex-wrap"
+    >
+      <button
         @click="goToPrevPage"
         :disabled="!canGoPrev"
         class="px-4 py-2 bg-primary text-primary-foreground border-none rounded-lg font-medium cursor-pointer transition-colors hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
       >
         ← Previous
       </button>
-      
+
       <!-- Page Numbers -->
       <div class="flex gap-1">
         <button
@@ -170,12 +230,18 @@
         >
           {{ pageNum }}
         </button>
-        <span v-if="results?.pageInfo.hasNextPage && pageNumbers[pageNumbers.length - 1] === totalPages" class="px-3 py-2 text-muted-foreground">
+        <span
+          v-if="
+            results?.pageInfo.hasNextPage &&
+            pageNumbers[pageNumbers.length - 1] === totalPages
+          "
+          class="px-3 py-2 text-muted-foreground"
+        >
           ...
         </span>
       </div>
-      
-      <button 
+
+      <button
         @click="goToNextPage"
         :disabled="!canGoNext || loading"
         class="px-4 py-2 bg-primary text-primary-foreground border-none rounded-lg font-medium cursor-pointer transition-colors hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -186,49 +252,76 @@
   </div>
 
   <!-- No results message -->
-  <div v-if="results && results.edges.length === 0" class="text-center py-12 px-4 text-muted-foreground">
+  <div
+    v-if="results && results.edges.length === 0"
+    class="text-center py-12 px-4 text-muted-foreground"
+  >
     <p>No transactions found matching your search criteria.</p>
   </div>
 
   <!-- Video Modal -->
-  <div v-if="selectedVideo" class="fixed inset-0 bg-black/90 flex items-center justify-center z-[1000] p-4" @click="closeVideoModal">
-    <div class="bg-background rounded-lg max-w-[90vw] max-h-[90vh] overflow-auto border border-border" @click.stop>
+  <div
+    v-if="selectedVideo"
+    class="fixed inset-0 bg-black/90 flex items-center justify-center z-[1000] p-4"
+    @click="closeVideoModal"
+  >
+    <div
+      class="bg-background rounded-lg max-w-[90vw] max-h-[90vh] overflow-auto border border-border"
+      @click.stop
+    >
       <div class="flex justify-between items-center p-4 border-b border-border">
-        <h3 class="m-0 text-foreground">Video Details</h3>
-        <button @click="closeVideoModal" class="bg-transparent border-none text-2xl cursor-pointer p-1 text-muted-foreground hover:text-foreground">×</button>
+        <h3 class="text-foreground" style="margin: 0">Video Details</h3>
+        <button
+          @click="closeVideoModal"
+          class="bg-transparent border-none text-2xl cursor-pointer p-1 text-muted-foreground hover:text-foreground"
+        >
+          ×
+        </button>
       </div>
-      <div class="p-4 flex flex-col md:flex-row gap-4">
-        <video 
-          :src="getVideoUrl(selectedVideo.id)" 
+      <div class="p-4 flex flex-col md:grid md:grid-cols-2 gap-4">
+        <video
+          :src="getVideoUrl(selectedVideo.id)"
           controls
           class="max-w-full max-h-[60vh] md:max-h-[70vh] rounded"
         />
         <div class="min-w-[300px]">
           <div class="mb-3">
             <strong class="block mb-1 text-foreground">Transaction ID:</strong>
-            <code class="font-mono text-sm bg-muted px-2 py-1 rounded break-all text-muted-foreground">{{ selectedVideo.id }}</code>
+            <code
+              class="font-mono text-sm bg-muted px-2 py-1 rounded break-all text-muted-foreground"
+              >{{ selectedVideo.id }}</code
+            >
           </div>
           <div class="mb-3">
             <strong class="block mb-1 text-foreground">Size:</strong>
-            <span class="text-muted-foreground">{{ formatFileSize(parseInt(selectedVideo.data.size)) }}</span>
+            <span class="text-muted-foreground">{{
+              formatFileSize(parseInt(selectedVideo.data.size))
+            }}</span>
           </div>
           <div class="mb-3">
             <strong class="block mb-1 text-foreground">Type:</strong>
-            <span class="text-muted-foreground">{{ getContentType(selectedVideo) }}</span>
+            <span class="text-muted-foreground">{{
+              getContentType(selectedVideo)
+            }}</span>
           </div>
           <div class="mb-3">
             <strong class="block mb-1 text-foreground">Owner:</strong>
-            <code class="font-mono text-sm bg-muted px-2 py-1 rounded break-all text-muted-foreground">{{ selectedVideo.owner.address }}</code>
+            <code
+              class="font-mono text-sm bg-muted px-2 py-1 rounded break-all text-muted-foreground"
+              >{{ selectedVideo.owner.address }}</code
+            >
           </div>
           <div class="mb-3">
             <strong class="block mb-1 text-foreground">Block:</strong>
-            <span class="text-muted-foreground">{{ selectedVideo.block.height }}</span>
+            <span class="text-muted-foreground">{{
+              selectedVideo.block.height
+            }}</span>
           </div>
           <div v-if="selectedVideo.tags.length > 0" class="mb-3">
             <strong class="block mb-1 text-foreground">Tags:</strong>
             <div class="flex flex-wrap gap-1">
-              <span 
-                v-for="tag in selectedVideo.tags" 
+              <span
+                v-for="tag in selectedVideo.tags"
                 :key="tag.name"
                 class="bg-muted px-2 py-1 rounded text-sm text-muted-foreground"
               >
@@ -237,15 +330,15 @@
             </div>
           </div>
           <div class="flex gap-2 mt-4">
-            <a 
-              :href="getVideoUrl(selectedVideo.id)" 
-              target="_blank" 
+            <a
+              :href="getVideoUrl(selectedVideo.id)"
+              target="_blank"
               class="px-4 py-2 rounded-md font-medium cursor-pointer no-underline border-none bg-primary text-primary-foreground hover:opacity-90"
             >
               View Full Size
             </a>
-            <button 
-              @click="copyVideoUrl(selectedVideo.id)" 
+            <button
+              @click="copyVideoUrl(selectedVideo.id)"
               class="px-4 py-2 rounded-md font-medium cursor-pointer border-none bg-muted text-foreground hover:bg-accent hover:text-accent-foreground"
             >
               Copy URL
@@ -263,6 +356,15 @@ import { useRoute, useRouter } from 'vue-router'
 import { useGraphQL, type TransactionConnection } from '../composables/gql'
 import SearchInput from '../components/SearchInput.vue'
 import Skeleton from '@/components/ui/skeleton/Skeleton.vue'
+import {
+  CheckIcon,
+  CopyIcon,
+  ExternalLinkIcon,
+  Grid2x2Icon,
+  Grid2x2PlusIcon,
+  Grid3X3Icon
+} from 'lucide-vue-next'
+import Button from '@/components/ui/button/Button.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -280,11 +382,11 @@ const loading = ref(false)
 const isSearching = ref(false)
 const lastCursor = ref<string | undefined>()
 const selectedFormats = ref<string[]>(
-  route.query.format 
-    ? (route.query.format as string).split(',')
-    : ['video/*']
+  route.query.format ? (route.query.format as string).split(',') : ['video/*']
 )
 const totalCount = ref<string | null>(null) // Separate state for count
+
+const videoCopied = ref<{ [key: string]: boolean }>()
 
 // Pagination state
 const allResults = ref<any[]>([]) // All fetched transactions
@@ -306,7 +408,10 @@ const totalPages = computed(() => {
   // Otherwise use cached results length
   // Only add +1 if we have more data AND we've filled the current cached pages
   const cachedPages = Math.ceil(allResults.value.length / resultsPerPage)
-  if (results.value?.pageInfo.hasNextPage && allResults.value.length >= cachedPages * resultsPerPage) {
+  if (
+    results.value?.pageInfo.hasNextPage &&
+    allResults.value.length >= cachedPages * resultsPerPage
+  ) {
     return cachedPages + 1 // Show one more page to indicate there's more
   }
   return cachedPages
@@ -330,20 +435,20 @@ const pageNumbers = computed(() => {
   const pages: number[] = []
   const maxPagesToShow = 5
   const halfRange = Math.floor(maxPagesToShow / 2)
-  
+
   // Show page numbers up to totalPages (which includes the +1 if hasNextPage)
   let startPage = Math.max(1, currentPage.value - halfRange)
   let endPage = Math.min(totalPages.value, currentPage.value + halfRange)
-  
+
   // Adjust if we're near the beginning
   if (currentPage.value <= halfRange) {
     endPage = Math.min(totalPages.value, maxPagesToShow)
-  } 
-  
+  }
+
   for (let i = startPage; i <= endPage; i++) {
     pages.push(i)
   }
-  
+
   return pages
 })
 
@@ -355,10 +460,10 @@ function parseSearchTerms(query: string): string[] {
   const terms: string[] = []
   let current = ''
   let inQuotes = false
-  
+
   for (let i = 0; i < query.length; i++) {
     const char = query[i]
-    
+
     if (char === '"') {
       inQuotes = !inQuotes
       // Don't include the quote characters in the term
@@ -373,12 +478,12 @@ function parseSearchTerms(query: string): string[] {
       current += char
     }
   }
-  
+
   // Add final term if exists
   if (current.trim()) {
     terms.push(current.trim())
   }
-  
+
   return terms
 }
 
@@ -386,14 +491,17 @@ function parseSearchTerms(query: string): string[] {
 function onFormatChange(event: Event) {
   const target = event.target as HTMLInputElement
   const value = target.value
-  
+
   if (value === 'video/*') {
     // If "All" is checked, set only "All" and uncheck others
     if (target.checked) {
       selectedFormats.value = ['video/*']
     } else {
       // If unchecking "All", do nothing (keep at least one selected)
-      if (selectedFormats.value.length === 1 && selectedFormats.value[0] === 'video/*') {
+      if (
+        selectedFormats.value.length === 1 &&
+        selectedFormats.value[0] === 'video/*'
+      ) {
         target.checked = true
         return
       }
@@ -401,26 +509,28 @@ function onFormatChange(event: Event) {
   } else {
     // If checking a specific format, remove "All" if present
     if (target.checked) {
-      selectedFormats.value = selectedFormats.value.filter(f => f !== 'video/*')
+      selectedFormats.value = selectedFormats.value.filter(
+        (f) => f !== 'video/*'
+      )
       selectedFormats.value.push(value)
     } else {
       // Remove the format
-      selectedFormats.value = selectedFormats.value.filter(f => f !== value)
+      selectedFormats.value = selectedFormats.value.filter((f) => f !== value)
       // If nothing is selected, default to "All"
       if (selectedFormats.value.length === 0) {
         selectedFormats.value = ['video/*']
       }
     }
   }
-  
+
   // Update URL with format parameter
-  router.replace({ 
-    query: { 
+  router.replace({
+    query: {
       q: searchQuery.value,
       format: selectedFormats.value.join(',')
-    } 
+    }
   })
-  
+
   // Re-run search with new format
   if (searchQuery.value.trim()) {
     executeSearch()
@@ -434,7 +544,7 @@ watch(
     const query = (newQuery as string) || ''
     const format = (newFormat as string) || 'video/*'
     const page = parseInt(newPage as string) || 1
-    
+
     if (!query.trim()) {
       // Clear results if query is empty
       results.value = null
@@ -443,17 +553,19 @@ watch(
       searchQuery.value = ''
       return
     }
-    
+
     // Check if query or format changed (requires new search)
     const oldQuery = oldValues ? (oldValues[0] as string) || '' : ''
-    const oldFormat = oldValues ? (oldValues[1] as string) || 'video/*' : 'video/*'
+    const oldFormat = oldValues
+      ? (oldValues[1] as string) || 'video/*'
+      : 'video/*'
     const queryChanged = query !== oldQuery
     const formatChanged = format !== oldFormat
     const isInitialLoad = !oldValues
-    
+
     searchQuery.value = query
     selectedFormats.value = format.split(',')
-    
+
     if (queryChanged || formatChanged) {
       // Execute new search
       if (isInitialLoad) {
@@ -492,7 +604,7 @@ watch(
       // Only page changed
       const startIndex = (page - 1) * resultsPerPage
       const hasEnoughCached = allResults.value.length > startIndex
-      
+
       // If we know the total count, check if page is valid
       if (totalCount.value) {
         const maxPages = Math.ceil(parseInt(totalCount.value) / resultsPerPage)
@@ -501,7 +613,7 @@ watch(
           return
         }
       }
-      
+
       if (hasEnoughCached || page === 1) {
         // Just update currentPage and scroll (data already cached or going to page 1)
         currentPage.value = page
@@ -516,12 +628,16 @@ watch(
             currentPage.value = page
             window.scrollTo({ top: 0, behavior: 'smooth' })
           } else {
-            console.warn(`Still not enough data for page ${page} after loading more`)
+            console.warn(
+              `Still not enough data for page ${page} after loading more`
+            )
           }
         })
       } else {
         // No more data available
-        console.warn(`Not enough cached data for page ${page} and no more pages available`)
+        console.warn(
+          `Not enough cached data for page ${page} and no more pages available`
+        )
       }
     }
   },
@@ -529,15 +645,16 @@ watch(
 )
 
 const videoTransactions = computed(() => {
-  return paginatedResults.value
-    .filter((transaction: any) => 
+  return paginatedResults.value.filter(
+    (transaction: any) =>
       isVideoTransaction(transaction) && !failedVideos.value.has(transaction.id)
-    )
+  )
 })
 
 const displayResultsCount = computed(() => {
-  return allResults.value.filter((transaction: any) => 
-    isVideoTransaction(transaction) && !failedVideos.value.has(transaction.id)
+  return allResults.value.filter(
+    (transaction: any) =>
+      isVideoTransaction(transaction) && !failedVideos.value.has(transaction.id)
   ).length
 })
 
@@ -559,12 +676,12 @@ const displayCount = computed(() => {
 // Search functionality
 async function executeSearch() {
   const query = searchQuery.value.trim()
-  
+
   if (!query) {
     error.value = 'Please enter a search query'
     return
   }
-  
+
   loading.value = true
   isSearching.value = true
   error.value = null
@@ -572,17 +689,17 @@ async function executeSearch() {
   failedVideos.value.clear()
   failedVideosCount.value = 0
   totalCount.value = null // Reset count
-  
+
   try {
     // Build query options
     const queryOptions: any = {
       tags: [],
       first: 100 // Request max results per page
     }
-    
+
     // Add Content-Type filter based on selected formats
     const formatValues: string[] = []
-    
+
     for (const format of selectedFormats.value) {
       if (format === 'video/*') {
         // Wildcard - add separately with match parameter
@@ -596,7 +713,7 @@ async function executeSearch() {
         formatValues.push(format)
       }
     }
-    
+
     // Add non-wildcard formats as a single tag
     if (formatValues.length > 0) {
       queryOptions.tags.push({
@@ -604,7 +721,7 @@ async function executeSearch() {
         values: formatValues
       })
     }
-    
+
     // Add user query as a single value-only tag with fuzzy match
     // Parse query to handle quoted phrases
     const words = parseSearchTerms(query)
@@ -614,21 +731,26 @@ async function executeSearch() {
         match: 'FUZZY_AND'
       })
     }
-    
-    console.log('VideoSearch executeSearch:', { query, selectedFormats: selectedFormats.value, queryOptions })
-    
+
+    console.log('VideoSearch executeSearch:', {
+      query,
+      selectedFormats: selectedFormats.value,
+      queryOptions
+    })
+
     // Fetch results (priority)
     results.value = await getTransactions(queryOptions)
-    
+
     // Populate allResults with the fetched transactions
-    allResults.value = results.value.edges.map(edge => edge.node)
+    allResults.value = results.value.edges.map((edge) => edge.node)
     // Don't reset currentPage here - let the route watcher handle it
-    
+
     // Store cursor for pagination
     if (results.value.edges.length > 0) {
-      lastCursor.value = results.value.edges[results.value.edges.length - 1].cursor
+      lastCursor.value =
+        results.value.edges[results.value.edges.length - 1].cursor
     }
-    
+
     // Fetch count asynchronously (non-blocking)
     // Build count query options (same filters, but no pagination)
     const countOptions = {
@@ -639,12 +761,14 @@ async function executeSearch() {
       bundledIn: queryOptions.bundledIn,
       block: queryOptions.block
     }
-    getTransactionCount(countOptions).then(count => {
-      totalCount.value = count
-    }).catch(err => {
-      console.error('Failed to fetch count:', err)
-      // Don't set error - count is optional
-    })
+    getTransactionCount(countOptions)
+      .then((count) => {
+        totalCount.value = count
+      })
+      .catch((err) => {
+        console.error('Failed to fetch count:', err)
+        // Don't set error - count is optional
+      })
   } catch (err) {
     error.value = err instanceof Error ? err.message : String(err)
     results.value = null
@@ -656,12 +780,12 @@ async function executeSearch() {
 
 async function loadMore() {
   const query = searchQuery.value.trim()
-  
+
   if (!query || !lastCursor.value || !results.value) return
-  
+
   loading.value = true
   error.value = null
-  
+
   try {
     // Build query options (same as executeSearch)
     const queryOptions: any = {
@@ -669,10 +793,10 @@ async function loadMore() {
       first: 100, // Request max results per page
       after: lastCursor.value
     }
-    
+
     // Add Content-Type filter based on selected formats
     const formatValues: string[] = []
-    
+
     for (const format of selectedFormats.value) {
       if (format === 'video/*') {
         // Wildcard - add separately with match parameter
@@ -686,7 +810,7 @@ async function loadMore() {
         formatValues.push(format)
       }
     }
-    
+
     // Add non-wildcard formats as a single tag
     if (formatValues.length > 0) {
       queryOptions.tags.push({
@@ -694,7 +818,7 @@ async function loadMore() {
         values: formatValues
       })
     }
-    
+
     // Add user query as a single value-only tag with fuzzy match
     // Parse query to handle quoted phrases
     const words = parseSearchTerms(query)
@@ -704,16 +828,16 @@ async function loadMore() {
         match: 'FUZZY_AND'
       })
     }
-    
+
     const moreResults = await getTransactions(queryOptions)
-    
+
     // Append new results to allResults array
-    allResults.value.push(...moreResults.edges.map(edge => edge.node))
-    
+    allResults.value.push(...moreResults.edges.map((edge) => edge.node))
+
     // Update results metadata
     results.value.edges.push(...moreResults.edges)
     results.value.pageInfo = moreResults.pageInfo
-    
+
     // Update cursor
     if (moreResults.edges.length > 0) {
       lastCursor.value = moreResults.edges[moreResults.edges.length - 1].cursor
@@ -729,13 +853,13 @@ async function loadMore() {
 async function goToNextPage() {
   const cachedPages = Math.ceil(allResults.value.length / resultsPerPage)
   const nextPage = currentPage.value + 1
-  
+
   // Check if we need to fetch more data
   if (nextPage > cachedPages && results.value?.pageInfo.hasNextPage) {
     // Need to fetch more results first
     await loadMore()
   }
-  
+
   // Navigate to next page
   router.push({
     query: {
@@ -777,8 +901,8 @@ function isVideoTransaction(transaction: any): boolean {
 }
 
 function getContentType(transaction: any): string {
-  const contentTypeTag = transaction.tags.find((tag: any) => 
-    tag.name.toLowerCase() === 'content-type'
+  const contentTypeTag = transaction.tags.find(
+    (tag: any) => tag.name.toLowerCase() === 'content-type'
   )
   return contentTypeTag?.value || 'unknown'
 }
@@ -820,7 +944,7 @@ function openVideoModal(transaction: any) {
 function closeVideoModal() {
   const currentState = window.history.state
   selectedVideo.value = null
-  
+
   // If the current history state is the modal state, go back to remove it
   // This happens when user clicks X or overlay
   if (currentState && currentState.modal) {
@@ -851,11 +975,22 @@ function openInNewTab(transactionId: string) {
 }
 
 function copyVideoUrl(transactionId: string) {
-  navigator.clipboard.writeText(getVideoUrl(transactionId))
+  navigator.clipboard
+    .writeText(getVideoUrl(transactionId))
     .then(() => {
+      videoCopied.value = {
+        ...videoCopied.value,
+        [transactionId]: true
+      }
       console.log('Video URL copied to clipboard')
+      setTimeout(() => {
+        videoCopied.value = {
+          ...videoCopied.value,
+          [transactionId]: false
+        }
+      }, 2000)
     })
-    .catch(err => {
+    .catch((err) => {
       console.error('Failed to copy URL:', err)
     })
 }
@@ -885,7 +1020,7 @@ function copyVideoUrl(transactionId: string) {
   color: var(--color-accent-foreground);
 }
 
-.format-picker input[type="radio"] {
+.format-picker input[type='radio'] {
   width: 12px;
   height: 12px;
   margin: 0;

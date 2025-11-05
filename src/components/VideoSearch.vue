@@ -9,7 +9,7 @@
         placeholder="Search videos with 'tags:Content-Type=video/mp4 first:20' or 'owner:address tags:Content-Type=video/webm'"
         class="search-input"
       />
-      <button 
+      <button
         @click="executeSearch"
         :disabled="loading || !hasValidQuery"
         class="search-button"
@@ -21,13 +21,9 @@
     <!-- Search Chips -->
     <div v-if="searchChips.length > 0" class="search-chips-container">
       <div class="search-chips">
-        <div
-          v-for="chip in searchChips"
-          :key="chip.id"
-          class="search-chip"
-        >
+        <div v-for="chip in searchChips" :key="chip.id" class="search-chip">
           <span class="chip-label">{{ chip.label }}</span>
-          <button 
+          <button
             @click="removeChip(chip.id)"
             class="chip-remove"
             title="Remove filter"
@@ -36,7 +32,7 @@
           </button>
         </div>
       </div>
-      <button 
+      <button
         @click="clearAllChips"
         class="clear-all-chips"
         title="Clear all filters"
@@ -50,10 +46,26 @@
       <div class="hint-section">
         <h4>Quick Video Search:</h4>
         <div class="examples">
-          <code class="cursor-pointer" @click="setSearchQuery('tags:Content-Type=video/mp4 first:20')">MP4 Videos</code>
-          <code class="cursor-pointer" @click="setSearchQuery('tags:Content-Type=video/webm first:15')">WebM Videos</code>
-          <code class="cursor-pointer" @click="setSearchQuery('tags:Type=video first:24')">All Videos</code>
-          <code class="cursor-pointer" @click="setSearchQuery('tags:Category=entertainment first:20')">Entertainment</code>
+          <code
+            class="cursor-pointer"
+            @click="setSearchQuery('tags:Content-Type=video/mp4 first:20')"
+            >MP4 Videos</code
+          >
+          <code
+            class="cursor-pointer"
+            @click="setSearchQuery('tags:Content-Type=video/webm first:15')"
+            >WebM Videos</code
+          >
+          <code
+            class="cursor-pointer"
+            @click="setSearchQuery('tags:Type=video first:24')"
+            >All Videos</code
+          >
+          <code
+            class="cursor-pointer"
+            @click="setSearchQuery('tags:Category=entertainment first:20')"
+            >Entertainment</code
+          >
         </div>
       </div>
     </div>
@@ -68,42 +80,42 @@
       <div class="results-header">
         <h3>Found {{ videoTransactions.length }} Videos</h3>
         <div class="view-controls">
-          <button 
-            @click="gridSize = 'small'" 
+          <button
+            @click="gridSize = 'small'"
             :class="{ active: gridSize === 'small' }"
             class="grid-size-btn"
             title="Small grid"
           >
-            ▦
+            <Grid3X3Icon />
           </button>
-          <button 
-            @click="gridSize = 'medium'" 
+          <button
+            @click="gridSize = 'medium'"
             :class="{ active: gridSize === 'medium' }"
             class="grid-size-btn"
             title="Medium grid"
           >
-            ⬜
+            <Grid2x2Icon />
           </button>
-          <button 
-            @click="gridSize = 'large'" 
+          <button
+            @click="gridSize = 'large'"
             :class="{ active: gridSize === 'large' }"
             class="grid-size-btn"
             title="Large grid"
           >
-            ⬛
+            <Grid2x2PlusIcon />
           </button>
         </div>
       </div>
-      
+
       <div class="video-grid" :class="`grid-${gridSize}`">
-        <div 
-          v-for="transaction in videoTransactions" 
+        <div
+          v-for="transaction in videoTransactions"
           :key="transaction.id"
           class="video-item"
           @click="openVideoModal(transaction)"
         >
           <div class="video-wrapper">
-            <video 
+            <video
               :src="getVideoUrl(transaction.id)"
               :poster="getVideoPoster(transaction)"
               class="grid-video"
@@ -119,19 +131,25 @@
                 ▶
               </div>
               <div class="video-info">
-                <span class="video-type">{{ getContentType(transaction) }}</span>
-                <span class="video-size">{{ formatFileSize(parseInt(transaction.data.size)) }}</span>
-                <span class="video-duration">{{ getVideoDuration(transaction.id) }}</span>
+                <span class="video-type">{{
+                  getContentType(transaction)
+                }}</span>
+                <span class="video-size">{{
+                  formatFileSize(parseInt(transaction.data.size))
+                }}</span>
+                <span class="video-duration">{{
+                  getVideoDuration(transaction.id)
+                }}</span>
               </div>
               <div class="video-actions">
-                <button 
+                <button
                   @click.stop="openInNewTab(transaction.id)"
                   class="action-btn"
                   title="Open in new tab"
                 >
                   🔗
                 </button>
-                <button 
+                <button
                   @click.stop="copyVideoUrl(transaction.id)"
                   class="action-btn"
                   title="Copy video URL"
@@ -144,7 +162,7 @@
           <div class="video-meta">
             <div class="transaction-id-full">
               <span class="transaction-label">ID:</span>
-              <button 
+              <button
                 @click.stop="copyTransactionId(transaction.id)"
                 class="transaction-id-btn"
                 :title="`Click to copy: ${transaction.id}`"
@@ -154,8 +172,8 @@
               </button>
             </div>
             <div class="video-tags">
-              <span 
-                v-for="tag in getRelevantTags(transaction)" 
+              <span
+                v-for="tag in getRelevantTags(transaction)"
                 :key="tag.name"
                 class="tag"
               >
@@ -167,28 +185,43 @@
       </div>
 
       <!-- No videos found in results -->
-      <div v-if="results && results.edges.length > 0 && videoTransactions.length === 0" class="no-videos-message">
-        <p>No video transactions found in the current results. Try searching with video-specific filters:</p>
+      <div
+        v-if="
+          results && results.edges.length > 0 && videoTransactions.length === 0
+        "
+        class="no-videos-message"
+      >
+        <p>
+          No video transactions found in the current results. Try searching with
+          video-specific filters:
+        </p>
         <div class="suggested-searches">
-          <code class="cursor-pointer" @click="setSearchQuery('tags:Content-Type=video/mp4 first:20')">tags:Content-Type=video/mp4 first:20</code>
-          <code class="cursor-pointer" @click="setSearchQuery('tags:Content-Type=video/webm first:15')">tags:Content-Type=video/webm first:15</code>
+          <code
+            class="cursor-pointer"
+            @click="setSearchQuery('tags:Content-Type=video/mp4 first:20')"
+            >tags:Content-Type=video/mp4 first:20</code
+          >
+          <code
+            class="cursor-pointer"
+            @click="setSearchQuery('tags:Content-Type=video/webm first:15')"
+            >tags:Content-Type=video/webm first:15</code
+          >
         </div>
       </div>
 
       <!-- Pagination -->
       <div v-if="results.pageInfo.hasNextPage" class="pagination">
-        <button 
-          @click="loadMore"
-          :disabled="loading"
-          class="load-more-button"
-        >
+        <button @click="loadMore" :disabled="loading" class="load-more-button">
           {{ loading ? 'Loading More Videos...' : 'Load More Videos' }}
         </button>
       </div>
     </div>
 
     <!-- No results message -->
-    <div v-if="results && results.edges.length === 0" class="no-results-message">
+    <div
+      v-if="results && results.edges.length === 0"
+      class="no-results-message"
+    >
       <p>No transactions found matching your search criteria.</p>
     </div>
 
@@ -200,8 +233,8 @@
           <button @click="closeVideoModal" class="close-btn">×</button>
         </div>
         <div class="modal-body">
-          <video 
-            :src="getVideoUrl(selectedVideo.id)" 
+          <video
+            :src="getVideoUrl(selectedVideo.id)"
             class="modal-video"
             controls
             autoplay
@@ -232,8 +265,8 @@
             <div v-if="selectedVideo.tags.length > 0" class="detail-row">
               <strong>Tags:</strong>
               <div class="modal-tags">
-                <span 
-                  v-for="tag in selectedVideo.tags" 
+                <span
+                  v-for="tag in selectedVideo.tags"
                   :key="tag.name"
                   class="modal-tag"
                 >
@@ -242,15 +275,15 @@
               </div>
             </div>
             <div class="modal-actions">
-              <a 
-                :href="getVideoUrl(selectedVideo.id)" 
-                target="_blank" 
+              <a
+                :href="getVideoUrl(selectedVideo.id)"
+                target="_blank"
                 class="modal-action-btn primary"
               >
                 Open Video
               </a>
-              <button 
-                @click="copyVideoUrl(selectedVideo.id)" 
+              <button
+                @click="copyVideoUrl(selectedVideo.id)"
                 class="modal-action-btn secondary"
               >
                 Copy URL
@@ -265,7 +298,12 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { useGraphQL, type TransactionQueryOptions, type TransactionConnection } from '../composables/gql'
+import {
+  useGraphQL,
+  type TransactionQueryOptions,
+  type TransactionConnection
+} from '../composables/gql'
+import { Grid2x2Icon, Grid2x2PlusIcon, Grid3X3Icon } from 'lucide-vue-next'
 
 interface SearchChip {
   id: string
@@ -292,21 +330,27 @@ const { getTransactions } = useGraphQL()
 
 // Computed properties
 const hasValidQuery = computed(() => {
-  return searchChips.value.length > 0 || Object.keys(parsedOptions.value).length > 0
+  return (
+    searchChips.value.length > 0 || Object.keys(parsedOptions.value).length > 0
+  )
 })
 
 const videoTransactions = computed(() => {
   if (!results.value) return []
-  
+
   return results.value.edges
     .map((edge: any) => edge.node)
-    .filter((transaction: any) => isVideoTransaction(transaction) && !failedVideos.value.has(transaction.id))
+    .filter(
+      (transaction: any) =>
+        isVideoTransaction(transaction) &&
+        !failedVideos.value.has(transaction.id)
+    )
 })
 
 // Search functionality
 function parseQuery() {
   error.value = null
-  
+
   if (!searchQuery.value.trim()) {
     searchChips.value = []
     parsedOptions.value = {}
@@ -316,16 +360,16 @@ function parseQuery() {
   try {
     const options: TransactionQueryOptions = {}
     const chips: SearchChip[] = []
-    
+
     // Parse space-separated terms with quoted string support
     const parts: string[] = []
     let current = ''
     let inQuotes = false
     let i = 0
-    
+
     while (i < searchQuery.value.length) {
       const char = searchQuery.value[i]
-      
+
       if (char === '"') {
         inQuotes = !inQuotes
         current += char
@@ -339,27 +383,27 @@ function parseQuery() {
       }
       i++
     }
-    
+
     if (current.trim()) {
       parts.push(current.trim())
     }
-    
+
     if (parts.length === 0 && searchQuery.value.trim().includes(':')) {
       parts.push(searchQuery.value.trim())
     }
-    
+
     for (const part of parts) {
       const [key, ...valueParts] = part.split(':')
       const value = valueParts.join(':').replace(/"/g, '')
-      
+
       if (!key || !value) continue
-      
+
       const chipId = `${key}-${value}-${Date.now()}-${Math.random()}`
-      
+
       switch (key.toLowerCase()) {
         case 'owner':
         case 'owners':
-          const owners = value.split(',').map(v => v.trim())
+          const owners = value.split(',').map((v) => v.trim())
           options.owners = owners
           chips.push({
             id: chipId,
@@ -368,10 +412,10 @@ function parseQuery() {
             value: owners
           })
           break
-          
+
         case 'recipient':
         case 'recipients':
-          const recipients = value.split(',').map(v => v.trim())
+          const recipients = value.split(',').map((v) => v.trim())
           options.recipients = recipients
           chips.push({
             id: chipId,
@@ -380,7 +424,7 @@ function parseQuery() {
             value: recipients
           })
           break
-          
+
         case 'tags':
           if (value.includes('=')) {
             const [tagName, tagValue] = value.split('=', 2)
@@ -394,7 +438,7 @@ function parseQuery() {
             })
           }
           break
-          
+
         case 'first':
         case 'limit':
           const limit = parseInt(value)
@@ -408,11 +452,11 @@ function parseQuery() {
             })
           }
           break
-          
+
         case 'block':
         case 'height':
           if (value.includes('-')) {
-            const [min, max] = value.split('-').map(v => parseInt(v.trim()))
+            const [min, max] = value.split('-').map((v) => parseInt(v.trim()))
             if (!isNaN(min) && !isNaN(max)) {
               options.block = { min, max }
               chips.push({
@@ -437,7 +481,7 @@ function parseQuery() {
           break
       }
     }
-    
+
     searchChips.value = chips
     parsedOptions.value = options
   } catch (err) {
@@ -466,18 +510,19 @@ async function executeSearch() {
     error.value = 'Please enter a search query'
     return
   }
-  
+
   loading.value = true
   error.value = null
   lastCursor.value = undefined
   failedVideos.value.clear()
-  
+
   try {
     results.value = await getTransactions(parsedOptions.value)
-    
+
     // Store cursor for pagination
     if (results.value.edges.length > 0) {
-      lastCursor.value = results.value.edges[results.value.edges.length - 1].cursor
+      lastCursor.value =
+        results.value.edges[results.value.edges.length - 1].cursor
     }
   } catch (err) {
     error.value = err instanceof Error ? err.message : String(err)
@@ -489,20 +534,20 @@ async function executeSearch() {
 
 async function loadMore() {
   if (!hasValidQuery.value || !lastCursor.value || !results.value) return
-  
+
   loading.value = true
   error.value = null
-  
+
   try {
     const moreResults = await getTransactions({
       ...parsedOptions.value,
       after: lastCursor.value
     })
-    
+
     // Append new results
     results.value.edges.push(...moreResults.edges)
     results.value.pageInfo = moreResults.pageInfo
-    
+
     // Update cursor
     if (moreResults.edges.length > 0) {
       lastCursor.value = moreResults.edges[moreResults.edges.length - 1].cursor
@@ -515,7 +560,7 @@ async function loadMore() {
 }
 
 function removeChip(chipId: string) {
-  searchChips.value = searchChips.value.filter(chip => chip.id !== chipId)
+  searchChips.value = searchChips.value.filter((chip) => chip.id !== chipId)
   rebuildQuery()
 }
 
@@ -527,8 +572,8 @@ function clearAllChips() {
 
 function rebuildQuery() {
   const queryParts: string[] = []
-  
-  searchChips.value.forEach(chip => {
+
+  searchChips.value.forEach((chip) => {
     switch (chip.type) {
       case 'owners':
         queryParts.push(`owner:${chip.value.join(',')}`)
@@ -551,7 +596,7 @@ function rebuildQuery() {
         break
     }
   })
-  
+
   searchQuery.value = queryParts.join(' ')
   parseQuery()
 }
@@ -563,8 +608,8 @@ function isVideoTransaction(transaction: any): boolean {
 }
 
 function getContentType(transaction: any): string {
-  const contentTypeTag = transaction.tags.find((tag: any) => 
-    tag.name.toLowerCase() === 'content-type'
+  const contentTypeTag = transaction.tags.find(
+    (tag: any) => tag.name.toLowerCase() === 'content-type'
   )
   return contentTypeTag?.value || 'unknown'
 }
@@ -575,8 +620,10 @@ function getVideoUrl(transactionId: string): string {
 
 function getVideoPoster(transaction: any): string {
   // Try to find a poster/thumbnail tag
-  const posterTag = transaction.tags.find((tag: any) => 
-    tag.name.toLowerCase() === 'poster' || tag.name.toLowerCase() === 'thumbnail'
+  const posterTag = transaction.tags.find(
+    (tag: any) =>
+      tag.name.toLowerCase() === 'poster' ||
+      tag.name.toLowerCase() === 'thumbnail'
   )
   return posterTag?.value ? `https://arweave.net/${posterTag.value}` : ''
 }
@@ -617,14 +664,20 @@ function formatFileSize(bytes: number): string {
 }
 
 function getRelevantTags(transaction: any) {
-  return transaction.tags.filter((tag: any) => 
-    ['App-Name', 'Type', 'Title', 'Description', 'Category'].includes(tag.name)
-  ).slice(0, 2)
+  return transaction.tags
+    .filter((tag: any) =>
+      ['App-Name', 'Type', 'Title', 'Description', 'Category'].includes(
+        tag.name
+      )
+    )
+    .slice(0, 2)
 }
 
 // Video controls
 function playVideo(transactionId: string) {
-  const videoElement = document.querySelector(`video[src*="${transactionId}"]`) as HTMLVideoElement
+  const videoElement = document.querySelector(
+    `video[src*="${transactionId}"]`
+  ) as HTMLVideoElement
   if (videoElement) {
     if (videoElement.paused) {
       videoElement.play()
@@ -648,28 +701,32 @@ function openInNewTab(transactionId: string) {
 }
 
 function copyVideoUrl(transactionId: string) {
-  navigator.clipboard.writeText(getVideoUrl(transactionId))
+  navigator.clipboard
+    .writeText(getVideoUrl(transactionId))
     .then(() => {
       console.log('Video URL copied to clipboard')
     })
-    .catch(err => {
+    .catch((err) => {
       console.error('Failed to copy URL:', err)
     })
 }
 
 function copyTransactionId(transactionId: string) {
-  navigator.clipboard.writeText(transactionId).then(() => {
-    console.log('Transaction ID copied to clipboard:', transactionId)
-  }).catch(err => {
-    console.error('Failed to copy transaction ID:', err)
-    // Fallback for older browsers
-    const textArea = document.createElement('textarea')
-    textArea.value = transactionId
-    document.body.appendChild(textArea)
-    textArea.select()
-    document.execCommand('copy')
-    document.body.removeChild(textArea)
-  })
+  navigator.clipboard
+    .writeText(transactionId)
+    .then(() => {
+      console.log('Transaction ID copied to clipboard:', transactionId)
+    })
+    .catch((err) => {
+      console.error('Failed to copy transaction ID:', err)
+      // Fallback for older browsers
+      const textArea = document.createElement('textarea')
+      textArea.value = transactionId
+      document.body.appendChild(textArea)
+      textArea.select()
+      document.execCommand('copy')
+      document.body.removeChild(textArea)
+    })
 }
 
 // Expose methods for parent component
@@ -920,7 +977,13 @@ onMounted(() => {
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(to bottom, rgba(0,0,0,0.7) 0%, transparent 30%, transparent 70%, rgba(0,0,0,0.7) 100%);
+  background: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0.7) 0%,
+    transparent 30%,
+    transparent 70%,
+    rgba(0, 0, 0, 0.7) 100%
+  );
   opacity: 0;
   transition: opacity 0.3s;
   display: flex;
@@ -1236,7 +1299,7 @@ onMounted(() => {
   .modal-body {
     flex-direction: row;
   }
-  
+
   .modal-video {
     max-height: 70vh;
   }
