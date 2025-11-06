@@ -288,6 +288,21 @@ const onSearchClicked = () => {
           : {})
       }
     })
+  } else if (searchMode.value === 'Audio') {
+    // Preserve existing query params (like format) when on the same page
+    const currentQuery = router.currentRoute.value.query
+    const isOnAudio = router.currentRoute.value.path === '/audio'
+
+    router.push({
+      path: '/audio',
+      query: {
+        q: trimmedQuery,
+        // Preserve format if we're already on audio page
+        ...(isOnAudio && currentQuery.format
+          ? { format: currentQuery.format }
+          : {})
+      }
+    })
   }
 }
 
