@@ -869,21 +869,37 @@ onUnmounted(() => {
 
 <style scoped>
 .format-picker {
-  display: flex;
-  gap: 1rem;
-  margin-bottom: 1.5rem;
-  flex-wrap: wrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 0rem 0;
+  padding: 0.5rem 0.75rem;
+  background-color: var(--color-muted);
+  border: 1px solid var(--color-border);
+  border-radius: 0.375rem;
+  font-size: 0.75rem;
 }
 
 .format-picker label {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.375rem;
   cursor: pointer;
-  user-select: none;
+}
+
+.format-picker label:hover {
+  color: var(--color-accent-foreground);
 }
 
 .format-picker input[type='checkbox'] {
-  cursor: pointer;
+  width: 12px;
+  height: 12px;
+  margin: 0;
+  vertical-align: middle;
+}
+
+.format-picker span {
+  line-height: 1;
+  vertical-align: middle;
 }
 </style>
