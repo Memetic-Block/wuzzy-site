@@ -111,14 +111,14 @@
       >
         <div class="flex flex-col gap-3">
           <!-- Audio Player -->
-          <audio
-            :src="getAudioUrl(transaction.id)"
-            controls
-            class="w-full"
-            @error="handleAudioError"
-            @loadeddata="handleAudioLoad"
+          <AudioPlayer
+            :file="getAudioUrl(transaction.id)"
+            :title="getAudioTitle(transaction)"
+            :details="getAudioDetails(transaction)"
+            show-skip
+            show-track
           />
-          
+
           <!-- Audio Info -->
           <div class="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
             <span class="bg-muted px-2 py-1 rounded">
@@ -316,6 +316,7 @@ import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useGraphQL, type TransactionConnection } from '../composables/gql'
 import SearchInput from '../components/SearchInput.vue'
+import AudioPlayer from '../components/AudioPlayer.vue'
 import Skeleton from '@/components/ui/skeleton/Skeleton.vue'
 import {
   CheckIcon,
@@ -792,6 +793,42 @@ function getContentType(transaction: any): string {
     (tag: any) => tag.name.toLowerCase() === 'content-type'
   )
   return contentTypeTag?.value || 'unknown'
+}
+
+function getAudioTitle(transaction: any): string {
+  // First priority: "Title" tag
+  const titleTag = transaction.tags.find(
+    (tag: any) => tag.name.toLowerCase() === 'title'
+  )
+  if (titleTag?.value) {
+    return titleTag.value
+  }
+
+  // Second priority: "File-Name" tag
+  const fileNameTag = transaction.tags.find(
+    (tag: any) => tag.name.toLowerCase() === 'file-name'
+  )
+  if (fileNameTag?.value) {
+    return fileNameTag.value
+  }
+
+  // Fallback: Content-Type
+  return getContentType(transaction)
+}
+
+function getAudioDetails(transaction: any): string {
+  // First priority: "Artist" or "Artist-Name" tag
+  const artistTag = transaction.tags.find(
+    (tag: any) => tag.name.toLowerCase() === 'artist' || tag.name.toLowerCase() === 'artist-name'
+  )
+  if (artistTag?.value) {
+    const artist = artistTag.value
+    return artist.length > 30 ? artist.substring(0, 27) + '...' : artist
+  }
+
+  // Fallback: Owner address truncated
+  const owner = transaction.owner.address
+  return owner.length > 30 ? owner.substring(0, 27) + '...' : owner
 }
 
 function getAudioUrl(transactionId: string): string {
