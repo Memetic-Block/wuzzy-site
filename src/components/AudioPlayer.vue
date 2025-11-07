@@ -4,7 +4,13 @@
       <img :src="image" :alt="title" class="max-w-full h-auto rounded" />
     </div>
     <div
-      class="bg-card border border-border rounded-lg p-3 text-foreground bg-muted/30"
+      :data-active="playing"
+      :class="[
+        'border rounded-lg p-3 transition-colors',
+        playing
+          ? 'bg-foreground text-background border-foreground'
+          : 'bg-card text-foreground border-border'
+      ]"
     >
       <div class="flex items-center gap-3">
         <!-- Back 15s Button -->
@@ -12,7 +18,12 @@
           v-if="showSkip && !livestream"
           @click="goBack15"
           aria-label="go back 15 seconds"
-          class="flex-shrink-0 text-muted-foreground hover:text-foreground transition-colors"
+          :class="[
+            'flex-shrink-0 transition-colors',
+            playing
+              ? 'text-background hover:opacity-80'
+              : 'text-muted-foreground hover:text-foreground'
+          ]"
         >
           <SkipBackIcon fill="currentColor" class="w-5 h-5" />
         </button>
@@ -21,7 +32,12 @@
         <button
           @click="togglePlay"
           :aria-label="playing ? 'pause' : 'play'"
-          class="flex-shrink-0 text-muted-foreground hover:text-foreground transition-colors"
+          :class="[
+            'flex-shrink-0 transition-colors',
+            playing
+              ? 'text-background hover:opacity-80'
+              : 'text-muted-foreground hover:text-foreground'
+          ]"
         >
           <PlayIcon v-if="!playing" fill="currentColor" class="w-5 h-5" />
           <PauseIcon v-if="playing" fill="currentColor" class="w-5 h-5" />
@@ -32,7 +48,12 @@
           v-if="showSkip && !livestream"
           @click="goAhead15"
           aria-label="go ahead 15 seconds"
-          class="flex-shrink-0 text-muted-foreground hover:text-foreground transition-colors"
+          :class="[
+            'flex-shrink-0 transition-colors',
+            playing
+              ? 'text-background hover:opacity-80'
+              : 'text-muted-foreground hover:text-foreground'
+          ]"
         >
           <SkipForwardIcon fill="currentColor" class="w-5 h-5" />
         </button>
@@ -43,24 +64,41 @@
             <a
               v-if="hasTitle && hasTitleLink"
               :href="titleLink"
-              class="text-foreground hover:underline"
+              :class="[
+                'hover:underline',
+                playing ? 'text-background' : 'text-foreground'
+              ]"
             >
               {{ title }}
             </a>
-            <span v-else-if="hasTitle" class="text-foreground">{{
-              title
-            }}</span>
-            <span v-if="hasTitle && hasDetails" class="text-muted-foreground">
+            <span
+              v-else-if="hasTitle"
+              :class="[playing ? 'text-background' : 'text-foreground']"
+              >{{ title }}</span
+            >
+            <span
+              :class="['text-muted-foreground', playing && 'opacity-70']"
+              v-if="hasTitle && hasDetails"
+            >
               -
             </span>
             <a
               v-if="hasDetails && hasDetailsLink"
               :href="detailsLink"
-              class="text-muted-foreground hover:underline ml-1"
+              :class="[
+                'hover:underline ml-1',
+                playing ? 'text-background opacity-70' : 'text-muted-foreground'
+              ]"
             >
               {{ details }}
             </a>
-            <span v-else-if="hasDetails" class="text-muted-foreground ml-1">
+            <span
+              v-else-if="hasDetails"
+              :class="[
+                'ml-1',
+                playing ? 'text-background opacity-70' : 'text-muted-foreground'
+              ]"
+            >
               {{ details }}
             </span>
           </div>
@@ -68,21 +106,35 @@
           <!-- Progress Bar (non-livestream) -->
           <template v-if="!livestream && showTrack">
             <div
-              class="relative h-1 bg-muted rounded-full cursor-pointer my-1 group"
+              :class="[
+                'relative h-1  rounded-full cursor-pointer my-1 group',
+                playing ? 'bg-muted-foreground' : 'bg-muted'
+              ]"
               @click.prevent="seek"
             >
               <div
                 :style="{ width: percentBuffered + '%' }"
-                class="absolute top-0 left-0 h-full bg-muted-foreground rounded-full opacity-50"
+                :class="[
+                  'absolute top-0 left-0 h-full rounded-full opacity-50',
+                  playing ? 'bg-muted' : 'bg-muted-foreground'
+                ]"
               />
               <div
                 :style="{ width: percentComplete + '%' }"
-                class="absolute top-0 left-0 h-full bg-primary rounded-full"
+                :class="[
+                  'absolute top-0 left-0 h-full rounded-full',
+                  playing ? 'bg-secondary' : 'bg-primary'
+                ]"
               />
             </div>
 
             <!-- Time Display -->
-            <div class="flex justify-between text-xs text-muted-foreground">
+            <div
+              :class="[
+                'flex justify-between text-xs ',
+                playing ? 'text-secondary' : 'text-muted-foreground'
+              ]"
+            >
               <span>{{ convertTimeHHMMSS(currentSeconds) }}</span>
               <span>{{ convertTimeHHMMSS(durationSeconds) }}</span>
             </div>
@@ -108,7 +160,10 @@
           </transition>
           <button
             tabindex="0"
-            class="text-muted-foreground hover:text-foreground transition-colors"
+            :class="[
+              'text-muted-foreground transition-colors',
+              playing ? 'hover:text-background' : 'hover:text-foreground'
+            ]"
             :aria-label="muted ? 'unmute' : 'mute'"
             @click="mute"
             @keypress.space.enter="mute"
@@ -301,6 +356,7 @@ export default {
     })
     this.audio.addEventListener('play', () => {
       this.playing = true
+      this.pauseOtherAudioPlayers()
     })
   },
   methods: {
@@ -351,6 +407,15 @@ export default {
     update() {
       this.currentSeconds = this.audio.currentTime
       this.buffered = this.audio.buffered.end(0)
+    },
+    pauseOtherAudioPlayers() {
+      // Find all audio elements and pause them except this one
+      const audioElements = document.querySelectorAll('audio')
+      audioElements.forEach((audio) => {
+        if (audio !== this.audio) {
+          audio.pause()
+        }
+      })
     }
   }
 }
@@ -361,7 +426,7 @@ export default {
 input[type='range'] {
   -webkit-appearance: none;
   background: transparent;
-  background-color: var(--color-foreground);
+  background-color: var(--muted-foreground);
   width: 100%;
   margin-right: 0.25rem;
 }
@@ -393,12 +458,20 @@ input[type='range']::-webkit-slider-thumb {
   margin-top: -6px;
 }
 
+[data-active='true'] input[type='range']::-webkit-slider-thumb {
+  background: var(--color-background);
+}
+
 input[type='range']::-moz-range-thumb {
   height: 15px;
   width: 15px;
   border-radius: 50%;
   background: var(--color-foreground);
   cursor: pointer;
+}
+
+[data-active='true'] input[type='range']::-moz-range-thumb {
+  background: var(--color-background);
 }
 
 input[type='range']::-ms-thumb {
@@ -409,23 +482,27 @@ input[type='range']::-ms-thumb {
   cursor: pointer;
 }
 
+[data-active='true'] input[type='range']::-ms-thumb {
+  background: var(--color-background);
+}
+
 /* input range track */
 input[type='range']::-webkit-slider-runnable-track {
   width: 100%;
   height: 3px;
   cursor: pointer;
-  background: var(--color-foreground);
+  background: var(--color-muted-foreground);
 }
 
 input[type='range']:focus::-webkit-slider-runnable-track {
-  background: var(--color-foreground);
+  background: var(--color-muted-foreground);
 }
 
 input[type='range']::-moz-range-track {
   width: 100%;
   height: 3px;
   cursor: pointer;
-  background: var(--color-foreground);
+  background: var(--color-muted-foreground);
 }
 
 input[type='range']::-ms-track {
@@ -439,19 +516,35 @@ input[type='range']::-ms-track {
 }
 
 input[type='range']::-ms-fill-lower {
-  background: var(--color-foreground);
+  background: var(--color-background);
 }
 
 input[type='range']:focus::-ms-fill-lower {
-  background: var(--color-foreground);
+  background: var(--color-background);
+}
+
+[data-active='true'] input[type='range']::-ms-fill-lower {
+  background: var(--color-secondary);
+}
+
+[data-active='true'] input[type='range']:focus::-ms-fill-lower {
+  background: var(--color-secondary);
 }
 
 input[type='range']::-ms-fill-upper {
-  background: var(--color-foreground);
+  background: var(--color-muted-foreground);
 }
 
 input[type='range']:focus::-ms-fill-upper {
-  background: var(--color-foreground);
+  background: var(--color-muted-foreground);
+}
+
+[data-active='true'] input[type='range']::-ms-fill-upper {
+  background: var(--color-muted-foreground);
+}
+
+[data-active='true'] input[type='range']:focus::-ms-fill-upper {
+  background: var(--color-muted-foreground);
 }
 
 /* Slide transition animations */
