@@ -50,6 +50,12 @@
           Videos
         </div>
         <div
+          @mousedown.prevent="onSearchModeChange('Audio')"
+          class="px-2 py-1.5 text-sm cursor-pointer hover:bg-accent hover:text-accent-foreground rounded-sm mx-1 whitespace-nowrap"
+        >
+          Audio
+        </div>
+        <div
           @mousedown.prevent="onSearchModeChange('Hyperbeam')"
           class="px-2 py-1.5 text-sm cursor-pointer hover:bg-accent hover:text-accent-foreground rounded-sm mx-1 whitespace-nowrap"
         >
@@ -136,6 +142,8 @@ const placeholderText = computed(() => {
       return 'Search the Permaweb for images...'
     case 'Video':
       return 'Search the Permaweb for videos...'
+    case 'Audio':
+      return 'Search the Permaweb for audio...'
     default:
       return 'Search the Permaweb...'
   }
@@ -193,6 +201,20 @@ const onSearchModeChange = (
         query: {
           q: query,
           ...(isOnVideos && currentQuery.format
+            ? { format: currentQuery.format }
+            : {})
+        }
+      })
+    } else if (mode === 'Audio') {
+      // Preserve format when switching from audio back to Audio
+      const currentQuery = router.currentRoute.value.query
+      const isOnAudio = router.currentRoute.value.path === '/audio'
+
+      router.push({
+        path: '/audio',
+        query: {
+          q: query,
+          ...(isOnAudio && currentQuery.format
             ? { format: currentQuery.format }
             : {})
         }
@@ -262,6 +284,21 @@ const onSearchClicked = () => {
         q: trimmedQuery,
         // Preserve format if we're already on videos page
         ...(isOnVideos && currentQuery.format
+          ? { format: currentQuery.format }
+          : {})
+      }
+    })
+  } else if (searchMode.value === 'Audio') {
+    // Preserve existing query params (like format) when on the same page
+    const currentQuery = router.currentRoute.value.query
+    const isOnAudio = router.currentRoute.value.path === '/audio'
+
+    router.push({
+      path: '/audio',
+      query: {
+        q: trimmedQuery,
+        // Preserve format if we're already on audio page
+        ...(isOnAudio && currentQuery.format
           ? { format: currentQuery.format }
           : {})
       }
