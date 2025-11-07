@@ -1,7 +1,11 @@
 <template>
   <div class="w-full">
     <div v-if="image" class="mb-3 w-full">
-      <img :src="image" :alt="title" class="max-w-full h-auto rounded" />
+      <img
+        :src="image"
+        :alt="title ?? undefined"
+        class="max-w-full h-auto rounded"
+      />
     </div>
     <div
       :data-active="playing"
@@ -63,7 +67,7 @@
           <div v-if="showTrack" class="text-sm font-semibold truncate">
             <a
               v-if="hasTitle && hasTitleLink"
-              :href="titleLink"
+              :href="titleLink ?? undefined"
               :class="[
                 'hover:underline',
                 playing ? 'text-background' : 'text-foreground'
@@ -84,7 +88,7 @@
             </span>
             <a
               v-if="hasDetails && hasDetailsLink"
-              :href="detailsLink"
+              :href="detailsLink ?? undefined"
               :class="[
                 'hover:underline ml-1',
                 playing ? 'text-background opacity-70' : 'text-muted-foreground'
@@ -190,7 +194,7 @@
       <audio
         ref="audioFile"
         :loop="innerLoop"
-        :src="file"
+        :src="file ?? undefined"
         preload="auto"
         style="display: none"
       />
@@ -198,227 +202,198 @@
   </div>
 </template>
 
-<script>
+<script setup lang="ts">
+import { ref, computed, watch, onMounted } from 'vue'
 import {
   PlayIcon,
   PauseIcon,
   SkipBackIcon,
   SkipForwardIcon,
   VolumeIcon,
-  Volume2Icon,
   VolumeXIcon,
   DownloadIcon
 } from 'lucide-vue-next'
 
-export default {
-  name: 'VueSound',
-  components: {
-    PlayIcon,
-    PauseIcon,
-    SkipBackIcon,
-    SkipForwardIcon,
-    VolumeIcon,
-    Volume2Icon,
-    VolumeXIcon,
-    DownloadIcon
-  },
-  props: {
-    autoPlay: {
-      type: Boolean,
-      default: false
-    },
-    details: {
-      type: String,
-      default: null
-    },
-    detailsLink: {
-      type: String,
-      default: null
-    },
-    file: {
-      type: String,
-      default: null
-    },
-    image: {
-      type: String,
-      default: null
-    },
-    livestream: {
-      type: Boolean,
-      default: false
-    },
-    loop: {
-      type: Boolean,
-      default: false
-    },
-    showDownload: {
-      type: Boolean,
-      default: false
-    },
-    showSkip: {
-      type: Boolean,
-      default: true
-    },
-    showTrack: {
-      type: Boolean,
-      default: true
-    },
-    title: {
-      type: String,
-      default: null
-    },
-    titleLink: {
-      type: String,
-      default: null
-    }
-  },
-  data() {
-    return {
-      audio: undefined,
-      currentSeconds: 0,
-      durationSeconds: 0,
-      buffered: 0,
-      innerLoop: false,
-      loaded: false,
-      playing: false,
-      previousVolume: 35,
-      showVolume: false,
-      volume: 100
-    }
-  },
-  computed: {
-    hasDetails() {
-      return this.$props.details
-    },
-    hasDetailsLink() {
-      return this.$props.detailsLink
-    },
-    hasTitle() {
-      return this.$props.title
-    },
-    hasTitleLink() {
-      return this.$props.titleLink
-    },
-    muted() {
-      return this.volume / 100 === 0
-    },
-    percentBuffered() {
-      return (this.buffered / this.durationSeconds) * 100
-    },
-    percentComplete() {
-      return (this.currentSeconds / this.durationSeconds) * 100
-    }
-  },
-  watch: {
-    playing(value) {
-      if (value) {
-        return this.audio.play()
-      }
-      this.audio.pause()
-    },
-    volume() {
-      this.audio.volume = this.volume / 100
-    }
-  },
-  created() {
-    this.innerLoop = this.loop
-    // keyboard accessibility
-    window.addEventListener('keydown', (event) => {
-      switch (event.code) {
-        case 'Space':
-          this.togglePlay()
-          break
-        case 'Enter':
-          this.togglePlay()
-          break
-        case 'ArrowUp':
-          if (this.volume < 100) this.volume++
-          break
-        case 'ArrowDown':
-          if (this.volume > 0) this.volume--
-          break
-        case 'ArrowLeft':
-          this.goBack15()
-          break
-        case 'ArrowRight':
-          this.goAhead15()
-          break
-      }
-    })
-  },
-  mounted() {
-    this.audio = this.$refs.audioFile
-    this.audio.addEventListener('timeupdate', this.update)
-    this.audio.addEventListener('loadeddata', this.load)
-    this.audio.addEventListener('buffered', this.update)
-    this.audio.addEventListener('pause', () => {
-      this.playing = false
-    })
-    this.audio.addEventListener('play', () => {
-      this.playing = true
-      this.pauseOtherAudioPlayers()
-    })
-  },
-  methods: {
-    convertTimeHHMMSS(val) {
-      const hhmmss = new Date(val * 1000).toISOString().substr(11, 8)
-      return hhmmss.indexOf('00:') === 0 ? hhmmss.substr(3) : hhmmss
-    },
-    download() {
-      this.stop()
-      window.open(this.file, 'download')
-    },
-    goAhead15() {
-      this.audio.currentTime = this.audio.currentTime + 15
-    },
-    goBack15() {
-      this.audio.currentTime = this.audio.currentTime - 15
-    },
-    load() {
-      if (this.audio.readyState >= 2) {
-        this.loaded = true
-        this.durationSeconds = parseInt(this.audio.duration)
-        this.playing = this.autoPlay
-        return this.playing
-      }
-      throw new Error('Failed to load sound file.')
-    },
-    mute() {
-      if (this.muted) {
-        this.volume = this.previousVolume
-        return this.volume
-      }
-      this.previousVolume = this.volume
-      this.volume = 0
-    },
-    seek(e) {
-      if (!this.loaded) return
-      const el = e.target.getBoundingClientRect()
-      const seekPos = (e.clientX - el.left) / el.width
-      this.audio.currentTime = this.audio.duration * seekPos
-    },
-    stop() {
-      this.playing = false
-      this.audio.currentTime = 0
-    },
-    togglePlay() {
-      this.playing = !this.playing
-    },
-    update() {
-      this.currentSeconds = this.audio.currentTime
-      this.buffered = this.audio.buffered.end(0)
-    },
-    pauseOtherAudioPlayers() {
-      // Find all audio elements and pause them except this one
-      const audioElements = document.querySelectorAll('audio')
-      audioElements.forEach((audio) => {
-        if (audio !== this.audio) {
-          audio.pause()
-        }
+interface Props {
+  autoPlay?: boolean
+  details?: string | null
+  detailsLink?: string | null
+  file?: string | null
+  image?: string | null
+  livestream?: boolean
+  loop?: boolean
+  showDownload?: boolean
+  showSkip?: boolean
+  showTrack?: boolean
+  title?: string | null
+  titleLink?: string | null
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  autoPlay: false,
+  details: null,
+  detailsLink: null,
+  file: null,
+  image: null,
+  livestream: false,
+  loop: false,
+  showDownload: false,
+  showSkip: true,
+  showTrack: true,
+  title: null,
+  titleLink: null
+})
+
+const audioFile = ref<HTMLAudioElement | null>(null)
+const currentPlayPromise = ref<Promise<void> | undefined>(undefined)
+const currentSeconds = ref(0)
+const durationSeconds = ref(0)
+const buffered = ref(0)
+const innerLoop = ref(props.loop)
+const loaded = ref(false)
+const playing = ref(false)
+const previousVolume = ref(35)
+const showVolume = ref(false)
+const volume = ref(100)
+
+const hasDetails = computed(() => props.details)
+const hasDetailsLink = computed(() => props.detailsLink)
+const hasTitle = computed(() => props.title)
+const hasTitleLink = computed(() => props.titleLink)
+const muted = computed(() => volume.value / 100 === 0)
+const percentBuffered = computed(
+  () => (buffered.value / durationSeconds.value) * 100
+)
+const percentComplete = computed(
+  () => (currentSeconds.value / durationSeconds.value) * 100
+)
+
+watch(playing, (value) => {
+  if (value) {
+    const promise = audioFile.value?.play()
+    if (promise) {
+      currentPlayPromise.value = promise
+      promise.finally(() => {
+        currentPlayPromise.value = undefined
       })
     }
+  } else {
+    if (currentPlayPromise.value) {
+      currentPlayPromise.value.then(() => audioFile.value?.pause())
+    } else {
+      audioFile.value?.pause()
+    }
+  }
+})
+
+watch(volume, () => {
+  if (audioFile.value) audioFile.value.volume = volume.value / 100
+})
+
+const convertTimeHHMMSS = (val: number): string => {
+  const hhmmss = new Date(val * 1000).toISOString().substr(11, 8)
+  return hhmmss.startsWith('00:') ? hhmmss.slice(3) : hhmmss
+}
+
+const download = () => {
+  stop()
+  window.open(props.file ?? undefined, 'download')
+}
+
+const goAhead15 = () => {
+  if (audioFile.value) audioFile.value.currentTime += 15
+}
+
+const goBack15 = () => {
+  if (audioFile.value) audioFile.value.currentTime -= 15
+}
+
+const load = () => {
+  if (!audioFile.value || audioFile.value.readyState < 2) {
+    throw new Error('Failed to load sound file.')
+  }
+  loaded.value = true
+  durationSeconds.value = Math.floor(audioFile.value.duration)
+  playing.value = props.autoPlay
+}
+
+const mute = () => {
+  if (muted.value) {
+    volume.value = previousVolume.value
+  } else {
+    previousVolume.value = volume.value
+    volume.value = 0
   }
 }
+
+const seek = (e: MouseEvent) => {
+  if (!loaded.value || !audioFile.value) return
+  const rect = (e.currentTarget as HTMLElement).getBoundingClientRect()
+  const pos = (e.clientX - rect.left) / rect.width
+  audioFile.value.currentTime = audioFile.value.duration * pos
+}
+
+const stop = () => {
+  playing.value = false
+  if (audioFile.value) audioFile.value.currentTime = 0
+}
+
+const togglePlay = () => {
+  playing.value = !playing.value
+}
+
+const update = () => {
+  if (audioFile.value) {
+    currentSeconds.value = audioFile.value.currentTime
+    buffered.value = audioFile.value.buffered.length
+      ? audioFile.value.buffered.end(0)
+      : 0
+  }
+}
+
+const pauseOtherAudioPlayers = () => {
+  document.querySelectorAll('audio').forEach((el: HTMLAudioElement) => {
+    if (el !== audioFile.value) el.pause()
+  })
+}
+
+onMounted(() => {
+  if (audioFile.value) {
+    audioFile.value.addEventListener('timeupdate', update)
+    audioFile.value.addEventListener('loadeddata', load)
+    audioFile.value.addEventListener('progress', update)
+    audioFile.value.addEventListener('pause', () => (playing.value = false))
+    audioFile.value.addEventListener('play', () => {
+      playing.value = true
+      pauseOtherAudioPlayers()
+    })
+  }
+
+  window.addEventListener('keydown', (e: KeyboardEvent) => {
+    if (e.target !== document.body) return
+    switch (e.code) {
+      case 'Space':
+      case 'Enter':
+        e.preventDefault()
+        togglePlay()
+        break
+      case 'ArrowUp':
+        if (volume.value < 100) volume.value++
+        break
+      case 'ArrowDown':
+        if (volume.value > 0) volume.value--
+        break
+      case 'ArrowLeft':
+        goBack15()
+        break
+      case 'ArrowRight':
+        goAhead15()
+        break
+    }
+  })
+
+  innerLoop.value = props.loop
+})
 </script>
 
 <style scoped>

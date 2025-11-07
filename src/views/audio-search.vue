@@ -120,14 +120,19 @@
           />
 
           <!-- Audio Info -->
-          <div class="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
+          <div
+            class="flex flex-wrap items-center gap-4 text-sm text-muted-foreground"
+          >
             <span class="bg-muted px-2 py-1 rounded">
               {{ getContentType(transaction) }}
             </span>
             <span class="bg-muted px-2 py-1 rounded">
               {{ formatFileSize(parseInt(transaction.data.size)) }}
             </span>
-            <span class="bg-muted px-2 py-1 rounded truncate max-w-xs" :title="transaction.id">
+            <span
+              class="bg-muted px-2 py-1 rounded truncate max-w-xs"
+              :title="transaction.id"
+            >
               ID: {{ transaction.id.substring(0, 12) }}...
             </span>
           </div>
@@ -151,12 +156,23 @@
             </Button>
             <Button
               @click="copyAudioUrl(transaction.id)"
-              :variant="audioCopied && audioCopied[transaction.id] ? 'default' : 'outline'"
+              :variant="
+                audioCopied && audioCopied[transaction.id]
+                  ? 'default'
+                  : 'outline'
+              "
               size="sm"
             >
-              <CheckIcon v-if="audioCopied && audioCopied[transaction.id]" class="h-4 w-4 mr-1" />
+              <CheckIcon
+                v-if="audioCopied && audioCopied[transaction.id]"
+                class="h-4 w-4 mr-1"
+              />
               <CopyIcon v-else class="h-4 w-4 mr-1" />
-              {{ audioCopied && audioCopied[transaction.id] ? 'Copied!' : 'Copy URL' }}
+              {{
+                audioCopied && audioCopied[transaction.id]
+                  ? 'Copied!'
+                  : 'Copy URL'
+              }}
             </Button>
           </div>
         </div>
@@ -227,7 +243,7 @@
     @click="closeAudioModal"
   >
     <div
-      class="bg-background rounded-lg max-w-[90vw] max-h-[90vh] overflow-auto border border-border"
+      class="bg-background rounded-lg max-w-[90vw] max-h-[90vh] overflow-auto border border-border flex flex-col relative"
       @click.stop
     >
       <div class="flex justify-between items-center p-4 border-b border-border">
@@ -239,11 +255,15 @@
           ×
         </button>
       </div>
-      <div class="p-4 flex flex-col gap-4 max-w-2xl">
-        <audio
-          :src="getAudioUrl(selectedAudio.id)"
-          controls
-          class="w-full"
+      <div
+        class="p-4 flex flex-col gap-4 max-w-2xl flex-1 overflow-y-auto pb-24"
+      >
+        <AudioPlayer
+          :file="getAudioUrl(selectedAudio.id)"
+          :title="getAudioTitle(selectedAudio)"
+          :details="getAudioDetails(selectedAudio)"
+          show-skip
+          show-track
         />
         <div>
           <div class="mb-3">
@@ -290,22 +310,35 @@
               </span>
             </div>
           </div>
-          <div class="flex gap-2 mt-4">
-            <a
-              :href="getAudioUrl(selectedAudio.id)"
-              target="_blank"
-              class="px-4 py-2 rounded-md font-medium cursor-pointer no-underline border-none bg-primary text-primary-foreground hover:opacity-90"
-            >
-              Open Full Audio
-            </a>
-            <button
-              @click="copyAudioUrl(selectedAudio.id)"
-              class="px-4 py-2 rounded-md font-medium cursor-pointer border-none bg-muted text-foreground hover:bg-accent hover:text-accent-foreground"
-            >
-              Copy URL
-            </button>
-          </div>
         </div>
+      </div>
+      <div
+        class="absolute w-full bottom-0 bg-background border-t border-muted px-4 py-4 flex gap-2 justify-end"
+      >
+        <a
+          :href="getAudioUrl(selectedAudio.id)"
+          target="_blank"
+          class="px-4 py-2 rounded-md font-medium cursor-pointer no-underline border-none bg-primary text-primary-foreground hover:opacity-90"
+        >
+          Open Full Audio
+        </a>
+        <Button
+          @click="copyAudioUrl(selectedAudio.id)"
+          :variant="
+            audioCopied && audioCopied[selectedAudio.id] ? 'default' : 'outline'
+          "
+        >
+          <CheckIcon
+            v-if="audioCopied && audioCopied[selectedAudio.id]"
+            class="h-4 w-4 mr-1"
+          />
+          <CopyIcon v-else class="h-4 w-4 mr-1" />
+          {{
+            audioCopied && audioCopied[selectedAudio.id]
+              ? 'Copied!'
+              : 'Copy URL'
+          }}
+        </Button>
       </div>
     </div>
   </div>
@@ -316,14 +349,10 @@ import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useGraphQL, type TransactionConnection } from '../composables/gql'
 import SearchInput from '../components/SearchInput.vue'
-import AudioPlayer from '../components/AudioPlayer.vue'
 import Skeleton from '@/components/ui/skeleton/Skeleton.vue'
-import {
-  CheckIcon,
-  CopyIcon,
-  ExternalLinkIcon
-} from 'lucide-vue-next'
+import { CheckIcon, CopyIcon, ExternalLinkIcon } from 'lucide-vue-next'
 import Button from '@/components/ui/button/Button.vue'
+import AudioPlayer from '@/components/AudioPlayer.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -819,7 +848,9 @@ function getAudioTitle(transaction: any): string {
 function getAudioDetails(transaction: any): string {
   // First priority: "Artist" or "Artist-Name" tag
   const artistTag = transaction.tags.find(
-    (tag: any) => tag.name.toLowerCase() === 'artist' || tag.name.toLowerCase() === 'artist-name'
+    (tag: any) =>
+      tag.name.toLowerCase() === 'artist' ||
+      tag.name.toLowerCase() === 'artist-name'
   )
   if (artistTag?.value) {
     const artist = artistTag.value
@@ -835,20 +866,20 @@ function getAudioUrl(transactionId: string): string {
   return `https://arweave.net/${transactionId}`
 }
 
-function handleAudioError(event: Event) {
-  const audio = event.target as HTMLAudioElement
-  const transactionId = audio.src.split('/').pop()
-  if (transactionId && !failedAudios.value.has(transactionId)) {
-    console.warn(`Audio failed to load: ${transactionId}`)
-    failedAudios.value.add(transactionId)
-    failedAudiosCount.value++
-  }
-}
+// function handleAudioError(event: Event) {
+//   const audio = event.target as HTMLAudioElement
+//   const transactionId = audio.src.split('/').pop()
+//   if (transactionId && !failedAudios.value.has(transactionId)) {
+//     console.warn(`Audio failed to load: ${transactionId}`)
+//     failedAudios.value.add(transactionId)
+//     failedAudiosCount.value++
+//   }
+// }
 
-function handleAudioLoad(event: Event) {
-  const audio = event.target as HTMLAudioElement
-  console.log('Audio loaded:', audio.src)
-}
+// function handleAudioLoad(event: Event) {
+//   const audio = event.target as HTMLAudioElement
+//   console.log('Audio loaded:', audio.src)
+// }
 
 function formatFileSize(bytes: number): string {
   if (bytes === 0) return '0 B'
@@ -928,7 +959,7 @@ onUnmounted(() => {
   color: var(--color-accent-foreground);
 }
 
-.format-picker input[type='checkbox'] {
+.format-picker input[type='radio'] {
   width: 12px;
   height: 12px;
   margin: 0;
