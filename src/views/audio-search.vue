@@ -353,6 +353,7 @@ import Skeleton from '@/components/ui/skeleton/Skeleton.vue'
 import { CheckIcon, CopyIcon, ExternalLinkIcon } from 'lucide-vue-next'
 import Button from '@/components/ui/button/Button.vue'
 import AudioPlayer from '@/components/AudioPlayer.vue'
+import { convertToHttpsUrl, convertToWayfinderUrl } from '../lib/utils'
 
 const route = useRoute()
 const router = useRouter()
@@ -863,7 +864,9 @@ function getAudioDetails(transaction: any): string {
 }
 
 function getAudioUrl(transactionId: string): string {
-  return `https://arweave.net/${transactionId}`
+  return convertToHttpsUrl(
+    convertToWayfinderUrl(`https://arweave.net/${transactionId}`)
+  )
 }
 
 // function handleAudioError(event: Event) {

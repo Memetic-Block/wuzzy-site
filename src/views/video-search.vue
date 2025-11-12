@@ -365,6 +365,7 @@ import {
   Grid3X3Icon
 } from 'lucide-vue-next'
 import Button from '@/components/ui/button/Button.vue'
+import { convertToHttpsUrl, convertToWayfinderUrl } from '../lib/utils'
 
 const route = useRoute()
 const router = useRouter()
@@ -908,7 +909,9 @@ function getContentType(transaction: any): string {
 }
 
 function getVideoUrl(transactionId: string): string {
-  return `https://arweave.net/${transactionId}`
+  return convertToHttpsUrl(
+    convertToWayfinderUrl(`https://arweave.net/${transactionId}`)
+  )
 }
 
 function handleVideoError(event: Event) {

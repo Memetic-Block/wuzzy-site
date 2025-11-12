@@ -20,7 +20,7 @@ const wuzzyOffChainDomains = [
  * @param wayfinderUrl Wayfinder-compatible ar:// URL
  * @returns standard URL
  */
-export const convertToHttpsUrl = async (
+export const convertToHttpsUrl = (
   wayfinderUrl: `ar://${string}`
 ) => {
   const gatewayRoot = wuzzyOffChainDomains

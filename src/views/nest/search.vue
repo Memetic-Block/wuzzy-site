@@ -179,7 +179,7 @@ const onSearchClicked = async () => {
           wayfinderUrl: convertToWayfinderUrl(
             searchResults.value[`${i}_docid`]
           ),
-          resolvedUrl: await convertToHttpsUrl(
+          resolvedUrl: convertToHttpsUrl(
             convertToWayfinderUrl(searchResults.value[`${i}_docid`])
           )
         })

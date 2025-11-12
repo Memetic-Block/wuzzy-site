@@ -39,7 +39,7 @@ export function useSearch() {
         const _searchResults = (await response.json()) as SearchResults
         for (const hit of _searchResults.hits) {
           hit.wayfinderUrl = convertToWayfinderUrl(hit.url)
-          hit.resolvedUrl = await convertToHttpsUrl(hit.wayfinderUrl)
+          hit.resolvedUrl = convertToHttpsUrl(hit.wayfinderUrl)
         }
         searchResults.value = _searchResults
         if (searchResults.value.hits.length > 0) {
