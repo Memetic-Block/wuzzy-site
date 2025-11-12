@@ -152,7 +152,6 @@
             :src="getVideoUrl(transaction.id)"
             class="grid-image transition-transform group-hover:scale-105"
             @error="handleVideoError"
-            @loadeddata="handleVideoLoad"
             muted
             loop
             playsinline
@@ -922,11 +921,6 @@ function handleVideoError(event: Event) {
     failedVideos.value.add(transactionId)
     failedVideosCount.value++
   }
-}
-
-function handleVideoLoad(event: Event) {
-  const video = event.target as HTMLVideoElement
-  console.log('Video loaded:', video.src)
 }
 
 function formatFileSize(bytes: number): string {

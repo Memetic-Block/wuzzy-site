@@ -153,7 +153,6 @@
             :alt="`Image ${transaction.id}`"
             class="grid-image transition-transform group-hover:scale-105"
             @error="handleImageError"
-            @load="handleImageLoad"
             loading="lazy"
           />
           <div
@@ -924,11 +923,6 @@ function handleImageError(event: Event) {
     failedImages.value.add(transactionId)
     failedImagesCount.value++
   }
-}
-
-function handleImageLoad(event: Event) {
-  const img = event.target as HTMLImageElement
-  console.log('Image loaded:', img.src)
 }
 
 function formatFileSize(bytes: number): string {

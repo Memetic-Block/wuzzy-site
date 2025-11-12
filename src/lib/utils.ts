@@ -30,7 +30,7 @@ export const convertToHttpsUrl = (
 
   const url = new URL(wayfinderUrl)
   url.protocol = 'https:'
-  if (wayfinderUrl.length === 48) {
+  if (wayfinderUrl.length === 48 && !wayfinderUrl.substring(5).includes('/')) {
     url.host = gatewayRoot
     url.pathname = `/${wayfinderUrl.substring(5)}`
   } else {
