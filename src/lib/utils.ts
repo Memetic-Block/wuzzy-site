@@ -30,7 +30,12 @@ export const convertToHttpsUrl = (
 
   const url = new URL(wayfinderUrl)
   url.protocol = 'https:'
-  url.host = `${wayfinderUrl.split('/')[2]}.${gatewayRoot}`
+  if (wayfinderUrl.length === 48) {
+    url.host = gatewayRoot
+    url.pathname = `/${wayfinderUrl.substring(5)}`
+  } else {
+    url.host = `${wayfinderUrl.split('/')[2]}.${gatewayRoot}`
+  }
 
   return url.toString()
 }
@@ -46,9 +51,9 @@ export const convertToWayfinderUrl = (url: string): `ar://${string}` => {
     .substring(0, url.length)
     .replace('https://', 'ar://')
     .replace('.arweave.net', '')
-    .replace('arweave.net', '')
+    .replace('arweave.net/', '')
     .replace(/\/+$/, '') as `ar://${string}`
 
-  // console.log('convertToWayfinderUrl', url, result)
+  console.log('convertToWayfinderUrl', url, result)
   return result
 }
