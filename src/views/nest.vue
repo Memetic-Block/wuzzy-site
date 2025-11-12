@@ -121,6 +121,7 @@ import { useRoute } from 'vue-router'
 import type { WuzzyNestInfo } from '../types/wuzzy-nest'
 import config from '../app-config'
 import { useSeoMeta } from '@unhead/vue'
+import { convertToHttpsUrl, convertToWayfinderUrl } from '../lib/utils'
 // import { useWallet } from '../composables/wallet'
 
 const nestViewModuleId = 'NWtLbRjMo6JHX1dH04PsnhbaDq8NmNT9L1HAPo_mtvc'
@@ -152,7 +153,9 @@ onMounted(async () => {
       documents.value.push({
         idx: i,
         id: info.value[`document_${i}_id`],
-        url: info.value[`document_${i}_url`],
+        url: convertToHttpsUrl(
+          convertToWayfinderUrl(info.value[`document_${i}_url`])
+        ),
         content_length: info.value[`document_${i}_content_length`],
         content_type: info.value[`document_${i}_content_type`],
         term_count: info.value[`document_${i}_term_count`],
