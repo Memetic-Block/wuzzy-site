@@ -23,3 +23,31 @@ export interface SearchResults {
   total_results: number
   hits: IndexedDocument[]
 }
+
+// Media Search Types
+export type MediaType = 'image' | 'video' | 'audio'
+
+export interface MediaSearchOptions {
+  mediaType: MediaType
+  defaultFormats: string[]
+  resultsPerPage?: number
+}
+
+export interface MediaSearchState {
+  searchQuery: string
+  selectedFormats: string[]
+  currentPage: number
+  loading: boolean
+  isSearching: boolean
+  error: string | null
+  info: string | null
+  lastCursor?: string
+  totalCount: string | null
+}
+
+export interface PaginationControls {
+  goToNextPage: () => Promise<void>
+  goToPrevPage: () => void
+  goToPage: (page: number) => void
+  loadMore: () => Promise<void>
+}
