@@ -127,13 +127,10 @@ export function useGraphQL() {
   const getGraphQLEndpoint = () => {
     // Try to get from config first, fallback to Goldsky Search Service
     const gqlEndpoint = config.gqlEndpoint
-    console.log('GraphQL Endpoint config:', gqlEndpoint)
     if (gqlEndpoint) {
       const fullEndpoint = `${gqlEndpoint}/graphql`
-      console.log('Using custom GraphQL endpoint:', fullEndpoint)
       return fullEndpoint
     }
-    console.log('Using Goldsky Search GraphQL endpoint: https://arweave-search.goldsky.com/graphql')
     return 'https://arweave-search.goldsky.com/graphql'
   }
 
@@ -153,11 +150,6 @@ export function useGraphQL() {
         variables: variables || {},
       }
       
-      console.log('GraphQL Request:', {
-        url,
-        body: requestBody
-      })
-      
       const response = await fetch(url, {
         method: 'POST',
         headers: {
@@ -172,11 +164,6 @@ export function useGraphQL() {
       }
 
       const result: GraphQLResponse<T> = await response.json()
-      
-      console.log('GraphQL Response:', {
-        data: result.data,
-        errors: result.errors
-      })
       
       if (result.errors && result.errors.length > 0) {
         console.error('GraphQL Errors:', result.errors)
@@ -363,7 +350,6 @@ export function useGraphQL() {
     
     if (after) {
       args.push(`after: "${escapeGraphQLString(after)}"`)
-      console.log('Using cursor pagination with after:', after)
     }
     
     if (ids && ids.length > 0) {
@@ -479,8 +465,6 @@ export function useGraphQL() {
         }
       }
     `
-
-    console.log('Generated query:', queryString)
 
     // No variables needed with direct parameter approach
     const result = await query<{ transactions: TransactionConnection }>(queryString)

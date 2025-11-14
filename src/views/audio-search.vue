@@ -347,7 +347,7 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { useGraphQL, type TransactionConnection } from '../composables/gql'
+import { useMediaSearch } from '../composables/search'
 import SearchInput from '../components/SearchInput.vue'
 import Skeleton from '@/components/ui/skeleton/Skeleton.vue'
 import { CheckIcon, CopyIcon, ExternalLinkIcon } from 'lucide-vue-next'
@@ -358,151 +358,47 @@ import { convertToHttpsUrl, convertToWayfinderUrl } from '../lib/utils'
 const route = useRoute()
 const router = useRouter()
 
-// Component state
-const searchQuery = ref<string>((route.query.q as string) || '')
-const error = ref<string | null>(null)
-const info = ref<string | null>(null)
+// Use media search composable
+const mediaSearch = useMediaSearch({
+  mediaType: 'audio',
+  defaultFormats: route.query.format
+    ? (route.query.format as string).split(',')
+    : ['audio/*']
+})
+
+// Destructure composable state and methods
+const {
+  searchQuery,
+  selectedFormats,
+  currentPage,
+  loading,
+  isSearching,
+  error,
+  info,
+  results,
+  totalCount,
+  allResults,
+  paginatedResults,
+  totalPages,
+  canGoNext,
+  canGoPrev,
+  pageNumbers,
+  executeSearch,
+  loadMore,
+  onFormatChange,
+  goToNextPage,
+  goToPrevPage,
+  goToPage
+} = mediaSearch
+
+// View-specific state (failed audios tracking stays in view)
 const failedAudios = ref(new Set<string>())
 const failedAudiosCount = ref(0)
 const selectedAudio = ref<any>(null)
-const results = ref<TransactionConnection | null>(null)
-const loading = ref(false)
-const isSearching = ref(false)
-const lastCursor = ref<string | undefined>()
-const selectedFormats = ref<string[]>(
-  route.query.format ? (route.query.format as string).split(',') : ['audio/*']
-)
-const totalCount = ref<string | null>(null)
-
 const audioCopied = ref<{ [key: string]: boolean }>({})
-
-// Pagination state
-const allResults = ref<any[]>([])
-const currentPage = ref(parseInt(route.query.page as string) || 1)
 const resultsPerPage = 20
 
-// Computed pagination properties
-const paginatedResults = computed(() => {
-  const start = (currentPage.value - 1) * resultsPerPage
-  const end = start + resultsPerPage
-  return allResults.value.slice(start, end)
-})
-
-const totalPages = computed(() => {
-  if (totalCount.value) {
-    return Math.ceil(parseInt(totalCount.value) / resultsPerPage)
-  }
-  const cachedPages = Math.ceil(allResults.value.length / resultsPerPage)
-  if (
-    results.value?.pageInfo.hasNextPage &&
-    allResults.value.length >= cachedPages * resultsPerPage
-  ) {
-    return cachedPages + 1
-  }
-  return cachedPages
-})
-
-const canGoNext = computed(() => {
-  if (totalCount.value) {
-    const maxPages = Math.ceil(parseInt(totalCount.value) / resultsPerPage)
-    return currentPage.value < maxPages
-  }
-  const cachedPages = Math.ceil(allResults.value.length / resultsPerPage)
-  return currentPage.value < cachedPages || results.value?.pageInfo.hasNextPage
-})
-
-const canGoPrev = computed(() => currentPage.value > 1)
-
-const pageNumbers = computed(() => {
-  const pages: number[] = []
-  const maxPagesToShow = 5
-  const halfRange = Math.floor(maxPagesToShow / 2)
-
-  let startPage = Math.max(1, currentPage.value - halfRange)
-  let endPage = Math.min(totalPages.value, currentPage.value + halfRange)
-
-  if (currentPage.value <= halfRange) {
-    endPage = Math.min(totalPages.value, maxPagesToShow)
-  }
-
-  for (let i = startPage; i <= endPage; i++) {
-    pages.push(i)
-  }
-
-  return pages
-})
-
-const { getTransactions, getTransactionCount } = useGraphQL()
-
-function parseSearchTerms(query: string): string[] {
-  const terms: string[] = []
-  let current = ''
-  let inQuotes = false
-
-  for (let i = 0; i < query.length; i++) {
-    const char = query[i]
-
-    if (char === '"') {
-      inQuotes = !inQuotes
-    } else if (char === ' ' && !inQuotes) {
-      if (current.trim()) {
-        terms.push(current.trim())
-        current = ''
-      }
-    } else {
-      current += char
-    }
-  }
-
-  if (current.trim()) {
-    terms.push(current.trim())
-  }
-
-  return terms
-}
-
-function onFormatChange(event: Event) {
-  const target = event.target as HTMLInputElement
-  const value = target.value
-
-  if (value === 'audio/*') {
-    if (target.checked) {
-      selectedFormats.value = ['audio/*']
-    } else {
-      if (
-        selectedFormats.value.length === 1 &&
-        selectedFormats.value[0] === 'audio/*'
-      ) {
-        target.checked = true
-        return
-      }
-    }
-  } else {
-    if (target.checked) {
-      selectedFormats.value = selectedFormats.value.filter(
-        (f) => f !== 'audio/*'
-      )
-      selectedFormats.value.push(value)
-    } else {
-      selectedFormats.value = selectedFormats.value.filter((f) => f !== value)
-      if (selectedFormats.value.length === 0) {
-        selectedFormats.value = ['audio/*']
-      }
-    }
-  }
-
-  router.replace({
-    query: {
-      q: searchQuery.value,
-      format: selectedFormats.value.join(',')
-    }
-  })
-
-  if (searchQuery.value.trim()) {
-    executeSearch()
-  }
-}
-
+// Watch route query changes
 watch(
   () => [route.query.q, route.query.format, route.query.page],
   ([newQuery, newFormat, newPage], oldValues) => {
@@ -515,6 +411,8 @@ watch(
       allResults.value = []
       currentPage.value = 1
       searchQuery.value = ''
+      failedAudios.value.clear()
+      failedAudiosCount.value = 0
       return
     }
 
@@ -530,6 +428,9 @@ watch(
     selectedFormats.value = format.split(',')
 
     if (queryChanged || formatChanged) {
+      failedAudios.value.clear()
+      failedAudiosCount.value = 0
+
       if (isInitialLoad) {
         if (page > 5) {
           info.value = `Page ${page} is not available on initial load. Starting from page 1 - use navigation controls to reach page ${page}.`
@@ -597,6 +498,7 @@ watch(
   { immediate: true }
 )
 
+// Computed: Filter audio transactions (excluding failed ones)
 const audioTransactions = computed(() => {
   return paginatedResults.value.filter(
     (transaction: any) =>
@@ -622,197 +524,7 @@ const displayCount = computed(() => {
   return displayResultsCount.value
 })
 
-async function executeSearch() {
-  const query = searchQuery.value.trim()
-
-  if (!query) {
-    error.value = 'Please enter a search query'
-    return
-  }
-
-  loading.value = true
-  isSearching.value = true
-  error.value = null
-  lastCursor.value = undefined
-  failedAudios.value.clear()
-  failedAudiosCount.value = 0
-  totalCount.value = null
-
-  try {
-    const queryOptions: any = {
-      tags: [],
-      first: 100
-    }
-
-    const formatValues: string[] = []
-
-    for (const format of selectedFormats.value) {
-      if (format === 'audio/*') {
-        queryOptions.tags.push({
-          name: 'Content-Type',
-          values: ['audio/*'],
-          match: 'WILDCARD'
-        })
-      } else {
-        formatValues.push(format)
-      }
-    }
-
-    if (formatValues.length > 0) {
-      queryOptions.tags.push({
-        name: 'Content-Type',
-        values: formatValues
-      })
-    }
-
-    const words = parseSearchTerms(query)
-    if (words.length > 0) {
-      queryOptions.tags.push({
-        values: words,
-        match: 'FUZZY_AND'
-      })
-    }
-
-    console.log('AudioSearch executeSearch:', {
-      query,
-      selectedFormats: selectedFormats.value,
-      queryOptions
-    })
-
-    results.value = await getTransactions(queryOptions)
-    allResults.value = results.value.edges.map((edge) => edge.node)
-
-    if (results.value.edges.length > 0) {
-      lastCursor.value =
-        results.value.edges[results.value.edges.length - 1].cursor
-    }
-
-    const countOptions = {
-      ids: queryOptions.ids,
-      owners: queryOptions.owners,
-      recipients: queryOptions.recipients,
-      tags: queryOptions.tags,
-      bundledIn: queryOptions.bundledIn,
-      block: queryOptions.block
-    }
-    getTransactionCount(countOptions)
-      .then((count) => {
-        totalCount.value = count
-      })
-      .catch((err) => {
-        console.error('Failed to fetch count:', err)
-      })
-  } catch (err) {
-    error.value = err instanceof Error ? err.message : String(err)
-    results.value = null
-  } finally {
-    loading.value = false
-    isSearching.value = false
-  }
-}
-
-async function loadMore() {
-  const query = searchQuery.value.trim()
-
-  if (!query || !lastCursor.value || !results.value) return
-
-  loading.value = true
-  error.value = null
-
-  try {
-    const queryOptions: any = {
-      tags: [],
-      first: 100,
-      after: lastCursor.value
-    }
-
-    const formatValues: string[] = []
-
-    for (const format of selectedFormats.value) {
-      if (format === 'audio/*') {
-        queryOptions.tags.push({
-          name: 'Content-Type',
-          values: ['audio/*'],
-          match: 'WILDCARD'
-        })
-      } else {
-        formatValues.push(format)
-      }
-    }
-
-    if (formatValues.length > 0) {
-      queryOptions.tags.push({
-        name: 'Content-Type',
-        values: formatValues
-      })
-    }
-
-    const words = parseSearchTerms(query)
-    if (words.length > 0) {
-      queryOptions.tags.push({
-        values: words,
-        match: 'FUZZY_AND'
-      })
-    }
-
-    const moreResults = await getTransactions(queryOptions)
-
-    allResults.value.push(...moreResults.edges.map((edge) => edge.node))
-
-    results.value.edges.push(...moreResults.edges)
-    results.value.pageInfo = moreResults.pageInfo
-
-    if (moreResults.edges.length > 0) {
-      lastCursor.value = moreResults.edges[moreResults.edges.length - 1].cursor
-    }
-  } catch (err) {
-    error.value = err instanceof Error ? err.message : String(err)
-  } finally {
-    loading.value = false
-  }
-}
-
-async function goToNextPage() {
-  const cachedPages = Math.ceil(allResults.value.length / resultsPerPage)
-  const nextPage = currentPage.value + 1
-
-  if (nextPage > cachedPages && results.value?.pageInfo.hasNextPage) {
-    await loadMore()
-  }
-
-  router.push({
-    query: {
-      q: searchQuery.value,
-      format: selectedFormats.value.join(','),
-      page: nextPage.toString()
-    }
-  })
-}
-
-function goToPrevPage() {
-  if (currentPage.value > 1) {
-    router.push({
-      query: {
-        q: searchQuery.value,
-        format: selectedFormats.value.join(','),
-        page: (currentPage.value - 1).toString()
-      }
-    })
-  }
-}
-
-function goToPage(page: number) {
-  if (page >= 1 && page <= totalPages.value) {
-    router.push({
-      query: {
-        q: searchQuery.value,
-        format: selectedFormats.value.join(','),
-        page: page.toString()
-      }
-    })
-  }
-}
-
+// Audio handling
 function isAudioTransaction(transaction: any): boolean {
   const contentType = getContentType(transaction)
   return contentType.startsWith('audio/')

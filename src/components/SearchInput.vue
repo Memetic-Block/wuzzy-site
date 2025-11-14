@@ -160,65 +160,78 @@ const onSearchModeChange = (
   mode: 'ARNS' | 'Hyperbeam' | 'Transactions' | 'Images' | 'Audio' | 'Video'
 ) => {
   searchMode.value = mode
-  dropdownOpen.value = false // Close dropdown after selection
+  dropdownOpen.value = false
   emit('modeChanged', mode)
 
-  // If we have a query, navigate to the new search type with the current query
   if (searchQuery.value.trim()) {
-    const query = searchQuery.value.trim()
+    navigateToSearch(mode, searchQuery.value.trim(), true)
+  }
+}
 
-    if (mode === 'ARNS') {
+// Helper function to navigate to search with mode-specific paths and query preservation
+function navigateToSearch(
+  mode: 'ARNS' | 'Hyperbeam' | 'Transactions' | 'Images' | 'Audio' | 'Video',
+  query: string,
+  preserveFormat = false
+) {
+  const currentQuery = router.currentRoute.value.query
+  const currentPath = router.currentRoute.value.path
+
+  switch (mode) {
+    case 'ARNS':
       router.push({
         path: '/search',
         query: { q: query }
       })
-    } else if (mode === 'Hyperbeam') {
+      break
+
+    case 'Hyperbeam':
       router.push({
         path: `/nest/${config.primaryNestId}/search`,
         query: { q: query }
       })
-    } else if (mode === 'Images') {
-      // Preserve format when switching from images back to Images
-      const currentQuery = router.currentRoute.value.query
-      const isOnImages = router.currentRoute.value.path === '/images'
+      break
 
+    case 'Images': {
+      const isOnImages = currentPath === '/images'
       router.push({
         path: '/images',
         query: {
           q: query,
-          ...(isOnImages && currentQuery.format
+          ...(preserveFormat && isOnImages && currentQuery.format
             ? { format: currentQuery.format }
             : {})
         }
       })
-    } else if (mode === 'Video') {
-      // Preserve format when switching from videos back to Videos
-      const currentQuery = router.currentRoute.value.query
-      const isOnVideos = router.currentRoute.value.path === '/videos'
+      break
+    }
 
+    case 'Video': {
+      const isOnVideos = currentPath === '/videos'
       router.push({
         path: '/videos',
         query: {
           q: query,
-          ...(isOnVideos && currentQuery.format
+          ...(preserveFormat && isOnVideos && currentQuery.format
             ? { format: currentQuery.format }
             : {})
         }
       })
-    } else if (mode === 'Audio') {
-      // Preserve format when switching from audio back to Audio
-      const currentQuery = router.currentRoute.value.query
-      const isOnAudio = router.currentRoute.value.path === '/audio'
+      break
+    }
 
+    case 'Audio': {
+      const isOnAudio = currentPath === '/audio'
       router.push({
         path: '/audio',
         query: {
           q: query,
-          ...(isOnAudio && currentQuery.format
+          ...(preserveFormat && isOnAudio && currentQuery.format
             ? { format: currentQuery.format }
             : {})
         }
       })
+      break
     }
   }
 }
@@ -247,63 +260,7 @@ const onSearchClicked = () => {
     return
   }
 
-  // Always navigate to the appropriate search page
-  if (searchMode.value === 'ARNS') {
-    router.push({
-      path: '/search',
-      query: { q: trimmedQuery }
-    })
-  } else if (searchMode.value === 'Hyperbeam') {
-    router.push({
-      path: `/nest/${config.primaryNestId}/search`,
-      query: { q: trimmedQuery }
-    })
-  } else if (searchMode.value === 'Images') {
-    // Preserve existing query params (like format) when on the same page
-    const currentQuery = router.currentRoute.value.query
-    const isOnImages = router.currentRoute.value.path === '/images'
-
-    router.push({
-      path: '/images',
-      query: {
-        q: trimmedQuery,
-        // Preserve format if we're already on images page
-        ...(isOnImages && currentQuery.format
-          ? { format: currentQuery.format }
-          : {})
-      }
-    })
-  } else if (searchMode.value === 'Video') {
-    // Preserve existing query params (like format) when on the same page
-    const currentQuery = router.currentRoute.value.query
-    const isOnVideos = router.currentRoute.value.path === '/videos'
-
-    router.push({
-      path: '/videos',
-      query: {
-        q: trimmedQuery,
-        // Preserve format if we're already on videos page
-        ...(isOnVideos && currentQuery.format
-          ? { format: currentQuery.format }
-          : {})
-      }
-    })
-  } else if (searchMode.value === 'Audio') {
-    // Preserve existing query params (like format) when on the same page
-    const currentQuery = router.currentRoute.value.query
-    const isOnAudio = router.currentRoute.value.path === '/audio'
-
-    router.push({
-      path: '/audio',
-      query: {
-        q: trimmedQuery,
-        // Preserve format if we're already on audio page
-        ...(isOnAudio && currentQuery.format
-          ? { format: currentQuery.format }
-          : {})
-      }
-    })
-  }
+  navigateToSearch(searchMode.value, trimmedQuery, true)
 }
 
 // Expose methods for external control

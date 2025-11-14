@@ -352,7 +352,7 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { useGraphQL, type TransactionConnection } from '../composables/gql'
+import { useMediaSearch } from '../composables/search'
 import SearchInput from '../components/SearchInput.vue'
 import Skeleton from '@/components/ui/skeleton/Skeleton.vue'
 import {
@@ -369,173 +369,46 @@ import { convertToHttpsUrl, convertToWayfinderUrl } from '../lib/utils'
 const route = useRoute()
 const router = useRouter()
 
-// Component state
-const searchQuery = ref<string>((route.query.q as string) || '')
-const error = ref<string | null>(null)
-const info = ref<string | null>(null)
+// Use media search composable
+const mediaSearch = useMediaSearch({
+  mediaType: 'video',
+  defaultFormats: route.query.format
+    ? (route.query.format as string).split(',')
+    : ['video/*']
+})
+
+// Destructure composable state and methods
+const {
+  searchQuery,
+  selectedFormats,
+  currentPage,
+  loading,
+  isSearching,
+  error,
+  info,
+  results,
+  totalCount,
+  allResults,
+  paginatedResults,
+  totalPages,
+  canGoNext,
+  canGoPrev,
+  pageNumbers,
+  executeSearch,
+  loadMore,
+  onFormatChange,
+  goToNextPage,
+  goToPrevPage,
+  goToPage
+} = mediaSearch
+
+// View-specific state (failed videos tracking stays in view)
 const failedVideos = ref(new Set<string>())
 const failedVideosCount = ref(0)
 const gridSize = ref<'small' | 'medium' | 'large'>('medium')
 const selectedVideo = ref<any>(null)
-const results = ref<TransactionConnection | null>(null)
-const loading = ref(false)
-const isSearching = ref(false)
-const lastCursor = ref<string | undefined>()
-const selectedFormats = ref<string[]>(
-  route.query.format ? (route.query.format as string).split(',') : ['video/*']
-)
-const totalCount = ref<string | null>(null) // Separate state for count
-
 const videoCopied = ref<{ [key: string]: boolean }>()
-
-// Pagination state
-const allResults = ref<any[]>([]) // All fetched transactions
-const currentPage = ref(parseInt(route.query.page as string) || 1)
 const resultsPerPage = 20
-
-// Computed pagination properties
-const paginatedResults = computed(() => {
-  const start = (currentPage.value - 1) * resultsPerPage
-  const end = start + resultsPerPage
-  return allResults.value.slice(start, end)
-})
-
-const totalPages = computed(() => {
-  // If we have a count from the async query, use that for total pages calculation
-  if (totalCount.value) {
-    return Math.ceil(parseInt(totalCount.value) / resultsPerPage)
-  }
-  // Otherwise use cached results length
-  // Only add +1 if we have more data AND we've filled the current cached pages
-  const cachedPages = Math.ceil(allResults.value.length / resultsPerPage)
-  if (
-    results.value?.pageInfo.hasNextPage &&
-    allResults.value.length >= cachedPages * resultsPerPage
-  ) {
-    return cachedPages + 1 // Show one more page to indicate there's more
-  }
-  return cachedPages
-})
-
-const canGoNext = computed(() => {
-  // If we have total count, use that as the definitive answer
-  if (totalCount.value) {
-    const maxPages = Math.ceil(parseInt(totalCount.value) / resultsPerPage)
-    return currentPage.value < maxPages
-  }
-  // Otherwise check cached data
-  const cachedPages = Math.ceil(allResults.value.length / resultsPerPage)
-  return currentPage.value < cachedPages || results.value?.pageInfo.hasNextPage
-})
-
-const canGoPrev = computed(() => currentPage.value > 1)
-
-// Generate page numbers to display (show current +/- 2 pages)
-const pageNumbers = computed(() => {
-  const pages: number[] = []
-  const maxPagesToShow = 5
-  const halfRange = Math.floor(maxPagesToShow / 2)
-
-  // Show page numbers up to totalPages (which includes the +1 if hasNextPage)
-  let startPage = Math.max(1, currentPage.value - halfRange)
-  let endPage = Math.min(totalPages.value, currentPage.value + halfRange)
-
-  // Adjust if we're near the beginning
-  if (currentPage.value <= halfRange) {
-    endPage = Math.min(totalPages.value, maxPagesToShow)
-  }
-
-  for (let i = startPage; i <= endPage; i++) {
-    pages.push(i)
-  }
-
-  return pages
-})
-
-// GraphQL composable
-const { getTransactions, getTransactionCount } = useGraphQL()
-
-// Parse search query to handle quoted phrases
-function parseSearchTerms(query: string): string[] {
-  const terms: string[] = []
-  let current = ''
-  let inQuotes = false
-
-  for (let i = 0; i < query.length; i++) {
-    const char = query[i]
-
-    if (char === '"') {
-      inQuotes = !inQuotes
-      // Don't include the quote characters in the term
-    } else if (char === ' ' && !inQuotes) {
-      // Space outside quotes - end current term
-      if (current.trim()) {
-        terms.push(current.trim())
-        current = ''
-      }
-    } else {
-      // Regular character - add to current term
-      current += char
-    }
-  }
-
-  // Add final term if exists
-  if (current.trim()) {
-    terms.push(current.trim())
-  }
-
-  return terms
-}
-
-// Handle format change
-function onFormatChange(event: Event) {
-  const target = event.target as HTMLInputElement
-  const value = target.value
-
-  if (value === 'video/*') {
-    // If "All" is checked, set only "All" and uncheck others
-    if (target.checked) {
-      selectedFormats.value = ['video/*']
-    } else {
-      // If unchecking "All", do nothing (keep at least one selected)
-      if (
-        selectedFormats.value.length === 1 &&
-        selectedFormats.value[0] === 'video/*'
-      ) {
-        target.checked = true
-        return
-      }
-    }
-  } else {
-    // If checking a specific format, remove "All" if present
-    if (target.checked) {
-      selectedFormats.value = selectedFormats.value.filter(
-        (f) => f !== 'video/*'
-      )
-      selectedFormats.value.push(value)
-    } else {
-      // Remove the format
-      selectedFormats.value = selectedFormats.value.filter((f) => f !== value)
-      // If nothing is selected, default to "All"
-      if (selectedFormats.value.length === 0) {
-        selectedFormats.value = ['video/*']
-      }
-    }
-  }
-
-  // Update URL with format parameter
-  router.replace({
-    query: {
-      q: searchQuery.value,
-      format: selectedFormats.value.join(',')
-    }
-  })
-
-  // Re-run search with new format
-  if (searchQuery.value.trim()) {
-    executeSearch()
-  }
-}
 
 // Watch route query changes
 watch(
@@ -546,15 +419,15 @@ watch(
     const page = parseInt(newPage as string) || 1
 
     if (!query.trim()) {
-      // Clear results if query is empty
       results.value = null
       allResults.value = []
       currentPage.value = 1
       searchQuery.value = ''
+      failedVideos.value.clear()
+      failedVideosCount.value = 0
       return
     }
 
-    // Check if query or format changed (requires new search)
     const oldQuery = oldValues ? (oldValues[0] as string) || '' : ''
     const oldFormat = oldValues
       ? (oldValues[1] as string) || 'video/*'
@@ -567,9 +440,10 @@ watch(
     selectedFormats.value = format.split(',')
 
     if (queryChanged || formatChanged) {
-      // Execute new search
+      failedVideos.value.clear()
+      failedVideosCount.value = 0
+
       if (isInitialLoad) {
-        // On initial load, if page > 5, reset to page 1 and show info message
         if (page > 5) {
           info.value = `Page ${page} is not available on initial load. Starting from page 1 - use navigation controls to reach page ${page}.`
           currentPage.value = 1
@@ -586,10 +460,8 @@ watch(
           executeSearch()
         }
       } else {
-        // On query/format change, reset to page 1
         currentPage.value = 1
         executeSearch()
-        // Update URL to page 1 if needed
         if (page !== 1) {
           router.replace({
             query: {
@@ -601,11 +473,9 @@ watch(
         }
       }
     } else {
-      // Only page changed
       const startIndex = (page - 1) * resultsPerPage
       const hasEnoughCached = allResults.value.length > startIndex
 
-      // If we know the total count, check if page is valid
       if (totalCount.value) {
         const maxPages = Math.ceil(parseInt(totalCount.value) / resultsPerPage)
         if (page > maxPages) {
@@ -615,14 +485,11 @@ watch(
       }
 
       if (hasEnoughCached || page === 1) {
-        // Just update currentPage and scroll (data already cached or going to page 1)
         currentPage.value = page
         window.scrollTo({ top: 0, behavior: 'smooth' })
       } else if (results.value?.pageInfo.hasNextPage) {
-        // Need to load more data - fetch it then navigate
         console.log(`Loading more data for page ${page}...`)
         loadMore().then(() => {
-          // Check again if we have enough data now
           const hasEnoughNow = allResults.value.length > startIndex
           if (hasEnoughNow) {
             currentPage.value = page
@@ -634,7 +501,6 @@ watch(
           }
         })
       } else {
-        // No more data available
         console.warn(
           `Not enough cached data for page ${page} and no more pages available`
         )
@@ -644,6 +510,7 @@ watch(
   { immediate: true }
 )
 
+// Computed: Filter video transactions (excluding failed ones)
 const videoTransactions = computed(() => {
   return paginatedResults.value.filter(
     (transaction: any) =>
@@ -658,241 +525,16 @@ const displayResultsCount = computed(() => {
   ).length
 })
 
-// Computed count for display - uses GraphQL total if available and we're past page 5
 const displayCount = computed(() => {
-  // If we have a total count from GraphQL and we're beyond cached results, use it
   if (totalCount.value && allResults.value.length >= 100) {
-    // Estimate based on the ratio of valid videos in our cached results
     const cachedTotal = allResults.value.length
     const cachedValid = displayResultsCount.value
     const validRatio = cachedValid / cachedTotal
     const estimatedTotal = Math.round(parseInt(totalCount.value) * validRatio)
     return estimatedTotal
   }
-  // Otherwise use the exact count from filtered results
   return displayResultsCount.value
 })
-
-// Search functionality
-async function executeSearch() {
-  const query = searchQuery.value.trim()
-
-  if (!query) {
-    error.value = 'Please enter a search query'
-    return
-  }
-
-  loading.value = true
-  isSearching.value = true
-  error.value = null
-  lastCursor.value = undefined
-  failedVideos.value.clear()
-  failedVideosCount.value = 0
-  totalCount.value = null // Reset count
-
-  try {
-    // Build query options
-    const queryOptions: any = {
-      tags: [],
-      first: 100 // Request max results per page
-    }
-
-    // Add Content-Type filter based on selected formats
-    const formatValues: string[] = []
-
-    for (const format of selectedFormats.value) {
-      if (format === 'video/*') {
-        // Wildcard - add separately with match parameter
-        queryOptions.tags.push({
-          name: 'Content-Type',
-          values: ['video/*'],
-          match: 'WILDCARD'
-        })
-      } else {
-        // MP4, WebM, OGG, MOV - exact match
-        formatValues.push(format)
-      }
-    }
-
-    // Add non-wildcard formats as a single tag
-    if (formatValues.length > 0) {
-      queryOptions.tags.push({
-        name: 'Content-Type',
-        values: formatValues
-      })
-    }
-
-    // Add user query as a single value-only tag with fuzzy match
-    // Parse query to handle quoted phrases
-    const words = parseSearchTerms(query)
-    if (words.length > 0) {
-      queryOptions.tags.push({
-        values: words,
-        match: 'FUZZY_AND'
-      })
-    }
-
-    console.log('VideoSearch executeSearch:', {
-      query,
-      selectedFormats: selectedFormats.value,
-      queryOptions
-    })
-
-    // Fetch results (priority)
-    results.value = await getTransactions(queryOptions)
-
-    // Populate allResults with the fetched transactions
-    allResults.value = results.value.edges.map((edge) => edge.node)
-    // Don't reset currentPage here - let the route watcher handle it
-
-    // Store cursor for pagination
-    if (results.value.edges.length > 0) {
-      lastCursor.value =
-        results.value.edges[results.value.edges.length - 1].cursor
-    }
-
-    // Fetch count asynchronously (non-blocking)
-    // Build count query options (same filters, but no pagination)
-    const countOptions = {
-      ids: queryOptions.ids,
-      owners: queryOptions.owners,
-      recipients: queryOptions.recipients,
-      tags: queryOptions.tags,
-      bundledIn: queryOptions.bundledIn,
-      block: queryOptions.block
-    }
-    getTransactionCount(countOptions)
-      .then((count) => {
-        totalCount.value = count
-      })
-      .catch((err) => {
-        console.error('Failed to fetch count:', err)
-        // Don't set error - count is optional
-      })
-  } catch (err) {
-    error.value = err instanceof Error ? err.message : String(err)
-    results.value = null
-  } finally {
-    loading.value = false
-    isSearching.value = false
-  }
-}
-
-async function loadMore() {
-  const query = searchQuery.value.trim()
-
-  if (!query || !lastCursor.value || !results.value) return
-
-  loading.value = true
-  error.value = null
-
-  try {
-    // Build query options (same as executeSearch)
-    const queryOptions: any = {
-      tags: [],
-      first: 100, // Request max results per page
-      after: lastCursor.value
-    }
-
-    // Add Content-Type filter based on selected formats
-    const formatValues: string[] = []
-
-    for (const format of selectedFormats.value) {
-      if (format === 'video/*') {
-        // Wildcard - add separately with match parameter
-        queryOptions.tags.push({
-          name: 'Content-Type',
-          values: ['video/*'],
-          match: 'WILDCARD'
-        })
-      } else {
-        // MP4, WebM, OGG, MOV - exact match
-        formatValues.push(format)
-      }
-    }
-
-    // Add non-wildcard formats as a single tag
-    if (formatValues.length > 0) {
-      queryOptions.tags.push({
-        name: 'Content-Type',
-        values: formatValues
-      })
-    }
-
-    // Add user query as a single value-only tag with fuzzy match
-    // Parse query to handle quoted phrases
-    const words = parseSearchTerms(query)
-    if (words.length > 0) {
-      queryOptions.tags.push({
-        values: words,
-        match: 'FUZZY_AND'
-      })
-    }
-
-    const moreResults = await getTransactions(queryOptions)
-
-    // Append new results to allResults array
-    allResults.value.push(...moreResults.edges.map((edge) => edge.node))
-
-    // Update results metadata
-    results.value.edges.push(...moreResults.edges)
-    results.value.pageInfo = moreResults.pageInfo
-
-    // Update cursor
-    if (moreResults.edges.length > 0) {
-      lastCursor.value = moreResults.edges[moreResults.edges.length - 1].cursor
-    }
-  } catch (err) {
-    error.value = err instanceof Error ? err.message : String(err)
-  } finally {
-    loading.value = false
-  }
-}
-
-// Page navigation functions
-async function goToNextPage() {
-  const cachedPages = Math.ceil(allResults.value.length / resultsPerPage)
-  const nextPage = currentPage.value + 1
-
-  // Check if we need to fetch more data
-  if (nextPage > cachedPages && results.value?.pageInfo.hasNextPage) {
-    // Need to fetch more results first
-    await loadMore()
-  }
-
-  // Navigate to next page
-  router.push({
-    query: {
-      q: searchQuery.value,
-      format: selectedFormats.value.join(','),
-      page: nextPage.toString()
-    }
-  })
-}
-
-function goToPrevPage() {
-  if (currentPage.value > 1) {
-    router.push({
-      query: {
-        q: searchQuery.value,
-        format: selectedFormats.value.join(','),
-        page: (currentPage.value - 1).toString()
-      }
-    })
-  }
-}
-
-function goToPage(page: number) {
-  if (page >= 1 && page <= totalPages.value) {
-    router.push({
-      query: {
-        q: searchQuery.value,
-        format: selectedFormats.value.join(','),
-        page: page.toString()
-      }
-    })
-  }
-}
 
 // Video handling
 function isVideoTransaction(transaction: any): boolean {
@@ -934,7 +576,6 @@ function formatFileSize(bytes: number): string {
 // Modal functions
 function openVideoModal(transaction: any) {
   selectedVideo.value = transaction
-  // Push a history state so back button closes modal
   window.history.pushState({ modal: true }, '', '')
 }
 
@@ -942,27 +583,21 @@ function closeVideoModal() {
   const currentState = window.history.state
   selectedVideo.value = null
 
-  // If the current history state is the modal state, go back to remove it
-  // This happens when user clicks X or overlay
   if (currentState && currentState.modal) {
     window.history.back()
   }
 }
 
-// Handle browser back button
 function handlePopState() {
-  // If modal is open when back button is pressed, close it
   if (selectedVideo.value) {
     selectedVideo.value = null
   }
 }
 
-// Set up popstate listener
 onMounted(() => {
   window.addEventListener('popstate', handlePopState)
 })
 
-// Clean up listener
 onUnmounted(() => {
   window.removeEventListener('popstate', handlePopState)
 })
