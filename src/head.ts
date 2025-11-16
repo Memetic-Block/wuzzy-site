@@ -1,3 +1,5 @@
+import appConfig from './app-config'
+
 export const metaTags = {
   title: 'Wuzzy Search',
   description:
@@ -5,19 +7,31 @@ export const metaTags = {
   keywords: ['wuzzy', 'search', 'ao', 'permaweb', 'seo', 'discover']
 }
 
+const baseMeta: any = [
+  { charset: 'utf-8' },
+  {
+    name: 'viewport',
+    content: 'width=device-width, initial-scale=1'
+  },
+  {
+    name: 'description',
+    content: metaTags.description
+  },
+  // Add noindex/nofollow for stage/dev environments
+  ...(appConfig.allowIndexing
+    ? []
+    : [
+        {
+          name: 'robots',
+          content: 'noindex, nofollow'
+        }
+      ])
+]
+
 export const headOptions = {
   titleTemplate: '%s | Wuzzy Search',
   title: metaTags.title,
-  meta: [
-    { charset: 'utf-8' },
-    {
-      name: 'viewport',
-      content: 'width=device-width, initial-scale=1'
-    },
-    {
-      name: 'description',
-      content: metaTags.description
-    },
+  meta: baseMeta.concat([
     { property: 'og:site_name', content: 'Wuzzy Search' },
     { property: 'og:title', content: 'Wuzzy Search' },
     { property: 'og:type', content: 'website' },
@@ -46,7 +60,7 @@ export const headOptions = {
       name: 'keywords',
       content: metaTags.keywords
     }
-  ],
+  ]),
   link: [
     {
       rel: 'icon',

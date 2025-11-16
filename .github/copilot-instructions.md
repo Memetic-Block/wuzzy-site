@@ -54,7 +54,7 @@ The Arweave deployment requires `PRIVATE_KEY` (wallet path) and `ANT_PROCESS_ID`
 ## Key Integrations
 - **Reka UI/Radix**: Component library with Tailwind CSS v4
 - **Vite SSG**: Static generation with route-based code splitting
-- **Arweave SDK**: Direct blockchain interaction via `@ar.io/sdk`
+- **ar.io SDK**: Direct blockchain interaction via `@ar.io/sdk`
 - **Goldsky GraphQL**: Enhanced Arweave querying capabilities
 
 ## Testing/Debugging
@@ -70,5 +70,6 @@ No formal test suite. Debug via:
 - Responsive design with Tailwind breakpoints
 
 ## Notes
+- Use tailwind CSS wherever possible for styling.
 - Do not run the app itself, the user will handle manual spot testing.
-- Make sure the app compiles with `npm run build`
+- Make sure the app compiles with `npm run build`.

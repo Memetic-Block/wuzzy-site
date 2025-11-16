@@ -36,6 +36,7 @@
     "tsx": "^4.20.6",
     "typescript": "~5.8.3",
     "vite": "^7.0.4",
+    "vite-ssg-sitemap": "^0.10.0",
     "vue-tsc": "^2.2.12",
     "winston": "^3.17.0"
   }
