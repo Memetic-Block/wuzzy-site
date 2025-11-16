@@ -1,8 +1,8 @@
 {
   "name": "wuzzy-site",
-  "private": true,
-  "version": "0.0.0",
+  "version": "0.3.0-alpha",
   "type": "module",
+  "license": "AGPL-3.0",
   "scripts": {
     "deploy:arweave": "npx tsx scripts/deploy.ts",
     "deploy:static": "npx wrangler pages deploy /usr/src/app/dist --project-name=$PROJECT_NAME",

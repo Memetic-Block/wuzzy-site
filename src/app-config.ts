@@ -5,6 +5,7 @@ export default {
   registryProcessId: import.meta.env.VITE_REGISTRY_PROCESS_ID,
   releaseTag: import.meta.env.VITE_RELEASE_TAG,
   searchApiUrl: import.meta.env.VITE_SEARCH_API_URL,
+  analyticsApiUrl: import.meta.env.VITE_ANALYTICS_API_URL,
   versionSha: import.meta.env.VITE_VERSION_SHA,
   versionTimestamp: import.meta.env.VITE_VERSION_TIMESTAMP
 }
