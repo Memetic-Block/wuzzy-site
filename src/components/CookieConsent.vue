@@ -7,7 +7,7 @@
       <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div class="flex-1">
           <h3 class="text-lg font-semibold mb-2">
-            🍪 We value your privacy
+            Wuzzy values your privacy
           </h3>
           <p class="text-sm text-muted-foreground max-w-2xl">
             We use analytics to improve your search experience. Your data is anonymized and stored only in your browser. 

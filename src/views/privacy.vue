@@ -19,7 +19,8 @@
       <p>
         Wuzzy is an advanced search platform for the Arweave blockchain, providing multi-modal 
         search capabilities (text, images, audio, video, and transaction data). We operate as 
-        a decentralized application leveraging the Arweave permanent storage network.
+        a decentralized application leveraging the Arweave permanent storage network.  Wuzzy is
+        built and operated by Memetic Block.
       </p>
 
       <h2>3. Information We Collect</h2>

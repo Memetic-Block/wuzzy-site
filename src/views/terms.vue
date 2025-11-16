@@ -191,8 +191,8 @@
       </p>
       <ul>
         <li><strong>Arweave Network:</strong> Decentralized storage (<a href="https://arweave.org" target="_blank" rel="noopener noreferrer">arweave.org</a>)</li>
-        <li><strong>Goldsky:</strong> GraphQL indexing service</li>
-        <li><strong>Wallet Providers:</strong> ArConnect, Arweave.app, etc.</li>
+        <li><strong>Goldsky:</strong> GraphQL indexing service (<a href="https://goldsky.io" target="_blank" rel="noopener noreferrer">goldsky.io</a>)</li>
+        <li><strong>Wallet Providers:</strong> Wander (<a href="https://wander.app" target="_blank" rel="noopener noreferrer">wander.app</a>), Arweave.app, etc.</li>
       </ul>
       <p>
         Your use of third-party services is subject to their respective terms and conditions. 
