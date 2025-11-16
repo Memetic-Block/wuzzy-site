@@ -375,9 +375,7 @@ A: Ensure scoped styles don't use `@apply` with Tailwind v4. Use inline utility 
 ## Resources
 
 - [GDPR Official Text](https://gdpr-info.eu/)
-- [OpenSearch UBI Specification](https://github.com/o19s/opensearch-ubi)
-- [Analytics Goblin Backend](./analytics-goblin-readme.md)
-- [Frontend Integration Guide](./frontend-implementation-guide.md)
+- [OpenSearch UBI Specification](https://github.com/opensearch-project/user-behavior-insights)
 
 ## License
 
