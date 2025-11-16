@@ -74,7 +74,7 @@
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
-      <div class="flex flex-col items-center gap-3 pt-5 select-none">
+      <div class="flex flex-col items-center gap-3 select-none">
         <a href="/">
           <img
             class="size-32!"
@@ -101,6 +101,9 @@
     
     <!-- Global Audio Player -->
     <GlobalAudioPlayer ref="globalAudioPlayer" />
+    
+    <!-- Cookie Consent Banner -->
+    <CookieConsent />
     
     <footer class="mt-auto pb-2 pt-12">
       <img
@@ -130,6 +133,10 @@
         <a class="underline" href="https://x.com/wuzzysearch" target="_blank"
           >x.com/wuzzysearch</a
         >
+        &nbsp;
+        <a class="underline" href="/privacy">Privacy</a>
+        &nbsp;
+        <a class="underline" href="/terms">Terms</a>
       </p>
       <p class="footer-credits">
         Built &amp; Operated by
@@ -189,6 +196,7 @@ import { SunIcon, MoonIcon, DesktopIcon } from '@radix-icons/vue'
 import { headOptions } from './head'
 import { useHead } from '@unhead/vue'
 import GlobalAudioPlayer from './components/GlobalAudioPlayer.vue'
+import CookieConsent from './components/CookieConsent.vue'
 
 const { address, connect, disconnect, isConnected, isConnecting } = useWallet()
 

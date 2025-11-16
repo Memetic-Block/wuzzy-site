@@ -15,6 +15,8 @@ import AboutView from './views/about.vue'
 import ImageSearchView from './views/image-search.vue'
 import VideoSearchView from './views/video-search.vue'
 import AudioSearchView from './views/audio-search.vue'
+import PrivacyView from './views/privacy.vue'
+import TermsView from './views/terms.vue'
 
 const routes = [
   { path: '/', component: IndexView },
@@ -27,6 +29,8 @@ const routes = [
   { path: '/images', component: ImageSearchView },
   { path: '/videos', component: VideoSearchView },
   { path: '/audio', component: AudioSearchView },
+  { path: '/privacy', component: PrivacyView },
+  { path: '/terms', component: TermsView },
 ]
 
 export const createApp = ViteSSG(
