@@ -69,7 +69,9 @@ No formal test suite. Debug via:
 - Error boundaries with fallback UI states
 - Responsive design with Tailwind breakpoints
 
-## Notes
-- Use tailwind CSS wherever possible for styling.
+## Important Notes
+- Do not install dependencies.  Instead, provide a summary of dependency updates to the user so they can manually install or remove before implementation begins.
+- Do not modify package.json.  Instead, provide a summary of changes to the user so they can manually update it before or after implementation.
 - Do not run the app itself, the user will handle manual spot testing.
 - Make sure the app compiles with `npm run build`.
+- Use tailwind CSS wherever possible for styling.
