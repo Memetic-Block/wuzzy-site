@@ -1,36 +1,20 @@
 import { ref, readonly } from 'vue'
 import appConfig from '../app-config'
+import type { ApplicationType, UbiQuery, UBIEvent, AnalyticsErrorResponse } from '@/types/analytics'
+import { analyticsQueue } from './analytics-queue'
+import { useWallet } from './wallet'
 
 // Constants
 const SESSION_STORAGE_KEY = 'wuzzy_analytics_session_id'
 const CONSENT_STORAGE_KEY = 'wuzzy_analytics_consent'
-const CLIENT_NAME = 'wuzzy-site'
-const CLIENT_VERSION = '1.0.0'
+const CLIENT_NAME = 'wuzzy-web'
+const CLIENT_VERSION = appConfig.releaseTag || 'unknown'
 
 // Types
 export interface SessionInitResponse {
   session_id: string
   client_id: string
   message?: string
-}
-
-export interface UBIEvent {
-  action_name: string
-  client_id: string
-  query_id?: string
-  timestamp: string
-  event_attributes: {
-    object?: {
-      object_id?: string
-      object_id_field?: string
-      description?: string
-    }
-    position?: {
-      ordinal?: number
-      x?: number
-      y?: number
-    }
-  }
 }
 
 export type ConsentStatus = 'pending' | 'accepted' | 'declined' | null
@@ -85,67 +69,70 @@ export function useAnalytics() {
   }
 
   /**
-   * Generate fallback session ID when API is unavailable
-   */
-  function generateFallbackSessionId(): string {
-    const timestamp = Date.now()
-    const random = Math.random().toString(36).substr(2, 9)
-    return `fallback-${timestamp}-${random}`
-  }
-
-  /**
    * Initialize analytics session from API
    */
-  async function initializeSession(): Promise<string> {
-    // Check if session already exists in localStorage
-    const existingSessionId = localStorage.getItem(SESSION_STORAGE_KEY)
-    if (existingSessionId) {
-      return existingSessionId
+  async function initializeSession(forceRefresh = false): Promise<string> {
+    // Check if session already exists in localStorage (unless forcing refresh)
+    if (!forceRefresh) {
+      const existingSessionId = localStorage.getItem(SESSION_STORAGE_KEY)
+      if (existingSessionId) {
+        return existingSessionId
+      }
     }
 
     // Request new session from Analytics Goblin
-    try {
-      const analyticsApiUrl = appConfig.analyticsApiUrl
-      if (!analyticsApiUrl) {
-        console.warn('Analytics API URL not configured, using fallback session')
-        const fallbackId = generateFallbackSessionId()
-        localStorage.setItem(SESSION_STORAGE_KEY, fallbackId)
-        return fallbackId
+    const analyticsApiUrl = appConfig.analyticsApiUrl
+    if (!analyticsApiUrl) {
+      throw new Error('Analytics API URL not configured')
+    }
+
+    // Get wallet if connected
+    const wallet = useWallet()
+
+    const headers: Record<string, string> = {
+      'X-Client-Name': CLIENT_NAME,
+      'X-Client-Version': CLIENT_VERSION,
+    }
+
+    // Add wallet address if connected
+    if (wallet.isConnected.value && wallet.address.value) {
+      headers['X-Wallet-Address'] = wallet.address.value
+    }
+
+    const response = await fetch(
+      `${analyticsApiUrl}/session/init`,
+      {
+        method: 'GET',
+        headers,
       }
+    )
 
-      const response = await fetch(
-        `${analyticsApiUrl}/session/init?client_name=${CLIENT_NAME}&client_version=${CLIENT_VERSION}`,
-        {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        }
-      )
-
-      if (!response.ok) {
-        if (response.status === 429) {
+    if (!response.ok) {
+      try {
+        const errorData: AnalyticsErrorResponse = await response.json()
+        
+        if (errorData.errorCode === 'RATE_LIMIT_EXCEEDED') {
           const retryAfter = response.headers.get('Retry-After')
-          console.warn(`Analytics rate limited. Retry after ${retryAfter} seconds`)
-        } else {
-          console.warn(`Analytics session init failed: ${response.status}`)
+          throw new Error(`Analytics rate limited. Retry after ${retryAfter} seconds`)
         }
+        
+        if (errorData.action === 'FIX_DATA') {
+          throw new Error(`Session init validation error: ${JSON.stringify(errorData.message)}`)
+        }
+        
+        throw new Error(`Session init failed: ${errorData.message || response.status}`)
+      } catch (parseError) {
+        // If error parsing fails, throw generic error
         throw new Error(`Session init failed: ${response.status}`)
       }
-
-      const data: SessionInitResponse = await response.json()
-      
-      // Store session ID in localStorage
-      localStorage.setItem(SESSION_STORAGE_KEY, data.session_id)
-      
-      return data.session_id
-    } catch (error) {
-      console.error('Failed to initialize analytics session:', error)
-      // Generate fallback session ID (still track locally even if API fails)
-      const fallbackId = generateFallbackSessionId()
-      localStorage.setItem(SESSION_STORAGE_KEY, fallbackId)
-      return fallbackId
     }
+
+    const data: SessionInitResponse = await response.json()
+    
+    // Store session ID in localStorage
+    localStorage.setItem(SESSION_STORAGE_KEY, data.session_id)
+    
+    return data.session_id
   }
 
   /**
@@ -154,12 +141,24 @@ export function useAnalytics() {
   async function initialize(): Promise<void> {
     if (isInitialized.value) return
 
+    // Skip analytics if API not configured
+    if (!appConfig.analyticsApiUrl) {
+      console.warn('Analytics disabled: API URL not configured')
+      isInitialized.value = true
+      return
+    }
+
     // Load consent status
     consentStatus.value = loadConsentStatus()
 
-    // If user has accepted, initialize session
+    // If user has accepted, initialize session and queue
     if (consentStatus.value === 'accepted') {
-      sessionId.value = await initializeSession()
+      try {
+        sessionId.value = await initializeSession()
+        analyticsQueue.initialize()
+      } catch (e) {
+        console.warn('Analytics initialization failed:', e)
+      }
     }
 
     isInitialized.value = true
@@ -171,9 +170,20 @@ export function useAnalytics() {
   async function acceptConsent(): Promise<void> {
     saveConsentStatus('accepted')
     
+    // Skip if API not configured
+    if (!appConfig.analyticsApiUrl) {
+      console.warn('Analytics disabled: API URL not configured')
+      return
+    }
+
     // Initialize session
     if (!sessionId.value) {
-      sessionId.value = await initializeSession()
+      try {
+        sessionId.value = await initializeSession()
+        analyticsQueue.initialize()
+      } catch (e) {
+        console.warn('Analytics initialization failed:', e)
+      }
     }
   }
 
@@ -204,9 +214,15 @@ export function useAnalytics() {
    */
   function buildClientId(): string {
     if (!sessionId.value) {
-      throw new Error('Analytics session not initialized')
+      console.warn('Analytics session not initialized')
+      return ''
     }
-    return `${CLIENT_NAME}@${CLIENT_VERSION}@${sessionId.value}`
+    
+    // Get wallet if connected
+    const wallet = useWallet()
+    const walletSuffix = wallet.address.value ? `@${wallet.address.value}` : ''
+    
+    return `${CLIENT_NAME}@${CLIENT_VERSION}@${sessionId.value}${walletSuffix}`
   }
 
   /**
@@ -217,6 +233,101 @@ export function useAnalytics() {
       return null
     }
     return buildClientId()
+  }
+
+  /**
+   * Generate unique query ID
+   */
+  function generateQueryId(): string {
+    return crypto.randomUUID()
+  }
+
+  /**
+   * Submit query to analytics
+   */
+  async function submitQuery(
+    application: ApplicationType,
+    userQuery: string,
+    resultIds: string[],
+    attributes?: Record<string, any>
+  ): Promise<string> {
+    const queryId = generateQueryId()
+
+    // Don't track if user hasn't consented
+    if (consentStatus.value !== 'accepted') {
+      return queryId
+    }
+
+    try {
+      // Ensure we have a valid session before submitting
+      if (!sessionId.value) {
+        sessionId.value = await initializeSession()
+      }
+      
+      const clientId = getClientId()
+      if (!clientId) return queryId
+
+      // Get wallet if connected
+      const wallet = useWallet()
+
+      const queryData: UbiQuery = {
+        application,
+        query_id: queryId,
+        client_id: clientId,
+        user_query: userQuery,
+        timestamp: new Date().toISOString(),
+        query_response_hit_ids: resultIds,
+        query_attributes: {
+          ...attributes,
+          ...(wallet.address.value && { wallet_address: wallet.address.value })
+        }
+      }
+
+      analyticsQueue.add(queryData)
+    } catch (e) {
+      console.warn('Analytics query submission failed:', e)
+    }
+
+    return queryId
+  }
+
+  /**
+   * Update session with wallet address
+   */
+  async function updateSessionWithWallet(walletAddress: string): Promise<void> {
+    if (!sessionId.value) {
+      console.warn('No analytics session to update with wallet')
+      return
+    }
+
+    try {
+      const analyticsApiUrl = appConfig.analyticsApiUrl
+      if (!analyticsApiUrl) {
+        console.warn('Analytics API URL not configured')
+        return
+      }
+
+      const response = await fetch(
+        `${analyticsApiUrl}/session/update`,
+        {
+          method: 'PUT',
+          headers: {
+            'X-Session-Id': sessionId.value,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            wallet_address: walletAddress
+          })
+        }
+      )
+
+      if (response.ok) {
+        const data = await response.json()
+        console.warn('Analytics session updated with wallet:', data)
+      }
+    } catch (e) {
+      console.warn('Failed to update analytics session with wallet:', e)
+    }
   }
 
   /**
@@ -235,7 +346,7 @@ export function useAnalytics() {
 
     // Note: Actual event tracking will be implemented in a later iteration
     // This is a placeholder for the Analytics Goblin integration
-    console.debug('Analytics event:', {
+    console.warn('Analytics event:', {
       action_name: actionName,
       client_id: buildClientId(),
       query_id: queryId,
@@ -252,10 +363,14 @@ export function useAnalytics() {
     
     // Methods
     initialize,
+    initializeSession,
     acceptConsent,
     declineConsent,
     clearSession,
     getClientId,
+    generateQueryId,
+    submitQuery,
+    updateSessionWithWallet,
     trackEvent,
     
     // Computed

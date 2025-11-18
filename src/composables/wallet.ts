@@ -1,5 +1,6 @@
 import { computed, ref } from 'vue'
 import type { PermissionType } from 'arconnect'
+import { useAnalytics } from './analytics'
 
 const PERMISSIONS: PermissionType[] = [
   'ACCESS_ADDRESS',
@@ -13,6 +14,7 @@ export function useWallet() {
   const walletWasCheckedOnLoad = ref(false)
   const isConnected = computed(() => !!address.value)
   const isConnecting = ref<boolean>(false)
+  const analytics = useAnalytics()
 
   async function connect() {
     if (!window.arweaveWallet) {
@@ -26,7 +28,14 @@ export function useWallet() {
       await window.arweaveWallet.connect(PERMISSIONS)
       address.value = await window.arweaveWallet.getActiveAddress()
       isConnecting.value = false
-      // console.log('address set to', address.value)
+      
+      // Update analytics session with wallet (opt-in tracking)
+      try {
+        await analytics.updateSessionWithWallet(address.value)
+      } catch (analyticsError) {
+        console.error('Failed to update analytics session with wallet:', analyticsError)
+        // Don't block wallet connection on analytics failure
+      }
     } catch (err: any) {
       console.error(`Arweave Wallet Error: ${err.message}`, err)
       isConnecting.value = false
@@ -80,6 +89,12 @@ export function useWallet() {
   window.addEventListener('walletSwitch', ((e: WalletSwitchEvent) => {
     const { address } = e.detail
     setAddress(address)
+    
+    // Update analytics session with wallet (opt-in tracking)
+    analytics.updateSessionWithWallet(address).catch((analyticsError) => {
+      console.error('Failed to update analytics session on wallet switch:', analyticsError)
+      // Don't block wallet switch on analytics failure
+    })
   }) as EventListener)
 
   return {

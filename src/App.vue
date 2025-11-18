@@ -191,14 +191,26 @@ import DropdownMenuContent from './components/ui/dropdown-menu/DropdownMenuConte
 import DropdownMenuItem from './components/ui/dropdown-menu/DropdownMenuItem.vue'
 import AppConfig from './app-config'
 import { useColorMode } from '@vueuse/core'
-import { computed, ref, provide } from 'vue'
+import { computed, ref, provide, onMounted } from 'vue'
 import { SunIcon, MoonIcon, DesktopIcon } from '@radix-icons/vue'
 import { headOptions } from './head'
 import { useHead } from '@unhead/vue'
 import GlobalAudioPlayer from './components/GlobalAudioPlayer.vue'
 import CookieConsent from './components/CookieConsent.vue'
+import { useAnalytics } from './composables/analytics'
 
 const { address, connect, disconnect, isConnected, isConnecting } = useWallet()
+const analytics = useAnalytics()
+
+// Initialize analytics on app mount
+onMounted(() => {
+  try {
+    analytics.initialize()
+  } catch (error) {
+    console.error('Failed to initialize analytics:', error)
+    // Don't block app on analytics failure
+  }
+})
 
 // Global audio player reference
 const globalAudioPlayer = ref<InstanceType<typeof GlobalAudioPlayer>>()
