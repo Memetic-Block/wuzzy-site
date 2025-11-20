@@ -143,7 +143,6 @@ const onSearchClicked = async () => {
 
   let query = searchQuery.value.trim()
   if (!query) {
-    console.log('No search query provided')
     return
   }
 
@@ -162,7 +161,6 @@ const onSearchClicked = async () => {
       throw new Error(`HTTP error! status: ${response.status}`)
     }
     searchResults.value = await response.json()
-    console.log('got search results', searchResults.value)
 
     if (searchResults.value) {
       const _hits = []

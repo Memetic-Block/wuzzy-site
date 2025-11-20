@@ -60,13 +60,11 @@ const analytics = useAnalytics()
 const showBanner = computed(() => {
   // Don't show if general analytics consent is pending or declined
   if (analytics.needsConsent() || !analytics.hasConsent()) {
-    console.log('Not showing wallet consent banner: general analytics consent pending or declined')
     return false
   }
 
   // Don't show on settings page
   if (window.location.pathname === '/settings') {
-    console.log('Not showing wallet consent banner: on settings page')
     return false
   }
 

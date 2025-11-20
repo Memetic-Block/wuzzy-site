@@ -476,22 +476,13 @@ watch(
         currentPage.value = page
         window.scrollTo({ top: 0, behavior: 'smooth' })
       } else if (results.value?.pageInfo.hasNextPage) {
-        console.log(`Loading more data for page ${page}...`)
         loadMore().then(() => {
           const hasEnoughNow = allResults.value.length > startIndex
           if (hasEnoughNow) {
             currentPage.value = page
             window.scrollTo({ top: 0, behavior: 'smooth' })
-          } else {
-            console.warn(
-              `Still not enough data for page ${page} after loading more`
-            )
           }
         })
-      } else {
-        console.warn(
-          `Not enough cached data for page ${page} and no more pages available`
-        )
       }
     }
   },
@@ -589,11 +580,6 @@ function getAudioUrl(transactionId: string): string {
 //     failedAudios.value.add(transactionId)
 //     failedAudiosCount.value++
 //   }
-// }
-
-// function handleAudioLoad(event: Event) {
-//   const audio = event.target as HTMLAudioElement
-//   console.log('Audio loaded:', audio.src)
 // }
 
 function formatFileSize(bytes: number): string {

@@ -176,7 +176,6 @@ async function search(query: LocationQuery) {
     q += `&from=${from}`
   }
 
-  console.log(`Search query: "${q}", from: ${from}`)
   if (q) {
     try {
       const response = await fetch(`${config.searchApiUrl}/search?q=${q}`)
@@ -192,16 +191,11 @@ async function search(query: LocationQuery) {
       if (searchResults.value.hits.length > 0) {
         hasMoreResults.value =
           searchResults.value.hits.length < searchResults.value.total_results
-      } else {
-        console.warn('No search results found')
       }
-      console.log('Search results:', searchResults.value)
     } catch (error) {
       hasSearchError.value = true
       console.error('Error fetching search results:', error)
     }
-  } else {
-    console.warn('Search query is empty')
   }
 
   isSearchPending.value = false

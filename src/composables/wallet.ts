@@ -56,7 +56,6 @@ if (typeof window !== 'undefined') {
 
   window.addEventListener('walletSwitch', ((e: WalletSwitchEvent) => {
     const { address: newAddress } = e.detail
-    console.log('Wallet switch event detected', { newAddress })
     setAddress(newAddress)
     
     // Update analytics session with wallet only if user has consented
@@ -88,7 +87,6 @@ export function useWallet() {
       await window.arweaveWallet.connect(PERMISSIONS)
       address.value = await window.arweaveWallet.getActiveAddress()
       isConnecting.value = false
-      console.log(`Connected to Arweave Wallet: ${address.value}`)
 
       // Update analytics session with wallet only if user has consented
       try {

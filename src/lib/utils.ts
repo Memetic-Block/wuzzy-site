@@ -54,6 +54,5 @@ export const convertToWayfinderUrl = (url: string): `ar://${string}` => {
     .replace('arweave.net/', '')
     .replace(/\/+$/, '') as `ar://${string}`
 
-  // console.log('convertToWayfinderUrl', url, result)
   return result
 }

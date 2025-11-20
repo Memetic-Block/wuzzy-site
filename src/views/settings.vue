@@ -112,24 +112,16 @@ onMounted(() => {
 })
 
 async function handleAnalyticsToggle(enabled: boolean) {
-  console.log('Analytics toggle clicked:', enabled)
-  console.log('Current consent status:', analytics.consentStatus.value)
   
   if (enabled) {
     await analytics.acceptConsent()
-    console.log('After accept, consent status:', analytics.consentStatus.value)
-    console.log('LocalStorage value:', localStorage.getItem('wuzzy_analytics_consent'))
   } else {
     // Declining analytics will cascade to wallet analytics
     analytics.declineConsent()
-    console.log('After decline, consent status:', analytics.consentStatus.value)
-    console.log('LocalStorage value:', localStorage.getItem('wuzzy_analytics_consent'))
   }
 }
 
 async function handleWalletAnalyticsToggle(enabled: boolean) {
-  console.log('Wallet analytics toggle clicked:', enabled)
-  
   if (!wallet.address.value) {
     console.warn('No wallet connected')
     return
@@ -137,12 +129,8 @@ async function handleWalletAnalyticsToggle(enabled: boolean) {
 
   if (enabled) {
     walletAnalytics.acceptWalletConsent(wallet.address.value)
-    console.log('After wallet accept, consent status:', walletAnalytics.consentStatus.value)
-    console.log('LocalStorage value:', localStorage.getItem('wuzzy_wallet_consent'))
   } else {
     walletAnalytics.declineWalletConsent()
-    console.log('After wallet decline, consent status:', walletAnalytics.consentStatus.value)
-    console.log('LocalStorage value:', localStorage.getItem('wuzzy_wallet_consent'))
   }
 }
 

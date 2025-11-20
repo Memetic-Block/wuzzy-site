@@ -486,16 +486,11 @@ watch(
         currentPage.value = page
         window.scrollTo({ top: 0, behavior: 'smooth' })
       } else if (results.value?.pageInfo.hasNextPage) {
-        console.log(`Loading more data for page ${page}...`)
         loadMore().then(() => {
           const hasEnoughNow = allResults.value.length > startIndex
           if (hasEnoughNow) {
             currentPage.value = page
             window.scrollTo({ top: 0, behavior: 'smooth' })
-          } else {
-            console.warn(
-              `Still not enough data for page ${page} after loading more`
-            )
           }
         })
       } else {

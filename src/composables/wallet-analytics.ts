@@ -30,7 +30,6 @@ export function useWalletAnalytics() {
    */
   function saveWalletConsentStatus(status: WalletConsentStatus) {
     try {
-      console.log('Saving wallet consent status:', status)
       localStorage.setItem(WALLET_CONSENT_STORAGE_KEY, status)
       consentStatus.value = status
     } catch (error) {
@@ -88,23 +87,19 @@ export function useWalletAnalytics() {
   function needsWalletConsent(address: string | null): boolean {
     // Dependency: can't ask for wallet consent without general analytics
     if (analytics.needsConsent()) {
-      console.log('Not showing wallet consent banner: general analytics consent pending or declined')
       return false
     }
     
     // Need wallet connected
     if (!address) {
-      console.log('Not showing wallet consent banner: wallet not connected')
       return false
     }
     
     // No consent given yet
     if (consentStatus.value === 'pending') {
-      console.log('Not showing wallet consent banner: no consent given yet')
       return true
     }
-    
-    console.log('Wallet consent already given:', consentStatus.value)
+
     return false
   }
 
