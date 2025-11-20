@@ -190,9 +190,6 @@ async function search(query: LocationQuery) {
       // Include wallet address if user has consented to wallet analytics
       if (wallet.address.value && walletAnalytics.hasWalletConsent(wallet.address.value)) {
         headers['X-Wallet-Address'] = wallet.address.value
-        console.log('Including wallet address in search headers:', wallet.address.value)
-      } else {
-        console.log('Not including wallet address - connected:', !!wallet.address.value, 'consent:', walletAnalytics.consentStatus.value)
       }
 
       const response = await fetch(`${config.searchApiUrl}/search?q=${q}`, {
