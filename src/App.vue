@@ -2,73 +2,75 @@
   <div class="flex flex-col min-h-screen px-4">
     <header class="flex flex-col">
       <div
-        class="flex self-end py-5 gap-3 justify-end relative md:mr-[120px] pr-1"
+        class="flex self-end py-5 gap-3 justify-end relative pr-1"
       >
-        <DropdownMenu v-if="isConnected">
-          <DropdownMenuTrigger as-child>
-            <Button size="sm" class="select-none cursor-pointer">
-              {{ address?.slice(0, 4) + '...' + address?.slice(-4) }}
-              <ChevronDownIcon />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent>
-            <DropdownMenuItem @select="disconnect">
-              Disconnect
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-        <Button
-          variant="outline"
-          size="sm"
-          class="cursor-pointer"
-          v-else-if="isConnecting"
-          disabled
-        >
-          Connecting...
-        </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          class="cursor-pointer"
-          v-else
-          @click="connect"
-        >
-          Connect Wallet
-        </Button>
+        <div class="flex gap-3 md:mr-[140px]">
+          <DropdownMenu v-if="isConnected">
+            <DropdownMenuTrigger as-child>
+              <Button size="sm" class="select-none cursor-pointer">
+                {{ address?.slice(0, 4) + '...' + address?.slice(-4) }}
+                <ChevronDownIcon />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem @select="disconnect" class="cursor-pointer">
+                Disconnect
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+          <Button
+            variant="outline"
+            size="sm"
+            class="cursor-pointer"
+            v-else-if="isConnecting"
+            disabled
+          >
+            Connecting...
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            class="cursor-pointer"
+            v-else
+            @click="connect"
+          >
+            Connect Wallet
+          </Button>
+        </div>
 
         <DropdownMenu>
           <DropdownMenuTrigger as-child>
             <Button
               size="sm"
               variant="ghost"
-              class="cursor-pointer md:absolute md:right-[-120px]"
+              class="cursor-pointer md:absolute md:right-0"
             >
-              <span>
-                <DesktopIcon v-if="colorMode === 'system'" />
-                <MoonIcon v-if="colorMode === 'dark'" />
-                <SunIcon v-if="colorMode === 'light'" />
+              <DesktopIcon v-if="mode === 'auto'" class="size-4 md:size-auto" />
+              <MoonIcon v-else-if="mode === 'dark'" class="size-4 md:size-auto" />
+              <SunIcon v-else class="size-4 md:size-auto" />
+              <span class="hidden md:inline">
+                Settings
               </span>
-              <span class="hidden md:inline-block">
-                {{
-                  colorMode.charAt(0).toUpperCase() +
-                  colorMode.toString().slice(1)
-                }}
-              </span>
-              <ChevronDownIcon />
+              <ChevronDownIcon class="hidden md:inline" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem @click="mode = 'light'">
+            <DropdownMenuItem>
+              <router-link to="/settings" >
+                Settings
+              </router-link>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem @click="mode = 'light'" class="cursor-pointer">
               <SunIcon />
               Light
             </DropdownMenuItem>
-            <DropdownMenuItem @click="mode = 'dark'">
+            <DropdownMenuItem @click="mode = 'dark'" class="cursor-pointer">
               <MoonIcon />
               Dark
             </DropdownMenuItem>
-            <DropdownMenuItem @click="mode = 'auto'">
+            <DropdownMenuItem @click="mode = 'auto'" class="cursor-pointer">
               <DesktopIcon />
-
               System
             </DropdownMenuItem>
           </DropdownMenuContent>
@@ -105,6 +107,9 @@
     <!-- Cookie Consent Banner -->
     <CookieConsent />
     
+    <!-- Wallet Consent Banner -->
+    <WalletConsent />
+    
     <footer class="mt-auto pb-2 pt-12">
       <img
         v-if="mode === 'dark'"
@@ -137,6 +142,8 @@
         <a class="underline" href="/privacy">Privacy</a>
         &nbsp;
         <a class="underline" href="/terms">Terms</a>
+        &nbsp;
+        <a class="underline" href="/settings">Settings</a>
       </p>
       <p class="footer-credits">
         Built &amp; Operated by
@@ -189,16 +196,30 @@ import DropdownMenuTrigger from './components/ui/dropdown-menu/DropdownMenuTrigg
 import { useWallet } from './composables/wallet'
 import DropdownMenuContent from './components/ui/dropdown-menu/DropdownMenuContent.vue'
 import DropdownMenuItem from './components/ui/dropdown-menu/DropdownMenuItem.vue'
+import DropdownMenuSeparator from './components/ui/dropdown-menu/DropdownMenuSeparator.vue'
 import AppConfig from './app-config'
 import { useColorMode } from '@vueuse/core'
-import { computed, ref, provide } from 'vue'
+import { ref, provide, onMounted } from 'vue'
 import { SunIcon, MoonIcon, DesktopIcon } from '@radix-icons/vue'
 import { headOptions } from './head'
 import { useHead } from '@unhead/vue'
 import GlobalAudioPlayer from './components/GlobalAudioPlayer.vue'
 import CookieConsent from './components/CookieConsent.vue'
+import WalletConsent from './components/WalletConsent.vue'
+import { useAnalytics } from './composables/analytics'
 
 const { address, connect, disconnect, isConnected, isConnecting } = useWallet()
+const analytics = useAnalytics()
+
+// Initialize analytics on app mount
+onMounted(() => {
+  try {
+    analytics.initialize()
+  } catch (error) {
+    console.error('Failed to initialize analytics:', error)
+    // Don't block app on analytics failure
+  }
+})
 
 // Global audio player reference
 const globalAudioPlayer = ref<InstanceType<typeof GlobalAudioPlayer>>()
@@ -207,11 +228,6 @@ const globalAudioPlayer = ref<InstanceType<typeof GlobalAudioPlayer>>()
 provide('audioPlayer', globalAudioPlayer)
 
 const mode = useColorMode()
-const { store } = useColorMode()
-
-const colorMode = computed(() =>
-  store.value === 'auto' ? 'system' : store.value
-)
 
 const versionUrl =
   ['stage', 'development'].includes(AppConfig.releaseTag) ||

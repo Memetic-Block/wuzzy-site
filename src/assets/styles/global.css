@@ -117,8 +117,25 @@
   * {
     @apply border-border outline-ring/50;
   }
+  
+  html {
+    overflow-x: hidden;
+  }
+  
   body {
     @apply bg-background text-foreground;
+    overflow-x: hidden;
+  }
+}
+
+/* Prevent layout shift on Windows when dropdown opens */
+@media (pointer: fine) {
+  html {
+    overflow-y: scroll;
+  }
+  
+  body {
+    padding-right: 0 !important;
   }
 }
 

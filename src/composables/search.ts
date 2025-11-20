@@ -3,8 +3,11 @@ import { type LocationQuery, useRouter } from 'vue-router'
 
 import config from '../app-config'
 import type { SearchResults, MediaSearchOptions } from '../types/search-types'
+import type { ApplicationType } from '../types/analytics'
 import { convertToWayfinderUrl, convertToHttpsUrl } from '../lib/utils'
 import { useGraphQL, type TransactionConnection } from './gql'
+import { useAnalytics } from './analytics'
+import { analyticsQueue } from './analytics-queue'
 
 export function useSearch() {
   async function search(query: LocationQuery) {
@@ -100,8 +103,26 @@ export function useSearch() {
 export function useMediaSearch(options: MediaSearchOptions) {
   const router = useRouter()
   const { getTransactions, getTransactionCount } = useGraphQL()
+  const analytics = useAnalytics()
 
   const resultsPerPage = options.resultsPerPage || 20
+
+  // Analytics state
+  const currentQueryId = ref<string | null>(null)
+
+  // Application type mapping
+  const applicationType = computed<ApplicationType>(() => {
+    switch (options.mediaType) {
+      case 'image':
+        return 'graphql-images'
+      case 'audio':
+        return 'graphql-audio'
+      case 'video':
+        return 'graphql-video'
+      default:
+        return 'graphql-images'
+    }
+  })
 
   // Get default wildcard format based on media type
   const getWildcardFormat = () => {
@@ -267,6 +288,27 @@ export function useMediaSearch(options: MediaSearchOptions) {
 
       results.value = await getTransactions(queryOptions)
       allResults.value = results.value.edges.map((edge) => edge.node)
+
+      // Track search query with analytics
+      try {
+        const queryId = await analytics.submitQuery(
+          applicationType.value,
+          query,
+          allResults.value.map((node) => node.id),
+          {
+            selected_formats: selectedFormats.value.join(','),
+            result_count: allResults.value.length.toString(),
+            graphql_query: JSON.stringify(queryOptions)
+          }
+        )
+        currentQueryId.value = queryId
+
+        // Flush queue for immediate delivery
+        analyticsQueue.flush()
+      } catch (analyticsError) {
+        console.error('Analytics tracking failed:', analyticsError)
+        // Don't block search on analytics failure
+      }
 
       if (results.value.edges.length > 0) {
         lastCursor.value = results.value.edges[results.value.edges.length - 1].cursor
@@ -456,6 +498,7 @@ export function useMediaSearch(options: MediaSearchOptions) {
     info,
     results,
     totalCount,
+    currentQueryId,
     
     // Data (expose both for flexibility)
     allResults,
