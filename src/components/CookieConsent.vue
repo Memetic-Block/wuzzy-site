@@ -11,7 +11,7 @@
           </h3>
           <p class="text-sm text-muted-foreground max-w-2xl">
             We use analytics to improve your search experience. Your data is anonymized and stored only in your browser. 
-            We never use cookies or track you across sites. 
+            We never use cookies or track you across sites. You can update your preferences anytime in settings.
             <router-link to="/privacy" class="underline hover:text-foreground">
               Learn more
             </router-link>

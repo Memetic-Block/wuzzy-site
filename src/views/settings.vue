@@ -1,17 +1,14 @@
 <template>
-  <div class="container mx-auto px-4 py-8 max-w-2xl">
-    <h1 class="text-3xl font-bold mb-2">Settings</h1>
-    <p class="text-muted-foreground mb-8">
-      Manage your privacy preferences and data settings
-    </p>
+  <div class="container mx-auto px-4 pb-8 max-w-2xl">
+    <h1 class="text-3xl font-bold">Settings</h1>
 
     <!-- Analytics Settings Section -->
-    <div class="space-y-6">
-      <div class="border rounded-lg p-6">
-        <h2 class="text-xl font-semibold mb-4">Privacy &amp; Analytics</h2>
+    <div class="space-b-6">
+      <div class="border rounded-lg px-6">
+        <h2 class="text-xl font-semibold">Privacy &amp; Analytics</h2>
         
         <!-- Anonymous Analytics Toggle -->
-        <div class="flex items-center justify-between mb-6">
+        <div class="flex items-center justify-between ">
           <div class="flex-1 mr-4">
             <h3 class="font-medium mb-1">Anonymous Analytics</h3>
             <p class="text-sm text-muted-foreground">
@@ -25,11 +22,12 @@
         </div>
 
         <!-- Wallet Analytics Toggle -->
-        <div class="flex items-center justify-between mb-6">
+        <div class="flex items-center justify-between">
           <div class="flex-1 mr-4">
             <h3 class="font-medium mb-1">Include Wallet Address</h3>
             <p class="text-sm text-muted-foreground">
-              Include your wallet address in analytics to help us understand user patterns.
+              Include your wallet address in analytics to help us understand
+              user patterns and allows you to be eligible for future rewards.
               <span v-if="!analyticsEnabled" class="block text-xs mt-1 text-amber-600 dark:text-amber-400">
                 (Requires Anonymous Analytics to be enabled)
               </span>
@@ -57,12 +55,13 @@
       </div>
 
       <!-- Data Management Section -->
-      <div class="border rounded-lg p-6">
+      <div class="border rounded-lg px-6">
         <h2 class="text-xl font-semibold mb-4">Data Management</h2>
         
-        <div class="space-y-4">
+        <div class="space-y-4 mb-4">
           <p class="text-sm text-muted-foreground">
-            All data is stored locally in your browser. Clearing your data will remove all analytics preferences and session information.
+            Clearing your data will remove all analytics preferences and
+            session information from this device.
           </p>
           
           <Button

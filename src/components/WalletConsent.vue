@@ -11,7 +11,9 @@
           </h3>
           <p class="text-sm text-muted-foreground max-w-2xl">
             Help improve Wuzzy by including your wallet address in anonymous analytics. 
-            This helps us understand user behavior patterns while maintaining transparency. 
+            This helps us understand user behavior patterns while maintaining transparency
+            and allows you to be eligible for future rewards. 
+            You can update your preferences anytime in settings.
             <router-link to="/privacy" class="underline hover:text-foreground">
               Privacy details
             </router-link>
