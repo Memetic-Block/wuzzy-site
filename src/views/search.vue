@@ -100,8 +100,12 @@ import SearchInput from '../components/SearchInput.vue'
 import Skeleton from '@/components/ui/skeleton/Skeleton.vue'
 import { convertToWayfinderUrl, convertToHttpsUrl } from '../lib/utils'
 import { useSeoMeta } from '@unhead/vue'
+import { useWallet } from '../composables/wallet'
+import { useWalletAnalytics } from '../composables/wallet-analytics'
 
 const route = useRoute()
+const wallet = useWallet()
+const walletAnalytics = useWalletAnalytics()
 const searchResults = ref<SearchResults | null>(null)
 const isSearchPending = ref(false)
 const hasSearchError = ref(false)
@@ -178,7 +182,22 @@ async function search(query: LocationQuery) {
 
   if (q) {
     try {
-      const response = await fetch(`${config.searchApiUrl}/search?q=${q}`)
+      // Build headers with optional wallet address
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+      }
+
+      // Include wallet address if user has consented to wallet analytics
+      if (wallet.address.value && walletAnalytics.hasWalletConsent(wallet.address.value)) {
+        headers['X-Wallet-Address'] = wallet.address.value
+        console.log('Including wallet address in search headers:', wallet.address.value)
+      } else {
+        console.log('Not including wallet address - connected:', !!wallet.address.value, 'consent:', walletAnalytics.consentStatus.value)
+      }
+
+      const response = await fetch(`${config.searchApiUrl}/search?q=${q}`, {
+        headers
+      })
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`)
       }
