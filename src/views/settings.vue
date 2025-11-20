@@ -46,7 +46,7 @@
         <!-- Info box when wallet not connected -->
         <div
           v-if="analyticsEnabled && !isWalletConnected"
-          class="bg-muted p-4 rounded-md text-sm text-muted-foreground"
+          class="bg-muted p-4 mb-4 rounded-md text-sm text-muted-foreground"
         >
           <p>
             Connect your wallet to enable wallet address tracking in analytics.
