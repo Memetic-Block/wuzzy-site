@@ -9,7 +9,9 @@ import { useWalletAnalytics } from './wallet-analytics'
 const SESSION_STORAGE_KEY = 'wuzzy_analytics_session_id'
 const CONSENT_STORAGE_KEY = 'wuzzy_analytics_consent'
 const CLIENT_NAME = 'wuzzy-web'
-const CLIENT_VERSION = appConfig.releaseTag || 'unknown'
+const CLIENT_VERSION = appConfig.releaseTag === 'stage'
+  ? '0.0.0-stage-'+appConfig.versionSha?.slice(0,7)
+  : appConfig.releaseTag || 'unknown'
 
 // Types
 export interface SessionInitResponse {

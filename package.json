@@ -8,8 +8,7 @@
     "deploy:static": "npx wrangler pages deploy /usr/src/app/dist --project-name=$PROJECT_NAME",
     "dev": "vite",
     "build": "vue-tsc -b && vite-ssg build --mock",
-    "preview": "vite preview",
-    "generate": "npm run build && tsx generate.ts"
+    "preview": "vite preview"
   },
   "dependencies": {
     "@radix-icons/vue": "1.0.0",
