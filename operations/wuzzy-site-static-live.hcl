@@ -41,6 +41,10 @@ job "wuzzy-site-static-live" {
         VITE_PRIMARY_NEST_ID="1X_nt5ctoJTw6Dc3M6x34_lFTWGTl-jhW8MY7Vff4fA"
         VITE_HYPERBEAM_ENDPOINT="https://wuzzy-hyperbeam.hel.memeticblock.net"
         VITE_SEARCH_API_URL="https://api.wuzzy.tech"
+        VITE_GQL_ENDPOINT="https://arweave-search.goldsky.com"
+        VITE_ANALYTICS_API_URL="https://analytics.wuzzy.tech"
+        VITE_SITE_HOSTNAME="https://wuzzy.io"
+        VITE_ALLOW_INDEXING="true"
       }
 
       template {
