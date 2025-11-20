@@ -1,11 +1,11 @@
-import appConfig from './app-config'
-
 export const metaTags = {
   title: 'Wuzzy Search',
   description:
     'Wuzzy Search is a decentralized search engine application built on the Arweave and AO',
   keywords: ['wuzzy', 'search', 'ao', 'permaweb', 'seo', 'discover']
 }
+
+declare const process: any
 
 const baseMeta: any = [
   { charset: 'utf-8' },
@@ -18,7 +18,7 @@ const baseMeta: any = [
     content: metaTags.description
   },
   // Add noindex/nofollow for stage/dev environments
-  ...(appConfig.allowIndexing
+  ...((import.meta as any)?.env?.VITE_ALLOW_INDEXING === 'true' || (process as any)?.env?.VITE_ALLOW_INDEXING === 'true'
     ? []
     : [
         {
