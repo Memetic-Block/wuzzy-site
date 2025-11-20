@@ -357,6 +357,33 @@ export class AnalyticsQueue {
 
     console.debug(`Analytics flush failed, retrying in ${backoff}ms (attempt ${this.retryAttempts}/${this.maxRetries})`)
   }
+
+  /**
+   * Clear the queue and retry state
+   * Used when user wants to clear all analytics data
+   */
+  clear(): void {
+    this.queue = []
+    this.retryAttempts = 0
+    this.clearRetryState()
+    
+    try {
+      localStorage.removeItem(QUEUE_STORAGE_KEY)
+    } catch (e) {
+      console.debug('Failed to clear analytics queue from storage:', e)
+    }
+    
+    // Clear any pending timers
+    if (this.flushTimer !== null) {
+      clearTimeout(this.flushTimer)
+      this.flushTimer = null
+    }
+    
+    if (this.retryTimer !== null) {
+      clearTimeout(this.retryTimer)
+      this.retryTimer = null
+    }
+  }
 }
 
 // Export singleton instance

@@ -1,6 +1,7 @@
 import { computed, ref } from 'vue'
 import type { PermissionType } from 'arconnect'
 import { useAnalytics } from './analytics'
+import { useWalletAnalytics } from './wallet-analytics'
 
 const PERMISSIONS: PermissionType[] = [
   'ACCESS_ADDRESS',
@@ -9,12 +10,71 @@ const PERMISSIONS: PermissionType[] = [
   'SIGNATURE'
 ]
 
+// Module-level refs shared across all useWallet() calls
+const address = ref<string>('')
+const walletWasCheckedOnLoad = ref(false)
+const isConnecting = ref<boolean>(false)
+
+// Helper function to set address
+async function setAddress(newAddress?: string) {
+  if (newAddress) {
+    address.value = newAddress
+    return
+  }
+
+  try {
+    address.value = await window.arweaveWallet.getActiveAddress()
+  } catch (error: any) {
+    console.warn('No wallet connected')
+  }
+}
+
+// Event listener interfaces
+interface WalletLoadedEvent extends CustomEvent {
+  detail: {
+    permissions: PermissionType
+  }
+}
+
+interface WalletSwitchEvent extends CustomEvent {
+  detail: {
+    address: string
+  }
+}
+
+// Set up event listeners once at module level
+if (typeof window !== 'undefined') {
+  window.addEventListener('arweaveWalletLoaded', ((e: WalletLoadedEvent) => {
+    const { permissions } = e.detail
+
+    if (!permissions.length) {
+      console.warn('App has no permissions')
+    } else {
+      setAddress()
+    }
+  }) as EventListener)
+
+  window.addEventListener('walletSwitch', ((e: WalletSwitchEvent) => {
+    const { address: newAddress } = e.detail
+    console.log('Wallet switch event detected', { newAddress })
+    setAddress(newAddress)
+    
+    // Update analytics session with wallet only if user has consented
+    const analytics = useAnalytics()
+    const walletAnalytics = useWalletAnalytics()
+    if (walletAnalytics.hasWalletConsent(newAddress)) {
+      analytics.updateSessionWithWallet(newAddress).catch((analyticsError) => {
+        console.error('Failed to update analytics session on wallet switch:', analyticsError)
+        // Don't block wallet switch on analytics failure
+      })
+    }
+  }) as EventListener)
+}
+
 export function useWallet() {
-  const address = ref<string | null>(null)
-  const walletWasCheckedOnLoad = ref(false)
   const isConnected = computed(() => !!address.value)
-  const isConnecting = ref<boolean>(false)
   const analytics = useAnalytics()
+  const walletAnalytics = useWalletAnalytics()
 
   async function connect() {
     if (!window.arweaveWallet) {
@@ -28,12 +88,15 @@ export function useWallet() {
       await window.arweaveWallet.connect(PERMISSIONS)
       address.value = await window.arweaveWallet.getActiveAddress()
       isConnecting.value = false
-      
-      // Update analytics session with wallet (opt-in tracking)
+      console.log(`Connected to Arweave Wallet: ${address.value}`)
+
+      // Update analytics session with wallet only if user has consented
       try {
-        await analytics.updateSessionWithWallet(address.value)
+        if (address.value && walletAnalytics.hasWalletConsent(address.value)) {
+          await analytics.updateSessionWithWallet(address.value)
+        }
       } catch (analyticsError) {
-        console.error('Failed to update analytics session with wallet:', analyticsError)
+        console.warn('Failed to update analytics session with wallet:', analyticsError)
         // Don't block wallet connection on analytics failure
       }
     } catch (err: any) {
@@ -50,52 +113,6 @@ export function useWallet() {
   function getAddress() {
     return address.value
   }
-
-  async function setAddress(newAddress?: string) {
-    if (newAddress) {
-      address.value = newAddress
-      return
-    }
-
-    try {
-      address.value = await window.arweaveWallet.getActiveAddress()
-    } catch (error: any) {
-      console.warn('No wallet connected')
-    }
-  }
-
-  interface WalletLoadedEvent extends CustomEvent {
-    detail: {
-      permissions: PermissionType
-    }
-  }
-
-  window.addEventListener('arweaveWalletLoaded', ((e: WalletLoadedEvent) => {
-    const { permissions } = e.detail
-
-    if (!permissions.length) {
-      console.warn('App has no permissions')
-    } else {
-      setAddress()
-    }
-  }) as EventListener)
-
-  interface WalletSwitchEvent extends CustomEvent {
-    detail: {
-      address: string
-    }
-  }
-
-  window.addEventListener('walletSwitch', ((e: WalletSwitchEvent) => {
-    const { address } = e.detail
-    setAddress(address)
-    
-    // Update analytics session with wallet (opt-in tracking)
-    analytics.updateSessionWithWallet(address).catch((analyticsError) => {
-      console.error('Failed to update analytics session on wallet switch:', analyticsError)
-      // Don't block wallet switch on analytics failure
-    })
-  }) as EventListener)
 
   return {
     address,

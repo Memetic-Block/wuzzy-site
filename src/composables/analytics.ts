@@ -3,6 +3,7 @@ import appConfig from '../app-config'
 import type { ApplicationType, UbiQuery, UBIEvent, AnalyticsErrorResponse } from '@/types/analytics'
 import { analyticsQueue } from './analytics-queue'
 import { useWallet } from './wallet'
+import { useWalletAnalytics } from './wallet-analytics'
 
 // Constants
 const SESSION_STORAGE_KEY = 'wuzzy_analytics_session_id'
@@ -193,6 +194,10 @@ export function useAnalytics() {
   function declineConsent(): void {
     saveConsentStatus('declined')
     
+    // Cascade decline to wallet analytics
+    const walletAnalytics = useWalletAnalytics()
+    walletAnalytics.declineWalletConsent()
+    
     // Clear any existing session
     clearSession()
   }
@@ -207,6 +212,10 @@ export function useAnalytics() {
     localStorage.removeItem(CONSENT_STORAGE_KEY)
     sessionId.value = null
     consentStatus.value = 'pending'
+    
+    // Also clear wallet consent
+    const walletAnalytics = useWalletAnalytics()
+    walletAnalytics.clearWalletConsent()
   }
 
   /**
@@ -218,9 +227,13 @@ export function useAnalytics() {
       return ''
     }
     
-    // Get wallet if connected
+    // Get wallet if connected AND user has consented to wallet tracking
     const wallet = useWallet()
-    const walletSuffix = wallet.address.value ? `@${wallet.address.value}` : ''
+    const walletAnalytics = useWalletAnalytics()
+    const walletSuffix = 
+      wallet.address.value && walletAnalytics.hasWalletConsent(wallet.address.value)
+        ? `@${wallet.address.value}`
+        : ''
     
     return `${CLIENT_NAME}@${CLIENT_VERSION}@${sessionId.value}${walletSuffix}`
   }
@@ -267,8 +280,9 @@ export function useAnalytics() {
       const clientId = getClientId()
       if (!clientId) return queryId
 
-      // Get wallet if connected
+      // Get wallet if connected AND user has consented to wallet tracking
       const wallet = useWallet()
+      const walletAnalytics = useWalletAnalytics()
 
       const queryData: UbiQuery = {
         application,
@@ -279,7 +293,9 @@ export function useAnalytics() {
         query_response_hit_ids: resultIds,
         query_attributes: {
           ...attributes,
-          ...(wallet.address.value && { wallet_address: wallet.address.value })
+          ...(wallet.address.value && 
+              walletAnalytics.hasWalletConsent(wallet.address.value) && 
+              { wallet_address: wallet.address.value })
         }
       }
 
