@@ -142,8 +142,6 @@
         <a class="underline" href="/privacy">Privacy</a>
         &nbsp;
         <a class="underline" href="/terms">Terms</a>
-        &nbsp;
-        <a class="underline" href="/settings">Settings</a>
       </p>
       <p class="footer-credits">
         Built &amp; Operated by

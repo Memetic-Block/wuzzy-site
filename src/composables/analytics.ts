@@ -153,7 +153,7 @@ export function useAnalytics() {
 
     // Load consent status
     consentStatus.value = loadConsentStatus()
-
+    console.log('Initialized Analytics consent status:', consentStatus.value)
     // If user has accepted, initialize session and queue
     if (consentStatus.value === 'accepted') {
       try {
@@ -182,8 +182,10 @@ export function useAnalytics() {
     // Initialize session
     if (!sessionId.value) {
       try {
-        sessionId.value = await initializeSession()
-        analyticsQueue.initialize()
+        initializeSession().then((sid) => {
+          sessionId.value = sid
+          analyticsQueue.initialize()
+        })
       } catch (e) {
         console.warn('Analytics initialization failed:', e)
       }

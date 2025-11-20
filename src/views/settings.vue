@@ -16,7 +16,7 @@
             </p>
           </div>
           <Switch
-            :checked="analyticsEnabled"
+            v-model="analyticsEnabled"
             @update:modelValue="handleAnalyticsToggle"
           />
         </div>
@@ -37,7 +37,7 @@
             </p>
           </div>
           <Switch
-            :checked="walletAnalyticsEnabled"
+            v-model="walletAnalyticsEnabled"
             @update:modelValue="handleWalletAnalyticsToggle"
             :disabled="!analyticsEnabled || !isWalletConnected"
           />

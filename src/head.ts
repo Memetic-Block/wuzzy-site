@@ -16,16 +16,7 @@ const baseMeta: any = [
   {
     name: 'description',
     content: metaTags.description
-  },
-  // Add noindex/nofollow for stage/dev environments
-  ...((import.meta as any)?.env?.VITE_ALLOW_INDEXING === 'true' || (process as any)?.env?.VITE_ALLOW_INDEXING === 'true'
-    ? []
-    : [
-        {
-          name: 'robots',
-          content: 'noindex, nofollow'
-        }
-      ])
+  }
 ]
 
 export const headOptions = {
