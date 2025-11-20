@@ -8,8 +8,13 @@ import { convertToWayfinderUrl, convertToHttpsUrl } from '../lib/utils'
 import { useGraphQL, type TransactionConnection } from './gql'
 import { useAnalytics } from './analytics'
 import { analyticsQueue } from './analytics-queue'
+import { useWallet } from './wallet'
+import { useWalletAnalytics } from './wallet-analytics'
 
 export function useSearch() {
+  const wallet = useWallet()
+  const walletAnalytics = useWalletAnalytics()
+  
   async function search(query: LocationQuery) {
     const pageSize = 20
     const hasSearchError = ref(false)
@@ -34,7 +39,19 @@ export function useSearch() {
 
     if (q) {
       try {
-        const response = await fetch(`${config.searchApiUrl}/search?q=${q}`)
+        // Build headers with optional wallet address
+        const headers: Record<string, string> = {
+          'Content-Type': 'application/json',
+        }
+        
+        // Include wallet address if user has consented to wallet analytics
+        if (wallet.address.value && walletAnalytics.hasWalletConsent(wallet.address.value)) {
+          headers['X-Wallet-Address'] = wallet.address.value
+        }
+        
+        const response = await fetch(`${config.searchApiUrl}/search?q=${q}`, {
+          headers
+        })
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`)
         }
