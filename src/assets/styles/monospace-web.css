@@ -427,7 +427,7 @@ label input {
   border-left: var(--border-thickness) solid var(--muted-foreground);
 }
 
-.grid {
+.monogrid {
   --grid-cells: 0;
   display: flex;
   gap: 1ch;
@@ -437,8 +437,8 @@ label input {
   margin-bottom: var(--line-height);
 }
 
-.grid > *,
-.grid > input {
+.monogrid > *,
+.monogrid > input {
   flex: 0 0
     calc(
       round(
@@ -448,31 +448,31 @@ label input {
       )
     );
 }
-.grid:has(> :last-child:nth-child(1)) {
+.monogrid:has(> :last-child:nth-child(1)) {
   --grid-cells: 1;
 }
-.grid:has(> :last-child:nth-child(2)) {
+.monogrid:has(> :last-child:nth-child(2)) {
   --grid-cells: 2;
 }
-.grid:has(> :last-child:nth-child(3)) {
+.monogrid:has(> :last-child:nth-child(3)) {
   --grid-cells: 3;
 }
-.grid:has(> :last-child:nth-child(4)) {
+.monogrid:has(> :last-child:nth-child(4)) {
   --grid-cells: 4;
 }
-.grid:has(> :last-child:nth-child(5)) {
+.monogrid:has(> :last-child:nth-child(5)) {
   --grid-cells: 5;
 }
-.grid:has(> :last-child:nth-child(6)) {
+.monogrid:has(> :last-child:nth-child(6)) {
   --grid-cells: 6;
 }
-.grid:has(> :last-child:nth-child(7)) {
+.monogrid:has(> :last-child:nth-child(7)) {
   --grid-cells: 7;
 }
-.grid:has(> :last-child:nth-child(8)) {
+.monogrid:has(> :last-child:nth-child(8)) {
   --grid-cells: 8;
 }
-.grid:has(> :last-child:nth-child(9)) {
+.monogrid:has(> :last-child:nth-child(9)) {
   --grid-cells: 9;
 }
 
