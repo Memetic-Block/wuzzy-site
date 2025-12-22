@@ -258,11 +258,32 @@ export class AnalyticsQueue {
             // Use statically imported analytics composable
             try {
               const analytics = useAnalytics()
+              
+              // Extract wallet address from old client_id (format: client@version@session@wallet)
+              const oldClientId = queries[0]?.client_id
+              let walletAddress: string | null = null
+              if (oldClientId) {
+                const parts = oldClientId.split('@')
+                if (parts.length === 4) {
+                  walletAddress = parts[3]
+                }
+              }
+              
+              // Get new session
               await analytics.initializeSession(true) // force refresh
               
-              // Update client_id in all queries and retry once
+              // Re-associate wallet if it existed
+              if (walletAddress) {
+                await analytics.updateSessionWithWallet(walletAddress)
+              }
+              
+              // Update client_id in ALL queued items (not just current batch)
               const newClientId = analytics.getClientId()
               if (newClientId) {
+                this.queue = this.queue.map(q => ({ ...q, client_id: newClientId }))
+                this.persistQueue()
+                
+                // Update current batch and retry once
                 const updatedQueries = queries.map(q => ({ ...q, client_id: newClientId }))
                 
                 const retryResponse = await fetch(`${analyticsApiUrl}/analytics/batch`, {
@@ -278,17 +299,21 @@ export class AnalyticsQueue {
                   this.persistQueue()
                   return
                 }
+                
+                // Retry failed with 401 again - fall through to exponential backoff
+                if (retryResponse.status === 401) {
+                  console.warn('Session renewal retry failed with 401, falling back to retry logic')
+                  this.handleFlushFailure()
+                  return
+                }
               }
               
-              // Retry failed - clear queue to avoid infinite loop
-              this.queue = []
-              this.clearRetryState()
-              this.persistQueue()
+              // Session renewal succeeded but retry failed - use exponential backoff
+              this.handleFlushFailure()
             } catch (renewError) {
               console.warn('Session renewal failed:', renewError)
-              this.queue = []
-              this.clearRetryState()
-              this.persistQueue()
+              // Don't clear queue - fall back to retry logic
+              this.handleFlushFailure()
             }
             return
           }
