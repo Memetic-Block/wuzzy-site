@@ -8,5 +8,7 @@ export default {
   analyticsApiUrl: (import.meta as any).env.VITE_ANALYTICS_API_URL,
   versionSha: (import.meta as any).env.VITE_VERSION_SHA,
   versionTimestamp: (import.meta as any).env.VITE_VERSION_TIMESTAMP,
-  siteHostname: (import.meta as any).env.VITE_SITE_HOSTNAME
+  siteHostname: (import.meta as any).env.VITE_SITE_HOSTNAME,
+  achievementsProcessId: (import.meta as any).env.VITE_ACHIEVEMENTS_PROCESS_ID
+    || 'sDQbE8v-k7hLxys85n256Xwk9AUI1-p1GbSSox652ks'
 }

@@ -45,6 +45,7 @@ job "wuzzy-site-static-live" {
         VITE_ANALYTICS_API_URL="https://analytics.wuzzy.tech"
         VITE_SITE_HOSTNAME="https://wuzzy.io"
         VITE_ALLOW_INDEXING="true"
+        VITE_ACHIEVEMENTS_PROCESS_ID="uvwZhbu8XTiS3vGlgn7OlaEV_r84opf7VjoNns0w3kY"
       }
 
       template {

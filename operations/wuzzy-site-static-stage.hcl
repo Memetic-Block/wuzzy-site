@@ -45,6 +45,7 @@ job "wuzzy-site-static-stage" {
         VITE_ANALYTICS_API_URL="https://analytics-goblin-stage.hel.memeticblock.net"
         VITE_SITE_HOSTNAME="https://stage.wuzzy.io"
         VITE_ALLOW_INDEXING="false"
+        VITE_ACHIEVEMENTS_PROCESS_ID="mu9_WPdmWXvAGCP_aNzTVCYN0j62CY0VepzDPupyGk4"
       }
 
       template {

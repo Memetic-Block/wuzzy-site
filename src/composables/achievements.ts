@@ -1,5 +1,6 @@
 import { ref, computed, type Ref } from 'vue'
 import { sendAosDryRun } from '../lib/send-aos-message'
+import appConfig from '../app-config'
 
 interface CheeseMint {
   points: number
@@ -45,7 +46,6 @@ export interface Achievement extends CheeseMint {
   isNew?: boolean
 }
 
-const PROCESS_ID = 'sDQbE8v-k7hLxys85n256Xwk9AUI1-p1GbSSox652ks'
 const STORAGE_KEY = 'wuzzy_seen_achievements'
 
 // Shared state across all instances
@@ -102,7 +102,7 @@ async function fetchAchievementsState(address: string, force = false) {
   try {
     isLoading.value = true
     const { result } = await sendAosDryRun({
-      processId: PROCESS_ID,
+      processId: appConfig.achievementsProcessId,
       tags: [
         { name: 'Action', value: 'Get-Cheese-Mints-By-Address' },
         { name: 'Address', value: address }
