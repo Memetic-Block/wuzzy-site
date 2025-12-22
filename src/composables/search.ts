@@ -6,6 +6,8 @@ import type { ApplicationType } from '../types/analytics'
 import { useGraphQL, type TransactionConnection } from './gql'
 import { useAnalytics } from './analytics'
 import { analyticsQueue } from './analytics-queue'
+import { useWallet } from './wallet'
+import { useAchievements } from './achievements'
 
 /**
  * Media Search Composable
@@ -15,6 +17,8 @@ export function useMediaSearch(options: MediaSearchOptions) {
   const router = useRouter()
   const { getTransactions, getTransactionCount } = useGraphQL()
   const analytics = useAnalytics()
+  const { address } = useWallet()
+  const { refreshAchievements } = useAchievements(address)
 
   const resultsPerPage = options.resultsPerPage || 20
 
@@ -247,6 +251,7 @@ export function useMediaSearch(options: MediaSearchOptions) {
     } finally {
       loading.value = false
       isSearching.value = false
+      refreshAchievements()
     }
   }
 

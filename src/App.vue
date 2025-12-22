@@ -231,8 +231,8 @@
 
 .menu-notification-dot {
   position: absolute;
-  top: 50%;
-  right: 8px;
+  top: 40%;
+  right: -1px;
   transform: translateY(-50%);
   width: 8px;
   height: 8px;

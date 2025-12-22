@@ -102,10 +102,12 @@ import { convertToWayfinderUrl, convertToHttpsUrl } from '../lib/utils'
 import { useSeoMeta } from '@unhead/vue'
 import { useWallet } from '../composables/wallet'
 import { useWalletAnalytics } from '../composables/wallet-analytics'
+import { useAchievements } from '../composables/achievements'
 
 const route = useRoute()
-const wallet = useWallet()
+const { address } = useWallet()
 const walletAnalytics = useWalletAnalytics()
+const { refreshAchievements } = useAchievements(address)
 const searchResults = ref<SearchResults | null>(null)
 const isSearchPending = ref(false)
 const hasSearchError = ref(false)
@@ -188,8 +190,8 @@ async function search(query: LocationQuery) {
       }
 
       // Include wallet address if user has consented to wallet analytics
-      if (wallet.address.value && walletAnalytics.hasWalletConsent(wallet.address.value)) {
-        headers['X-Wallet-Address'] = wallet.address.value
+      if (address.value && walletAnalytics.hasWalletConsent(address.value)) {
+        headers['X-Wallet-Address'] = address.value
       }
 
       const response = await fetch(`${config.searchApiUrl}/search?q=${q}`, {
@@ -215,5 +217,6 @@ async function search(query: LocationQuery) {
   }
 
   isSearchPending.value = false
+  refreshAchievements()
 }
 </script>
