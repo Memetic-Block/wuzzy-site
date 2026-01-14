@@ -127,9 +127,12 @@
     
     <!-- Cookie Consent Banner -->
     <CookieConsent />
-    
+
     <!-- Wallet Consent Banner -->
     <WalletConsent />
+
+    <!-- Wallet Not Found Dialog -->
+    <WalletNotFoundDialog />
     
     <footer class="mt-auto pb-2 pt-12">
       <img
@@ -261,6 +264,7 @@ import { useHead } from '@unhead/vue'
 import GlobalAudioPlayer from './components/GlobalAudioPlayer.vue'
 import CookieConsent from './components/CookieConsent.vue'
 import WalletConsent from './components/WalletConsent.vue'
+import WalletNotFoundDialog from './components/WalletNotFoundDialog.vue'
 import { useAnalytics } from './composables/analytics'
 import { useAchievements } from './composables/achievements'
 
