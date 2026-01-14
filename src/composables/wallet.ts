@@ -14,6 +14,7 @@ const PERMISSIONS: PermissionType[] = [
 const address = ref<string>('')
 const walletWasCheckedOnLoad = ref(false)
 const isConnecting = ref<boolean>(false)
+const showWalletNotFoundDialog = ref<boolean>(false)
 
 // Helper function to set address
 async function setAddress(newAddress?: string) {
@@ -78,6 +79,7 @@ export function useWallet() {
   async function connect() {
     if (!window.arweaveWallet) {
       console.error('Arweave Wallet not found')
+      showWalletNotFoundDialog.value = true
       return
     }
 
@@ -119,6 +121,7 @@ export function useWallet() {
     connect,
     disconnect,
     walletWasCheckedOnLoad,
-    getAddress
+    getAddress,
+    showWalletNotFoundDialog
   }
 }
