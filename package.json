@@ -11,9 +11,11 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@permaweb/aoconnect": "0.0.90",
+    "@ar.io/sdk": "^3.23.1",
+    "@permaweb/aoconnect": "0.0.93",
     "@radix-icons/vue": "1.0.0",
     "@tailwindcss/vite": "^4.1.14",
+    "@tanstack/vue-query": "^5.92.9",
     "@unhead/vue": "^2.0.19",
     "@vueuse/core": "^13.9.0",
     "class-variance-authority": "^0.7.1",
@@ -28,7 +30,6 @@
     "vue-router": "^4.6.3"
   },
   "devDependencies": {
-    "@ar.io/sdk": "^3.18.3",
     "@ardrive/turbo-sdk": "^1.32.1",
     "@vitejs/plugin-vue": "^6.0.0",
     "@vue/tsconfig": "^0.7.0",

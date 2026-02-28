@@ -1,14 +1,24 @@
 <template>
   <div class="flex flex-col min-h-screen px-4">
     <header class="items-center py-5 relative">
-      <div class="grid grid-cols-6 gap-4">
-        <!-- TODO: fix mobile layout of header -->
-
+      <div
+        class="flex"
+        :class="{
+          'flex-col-reverse': route.path === '/',
+          'justify-between': route.path !== '/'
+        }"
+      >
         <!-- Logo -->
-        <div class="text-center col-span-2 col-start-3 items-center select-none">
-          <a href="/" class="inline-block align-middle mr-2">
+        <div
+          class="flex text-center items-center select-none"
+          :class="{
+            'flex-row': route.path !== '/',
+            'flex-col': route.path === '/'
+          }"
+        >
+          <router-link to="/" class="inline-block align-middle mr-2">
             <img
-              class="transition-scale duration-300 ease-in-out"
+              class="select-none transition-scale duration-300 ease-in-out"
               :class="{
                 'size-32!': route.path === '/',
                 'size-8!': route.path !== '/'
@@ -26,15 +36,20 @@
               alt="Wuzzy Logo"
               v-else-if="mode === 'dark'"
             />
-          </a>
+            </router-link>
           <h1 class="inline-block text-xl! font-normal! mt-0! mb-0! align-middle">
-            <a href="/"> Wuzzy Permaweb Search </a>
+            <a href="/"> Wuzzy Search </a>
           </h1>
         </div>
 
-        <div class="col-span-2 text-right">
+        <!-- App Menus -->
+        <div class="flex flex-row gap-4 ml-auto">
+          <div v-if="AppConfig.enableWuzzyConsole" class="self-center">
+            <router-link to="/console">Console</router-link>
+          </div>
+
           <!-- Connect Menu -->
-          <div class="inline-block align-top mr-2">
+          <div>
             <DropdownMenu v-if="isConnected">
               <DropdownMenuTrigger as-child>
                 <Button size="sm" class="select-none cursor-pointer relative">
@@ -44,7 +59,7 @@
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem @select="goToAchievements" class="cursor-pointer relative">
+                <DropdownMenuItem @select="router.push('/achievements')" class="cursor-pointer relative">
                   Achievements
                   <span v-if="hasNewAchievements" class="menu-notification-dot"></span>
                 </DropdownMenuItem>
@@ -75,26 +90,27 @@
           </div>
 
           <!-- Settings Menu -->
-          <div class="inline-block align-top">
+          <div>
             <DropdownMenu>
               <DropdownMenuTrigger as-child>
                 <Button
                   size="sm"
-                  variant="ghost"
+                  variant="outline"
                   class="cursor-pointer md:relative md:right-0 select-none"
                 >
                   <DesktopIcon v-if="mode === 'auto'" class="size-4 md:size-auto" />
                   <MoonIcon v-else-if="mode === 'dark'" class="size-4 md:size-auto" />
                   <SunIcon v-else class="size-4 md:size-auto" />
-                  <!-- <span class="hidden md:inline"> -->
+                  <span class="hidden md:inline">
                     Settings
-                  <!-- </span> -->
+                  </span>
                   <ChevronDownIcon class="hidden md:inline" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuItem>
                   <router-link to="/settings" >
+                    <GearIcon class="inline-block" />
                     Settings
                   </router-link>
                 </DropdownMenuItem>
@@ -143,38 +159,44 @@
       />
       <img v-else class="footer-wuzzy-logo" src="/wuzzy.png" alt="Wuzzy" />
       <p class="footer-credits">
-        <a class="underline" href="/about">About</a>
+        <router-link class="underline" to="/about">About</router-link>
         &nbsp;
         <a
           class="underline"
-          href="https://docs_wuzzy.arweave.net"
+          to="https://docs_wuzzy.arweave.net"
           target="_blank"
-          >Docs</a
-        >
+          rel="noopener"
+        >Docs</a>
         &nbsp;
         <a
           class="underline"
           href="https://github.com/memetic-block/wuzzy"
           target="_blank"
-          >GitHub</a
-        >
+          rel="noopener"
+        >GitHub</a>
         &nbsp;
-        <a class="underline" href="https://x.com/wuzzysearch" target="_blank"
-          >x.com/wuzzysearch</a
-        >
+        <a
+          class="underline"
+          href="https://x.com/wuzzysearch"
+          target="_blank"
+          rel="noopener"
+        >x.com/wuzzysearch</a>
         &nbsp;
-        <a class="underline" href="/privacy">Privacy</a>
+        <router-link class="underline" to="/privacy">Privacy</router-link>
         &nbsp;
-        <a class="underline" href="/terms">Terms</a>
+        <router-link class="underline" to="/terms">Terms</router-link>
       </p>
       <p class="footer-credits">
         Built &amp; Operated by
-        <a class="underline" href="https://memeticblock.com" target="_blank"
-          >Memetic Block</a
-        >
+        <a
+          class="underline"
+          href="https://memeticblock.com"
+          target="_blank"
+          rel="noopener"
+        >Memetic Block</a>
       </p>
       <p class="footer-credits">
-        <a class="underline" target="_blank" :href="versionUrl">{{
+        <a class="underline" target="_blank" rel="noopener noreferrer" :href="versionUrl">{{
           versionLabel
         }}</a>
         @ {{ AppConfig.versionTimestamp }}
@@ -256,9 +278,9 @@ import DropdownMenuItem from './components/ui/dropdown-menu/DropdownMenuItem.vue
 import DropdownMenuSeparator from './components/ui/dropdown-menu/DropdownMenuSeparator.vue'
 import AppConfig from './app-config'
 import { useColorMode } from '@vueuse/core'
-import { ref, provide, onMounted } from 'vue'
+import { ref, provide, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { SunIcon, MoonIcon, DesktopIcon } from '@radix-icons/vue'
+import { SunIcon, MoonIcon, DesktopIcon, GearIcon } from '@radix-icons/vue'
 import { headOptions } from './head'
 import { useHead } from '@unhead/vue'
 import GlobalAudioPlayer from './components/GlobalAudioPlayer.vue'
@@ -267,6 +289,7 @@ import WalletConsent from './components/WalletConsent.vue'
 import WalletNotFoundDialog from './components/WalletNotFoundDialog.vue'
 import { useAnalytics } from './composables/analytics'
 import { useAchievements } from './composables/achievements'
+import { useQueryClient } from '@tanstack/vue-query'
 
 const { address, connect, disconnect, isConnected, isConnecting } = useWallet()
 const { hasNewAchievements } = useAchievements(address)
@@ -305,7 +328,6 @@ const versionLabel =
 
 useHead(headOptions)
 
-function goToAchievements() {
-  router.push('/achievements')
-}
+const queryClient = useQueryClient()
+watch(address, () => queryClient.invalidateQueries({ queryKey: ['my-arns'] }))
 </script>
