@@ -44,10 +44,10 @@
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem @select="goToAchievements" class="cursor-pointer relative">
+                <!-- <DropdownMenuItem @select="goToAchievements" class="cursor-pointer relative">
                   Achievements
                   <span v-if="hasNewAchievements" class="menu-notification-dot"></span>
-                </DropdownMenuItem>
+                </DropdownMenuItem> -->
                 <DropdownMenuSeparator />
                 <DropdownMenuItem @select="disconnect" class="cursor-pointer">
                   Disconnect

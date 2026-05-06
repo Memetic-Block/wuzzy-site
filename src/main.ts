@@ -18,7 +18,7 @@ import AudioSearchView from './views/audio-search.vue'
 import PrivacyView from './views/privacy.vue'
 import TermsView from './views/terms.vue'
 import SettingsView from './views/settings.vue'
-import AchievementsView from './views/achievements.vue'
+// import AchievementsView from './views/achievements.vue'
 
 const routes = [
   { path: '/', component: IndexView },
@@ -34,7 +34,7 @@ const routes = [
   { path: '/privacy', component: PrivacyView },
   { path: '/terms', component: TermsView },
   { path: '/settings', component: SettingsView },
-  { path: '/achievements', component: AchievementsView }
+  // { path: '/achievements', component: AchievementsView }
 ]
 
 export const createApp = ViteSSG(
