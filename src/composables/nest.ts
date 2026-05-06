@@ -2,10 +2,11 @@ import AppConfig from '@/app-config'
 import { sendAosDryRun } from '../lib/send-aos-message'
 import { useAoConnect } from './ao-connect'
 
-export function useNests() {
+export function useNest() {
 
   const spawnNest = async (processName: string, registrationCode: string) => {
     const ao = useAoConnect()
+    console.log(`Spawning new nest with name [${processName}] and registration code [${registrationCode}]...`)
     const nestId = await ao.spawn({
       processName,
       tags: [

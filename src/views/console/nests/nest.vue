@@ -37,13 +37,13 @@
 import { useQuery } from '@tanstack/vue-query'
 import { useSeoMeta } from '@unhead/vue'
 import { useWallet } from '@/composables/wallet'
-import { useNests } from '@/composables/nest'
+import { useNest } from '@/composables/nest'
 import { useRoute } from 'vue-router'
 
 useSeoMeta({ title: 'Permaweb Console: Nests' })
 const route = useRoute()
 const { address, isConnected } = useWallet()
-const { getNestById } = useNests()
+const { getNestById } = useNest()
 const {
   data: nest,
   isPending: isNestPending,

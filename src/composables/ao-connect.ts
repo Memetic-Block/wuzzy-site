@@ -43,7 +43,11 @@ export function useAoConnect() {
       SCHEDULER: AppConfig.scheduler
     })
     // TODO -> Cache source data to avoid fetching from Arweave on every eval
-    const data = await fetch(`${AppConfig.gatewayEndpoint}/${options.sourceTxId}`).then(res => res.text())
+    const res = await fetch(`${AppConfig.gatewayEndpoint}/${options.sourceTxId}`)
+    if (!res.ok) {
+      throw new Error(`Failed to fetch source data for eval: ${res.statusText}`)
+    }
+    const data = await res.text()
     return ao.message({
       process: options.processId,
       data,

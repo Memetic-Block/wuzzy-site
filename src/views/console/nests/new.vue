@@ -8,14 +8,14 @@
     <template v-if="registry">
       <div class="border-current border-2 flex flex-row">
         <div class="basis-1/3 p-4 border-current border-r-2 whitespace-nowrap">Nest Name</div>
-        <input type="text" class="p-4 border-current border-r-2 w-full" />
+        <input type="text" ref="nestName" class="p-4 border-current border-r-2 w-full" />
       </div>
       <div
         v-if="registry.registration_code_required"
         class="border-current border-2 flex flex-row"
       >
         <div class="basis-1/3 p-4 border-current border-r-2 whitespace-nowrap">Registration Code</div>
-        <input type="text" class="p-4 border-current border-r-2 w-full" />
+        <input type="text" ref="registrationCode" class="p-4 border-current border-r-2 w-full" />
       </div>
     </template>
     <div v-else-if="isRegistryPending" class="border-current border-2 p-4">
@@ -29,11 +29,16 @@
     </div>
     <div class="h-4 border-current border-l-2 border-r-2 border-dotted"></div>
     <div class="flex flex-row justify-between">
-      <router-link
-        v-if="registry"
+      <button
         class="cursor-pointer border-current border-2 p-4 bg-blue-900"
-        to="/console/nests/new"
-      >Spawn new Nest</router-link>
+        @click="() => spawnNewNest()"
+        :disabled="isSpawnNestPending"
+      >
+        <template v-if="isSpawnNestPending">Creating...</template>
+        <template v-else-if="isSpawnNestError">Error ! {{ spawnNestError?.message }}</template>
+        <template v-else-if="isSpawnNestSuccess">Nest created ! Check console for details.</template>
+        <template v-else>Spawn new Nest</template>
+      </button>
       <router-link
         class="self-end border-current border-2 p-4"
         to="/console/nests"
@@ -44,16 +49,18 @@
 </template>
 
 <script setup lang="ts">
-import { useQuery } from '@tanstack/vue-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/vue-query'
 import { useSeoMeta } from '@unhead/vue'
 import { useWallet } from '@/composables/wallet'
-// import { useLegacynetNests } from '@/composables/nest'
 import { useNestRegistry } from '@/composables/nest-registry'
+import { useNest } from '@/composables/nest'
+import { ref } from 'vue'
 
 useSeoMeta({ title: 'Permaweb Console: Spawn new Nest' })
+const queryClient = useQueryClient()
 const { address, isConnected } = useWallet()
-// const { getNestById } = useLegacynetNests()
 const { getNestRegistryState } = useNestRegistry()
+const { spawnNest } = useNest()
 const {
   data: registry,
   isPending: isRegistryPending,
@@ -63,5 +70,17 @@ const {
   queryKey: ['registry'],
   queryFn: () => getNestRegistryState(),
   enabled: () => isConnected.value && !!address.value
+})
+const newNestName = ref('')
+const newNestRegistrationCode = ref('')
+const {
+  isPending: isSpawnNestPending,
+  isError: isSpawnNestError,
+  error: spawnNestError,
+  isSuccess: isSpawnNestSuccess,
+  mutate: spawnNewNest
+} = useMutation({
+  mutationFn: () => spawnNest(newNestName.value, newNestRegistrationCode.value),
+  onSuccess: () => queryClient.invalidateQueries({ queryKey: ['registry'] })
 })
 </script>
