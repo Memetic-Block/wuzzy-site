@@ -257,7 +257,10 @@ import DropdownMenuSeparator from './components/ui/dropdown-menu/DropdownMenuSep
 import AppConfig from './app-config'
 import { useColorMode } from '@vueuse/core'
 import { ref, provide, onMounted } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import {
+  useRoute,
+  // useRouter
+} from 'vue-router'
 import { SunIcon, MoonIcon, DesktopIcon } from '@radix-icons/vue'
 import { headOptions } from './head'
 import { useHead } from '@unhead/vue'
@@ -271,7 +274,7 @@ import { useAchievements } from './composables/achievements'
 const { address, connect, disconnect, isConnected, isConnecting } = useWallet()
 const { hasNewAchievements } = useAchievements(address)
 const analytics = useAnalytics()
-const router = useRouter()
+// const router = useRouter()
 const route = useRoute()
 
 // Initialize analytics on app mount
@@ -305,7 +308,7 @@ const versionLabel =
 
 useHead(headOptions)
 
-function goToAchievements() {
-  router.push('/achievements')
-}
+// function goToAchievements() {
+//   router.push('/achievements')
+// }
 </script>
