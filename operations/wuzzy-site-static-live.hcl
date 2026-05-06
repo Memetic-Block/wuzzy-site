@@ -96,8 +96,8 @@ job "wuzzy-site-static-live" {
         echo "Deploying static site to Cloudflare Pages"
         npm run deploy:static
 
-        echo "Deploying static site to Arweave"
-        npm run deploy:arweave
+        # echo "Deploying static site to Arweave"
+        # npm run deploy:arweave
 
         echo "Static site deployment complete"
         EOF
