@@ -85,7 +85,6 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import config from '../app-config'
 import Input from './ui/input/Input.vue'
 import Button from './ui/button/Button.vue'
 
