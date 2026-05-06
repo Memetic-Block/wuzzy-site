@@ -55,12 +55,6 @@
         >
           Audio
         </div>
-        <div
-          @mousedown.prevent="onSearchModeChange('Hyperbeam')"
-          class="px-2 py-1.5 text-sm cursor-pointer hover:bg-accent hover:text-accent-foreground rounded-sm mx-1 whitespace-nowrap"
-        >
-          HyperBEAM (Demo)
-        </div>
       </div>
     </div>
 
@@ -99,7 +93,6 @@ interface Props {
   initialQuery?: string
   initialMode?:
     | 'ARNS'
-    | 'Hyperbeam'
     | 'Transactions'
     | 'Images'
     | 'Audio'
@@ -115,21 +108,18 @@ const props = withDefaults(defineProps<Props>(), {
 
 const emit = defineEmits<{
   modeChanged: [
-    mode: 'ARNS' | 'Hyperbeam' | 'Transactions' | 'Images' | 'Audio' | 'Video'
+    mode: 'ARNS' | 'Transactions' | 'Images' | 'Audio' | 'Video'
   ]
 }>()
 
 const router = useRouter()
 const searchQuery = ref(props.initialQuery)
 const searchMode = ref<
-  'ARNS' | 'Hyperbeam' | 'Transactions' | 'Images' | 'Audio' | 'Video'
+  'ARNS' | 'Transactions' | 'Images' | 'Audio' | 'Video'
 >(props.initialMode)
 const dropdownOpen = ref(false)
 
 const searchModeDisplay = computed(() => {
-  if (searchMode.value === 'Hyperbeam') {
-    return 'HyperBEAM (Demo)'
-  }
   if (searchMode.value === 'Video') {
     return 'Videos'
   }
@@ -157,7 +147,7 @@ const onDropdownBlur = () => {
 }
 
 const onSearchModeChange = (
-  mode: 'ARNS' | 'Hyperbeam' | 'Transactions' | 'Images' | 'Audio' | 'Video'
+  mode: 'ARNS' | 'Transactions' | 'Images' | 'Audio' | 'Video'
 ) => {
   searchMode.value = mode
   dropdownOpen.value = false
@@ -170,7 +160,7 @@ const onSearchModeChange = (
 
 // Helper function to navigate to search with mode-specific paths and query preservation
 function navigateToSearch(
-  mode: 'ARNS' | 'Hyperbeam' | 'Transactions' | 'Images' | 'Audio' | 'Video',
+  mode: 'ARNS' | 'Transactions' | 'Images' | 'Audio' | 'Video',
   query: string,
   preserveFormat = false
 ) {
@@ -181,13 +171,6 @@ function navigateToSearch(
     case 'ARNS':
       router.push({
         path: '/search',
-        query: { q: query }
-      })
-      break
-
-    case 'Hyperbeam':
-      router.push({
-        path: `/nest/${config.primaryNestId}/search`,
         query: { q: query }
       })
       break
@@ -269,7 +252,7 @@ defineExpose({
     searchQuery.value = query
   },
   setMode: (
-    mode: 'ARNS' | 'Hyperbeam' | 'Transactions' | 'Images' | 'Audio' | 'Video'
+    mode: 'ARNS' | 'Transactions' | 'Images' | 'Audio' | 'Video'
   ) => {
     searchMode.value = mode
   }
