@@ -1,5 +1,6 @@
 import { reactive } from 'vue'
 import config from '../app-config'
+import { filterWithheld, isWithheld } from '../lib/takedowns'
 
 // Types based on the Arweave GraphQL schema
 export interface Tag {
@@ -218,6 +219,7 @@ export function useGraphQL() {
 
   /**
    * Get transaction count only (lightweight query)
+   * Counted server-side, so takedown-covered transactions are still included
    */
   async function getTransactionCount(options: {
     ids?: string[]
@@ -468,13 +470,23 @@ export function useGraphQL() {
 
     // No variables needed with direct parameter approach
     const result = await query<{ transactions: TransactionConnection }>(queryString)
-    return result.data?.transactions || { pageInfo: { hasNextPage: false }, edges: [] }
+    const transactions = result.data?.transactions
+
+    if (!transactions) {
+      return { pageInfo: { hasNextPage: false }, edges: [] }
+    }
+
+    return { ...transactions, edges: filterWithheld(transactions.edges) }
   }
 
   /**
    * Get a single transaction by ID
    */
   async function getTransaction(id: string): Promise<Transaction | null> {
+    if (isWithheld(id)) {
+      return null
+    }
+
     const queryString = `
       query GetTransaction($id: ID!) {
         transaction(id: $id) {
