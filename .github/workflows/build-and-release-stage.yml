@@ -57,8 +57,9 @@ jobs:
       #     [[ "${{ github.ref }}" == "refs/tags/"* ]] && VERSION=$(echo $VERSION | sed -e 's/^v//')
       #     [ "$VERSION" == "master" ] && VERSION=stage
       #     COMMIT_TIMESTAMP_ISO=$(date -u -d "${{ github.event.head_commit.timestamp }}" +"%Y-%m-%dT%H:%M:%SZ")
-      #     sed -i "s/\[\[ .release_tag \]\]/${VERSION}/g" operations/wuzzy-site-static-stage.hcl
-      #     sed -i "s/\[\[ .commit_timestamp \]\]/${COMMIT_TIMESTAMP_ISO}/g" operations/wuzzy-site-static-stage.hcl
-      #     sed -i "s/\[\[ .commit_sha \]\]/${{ github.sha }}/g" operations/wuzzy-site-static-stage.hcl
       #
-      #     nomad job run operations/wuzzy-site-static-stage.hcl
+      #     nomad job run \
+      #       -var="commit_sha=${{ github.sha }}" \
+      #       -var="commit_timestamp=${COMMIT_TIMESTAMP_ISO}" \
+      #       -var="release_tag=${VERSION}" \
+      #       operations/wuzzy-site-static-stage.hcl

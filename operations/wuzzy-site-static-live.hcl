@@ -1,3 +1,18 @@
+variable "commit_sha" {
+  type        = string
+  description = "Git sha being deployed. Also selects the container image tag."
+}
+
+variable "commit_timestamp" {
+  type        = string
+  description = "Commit time, ISO 8601 UTC."
+}
+
+variable "release_tag" {
+  type        = string
+  description = "Release identifier shown in the site footer."
+}
+
 job "wuzzy-site-static-live" {
   datacenters = ["mb-hel"]
   type = "batch"
@@ -18,7 +33,7 @@ job "wuzzy-site-static-live" {
       driver = "docker"
 
       config {
-        image = "${CONTAINER_REGISTRY_ADDR}/memetic-block/wuzzy-site:${VITE_VERSION_SHA}"
+        image = "ghcr.io/memetic-block/wuzzy-site:${VITE_VERSION_SHA}"
         entrypoint = [ "/workdir/entrypoint.sh" ]
         mount {
           type = "bind"
@@ -34,9 +49,9 @@ job "wuzzy-site-static-live" {
         PROJECT_NAME="wuzzy-site-live"
         PRIVATE_KEY="/usr/src/app/wallet.json"
         ANT_PROCESS_ID="-Kkir7ML3cb2XCyeD8lUbl1g8tfivrB_0xkzPeChVjM"
-        VITE_VERSION_SHA="[[ .commit_sha ]]"
-        VITE_VERSION_TIMESTAMP="[[ .commit_timestamp ]]"
-        VITE_RELEASE_TAG="[[ .release_tag ]]"
+        VITE_VERSION_SHA="${var.commit_sha}"
+        VITE_VERSION_TIMESTAMP="${var.commit_timestamp}"
+        VITE_RELEASE_TAG="${var.release_tag}"
         # VITE_REGISTRY_PROCESS_ID="PJVif9KTSNZ2pYrt18Wn976SJjCLuvs3dj7r5Oh2xXQ"
         # VITE_PRIMARY_NEST_ID="1X_nt5ctoJTw6Dc3M6x34_lFTWGTl-jhW8MY7Vff4fA"
         # VITE_HYPERBEAM_ENDPOINT="https://wuzzy-hyperbeam.hel.memeticblock.net"
@@ -46,16 +61,6 @@ job "wuzzy-site-static-live" {
         VITE_SITE_HOSTNAME="https://wuzzy.io"
         VITE_ALLOW_INDEXING="true"
         # VITE_ACHIEVEMENTS_PROCESS_ID="uvwZhbu8XTiS3vGlgn7OlaEV_r84opf7VjoNns0w3kY"
-      }
-
-      template {
-        data = <<-EOF
-        {{- range service "container-registry" }}
-        CONTAINER_REGISTRY_ADDR="{{ .Address }}:{{ .Port }}"
-        {{- end }}
-        EOF
-        env = true
-        destination = "local/env"
       }
 
       vault {
